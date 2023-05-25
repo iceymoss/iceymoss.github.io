@@ -5,7 +5,125 @@
     <link>https://iceymoss.github.io/post/</link>
     <description>Recent content in Posts on iceymoss - 刻意练习，卷无止境</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language><atom:link href="https://iceymoss.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 25 May 2023 20:21:43 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>「前端开发」css入门之选择器与伪类</title>
+      <link>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91css%E5%85%A5%E9%97%A8%E4%B9%8B%E9%80%89%E6%8B%A9%E5%99%A8%E4%B8%8E%E4%BC%AA%E7%B1%BB/</link>
+      <pubDate>Thu, 25 May 2023 20:21:43 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91css%E5%85%A5%E9%97%A8%E4%B9%8B%E9%80%89%E6%8B%A9%E5%99%A8%E4%B8%8E%E4%BC%AA%E7%B1%BB/</guid>
+      <description>[toc] 标签选择器 就是使用html标签名作为选择器，进行css样式的添加 /* 将选择html页面中所有的h3标签，无论h3标签位置的深浅 */ h3 { color: blueviolet; background-color: rgb(26,</description>
+    </item>
+    
+    <item>
+      <title>「前端开发」css入门之基础语法</title>
+      <link>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91css%E5%85%A5%E9%97%A8%E4%B9%8B%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/</link>
+      <pubDate>Thu, 25 May 2023 20:21:03 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91css%E5%85%A5%E9%97%A8%E4%B9%8B%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/</guid>
+      <description>[toc] 概况 CSS中文名：层叠式样式表，用来给html添加样式的语言 前端三层 分类 语言 功能 结构层 HTML 搭建结构、放置部件、语义描述 样式层 CSS 美化页面、实现</description>
+    </item>
+    
+    <item>
+      <title>「前端开发」html入门表单与属性</title>
+      <link>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E8%A1%A8%E5%8D%95%E4%B8%8E%E5%B1%9E%E6%80%A7/</link>
+      <pubDate>Thu, 25 May 2023 20:20:21 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E8%A1%A8%E5%8D%95%E4%B8%8E%E5%B1%9E%E6%80%A7/</guid>
+      <description>[toc] 表单的创建 表单是什么 表单是用来采集信息，比如我们的登录、注册、发表评论、购买商品等等，都需要使用表单来提交信息然后给到后台服务器。 表单标签</description>
+    </item>
+    
+    <item>
+      <title>「前端开发」html入门表格标签与属性</title>
+      <link>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E8%A1%A8%E6%A0%BC%E6%A0%87%E7%AD%BE%E4%B8%8E%E5%B1%9E%E6%80%A7/</link>
+      <pubDate>Thu, 25 May 2023 20:19:41 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E8%A1%A8%E6%A0%BC%E6%A0%87%E7%AD%BE%E4%B8%8E%E5%B1%9E%E6%80%A7/</guid>
+      <description>[toc] 表格标签 table table用来定义表格 &amp;lt;table&amp;gt;&amp;lt;/table&amp;gt; tr 定义表格的行 &amp;lt;table&amp;gt; &amp;lt;tr&amp;gt; &amp;lt;td&amp;gt;第一行&amp;lt;/td&amp;gt; &amp;lt;/tr&amp;gt; &amp;lt;tr&amp;gt; &amp;lt;td&amp;gt;第二行&amp;lt;</description>
+    </item>
+    
+    <item>
+      <title>「前端开发」html入门多媒体和语义化</title>
+      <link>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E5%92%8C%E8%AF%AD%E4%B9%89%E5%8C%96/</link>
+      <pubDate>Thu, 25 May 2023 20:18:48 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E5%92%8C%E8%AF%AD%E4%B9%89%E5%8C%96/</guid>
+      <description>[toc] 概况 下面我们来介绍一下多媒体和语义化标签的使用 音频audio autoplay属性 autoplay会自动播放音频，但是有点浏览器可能会不允许</description>
+    </item>
+    
+    <item>
+      <title>「前端开发」html入门列表标签</title>
+      <link>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E5%88%97%E8%A1%A8%E6%A0%87%E7%AD%BE/</link>
+      <pubDate>Thu, 25 May 2023 20:17:39 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E5%88%97%E8%A1%A8%E6%A0%87%E7%AD%BE/</guid>
+      <description>[toc] 概况 我们下面来学习html的三种列表 标签 标签名称 &amp;lt;ul&amp;gt;&amp;lt;/ul&amp;gt; 无序列表 &amp;lt;ol&amp;gt;&amp;lt;/ol&amp;gt; 有序列表 &amp;lt;dl&amp;gt;&amp;lt;/dl&amp;gt; 定义列表 无序列表 无序列表指没有刻意的排序, 无序列表使用&amp;lt;ul&amp;</description>
+    </item>
+    
+    <item>
+      <title>「前端开发」html入门之初识html</title>
+      <link>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E4%B9%8B%E5%88%9D%E8%AF%86html/</link>
+      <pubDate>Thu, 25 May 2023 20:16:48 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E4%B9%8B%E5%88%9D%E8%AF%86html/</guid>
+      <description>[toc] html骨架 在详细信息html前先看一下html的基本骨架 &amp;lt;!DOCTYPE html&amp;gt; &amp;lt;html lang=&amp;#34;en&amp;#34;&amp;gt; &amp;lt;head&amp;gt; &amp;lt;meta charset=&amp;#34;UTF-8&amp;#34;&amp;gt; &amp;lt;title&amp;gt;小慕医生&amp;lt;/title&amp;gt; &amp;lt;meta name=&amp;#34;Description&amp;#34;,</description>
+    </item>
+    
+    <item>
+      <title>数据结构之trie树</title>
+      <link>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8Btrie%E6%A0%91/</link>
+      <pubDate>Thu, 25 May 2023 20:13:12 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8Btrie%E6%A0%91/</guid>
+      <description>[toc] 数据结构之Trie树 Trie定义 Trie 树，也叫「前缀树」或「字典树」，顾名思义，它是一个树形结构，专门用于处理字符串匹配，用来解决在一组字符串</description>
+    </item>
+    
+    <item>
+      <title>数据结构之并查集</title>
+      <link>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E5%B9%B6%E6%9F%A5%E9%9B%86/</link>
+      <pubDate>Thu, 25 May 2023 20:12:18 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E5%B9%B6%E6%9F%A5%E9%9B%86/</guid>
+      <description>[toc] 并查集基础 概念及其介绍 并查集是一种树型结构，用于处理一些不相交集合的合并及查询问题。 并查集的思想是用一个数组表示了整片森林（parent）</description>
+    </item>
+    
+    <item>
+      <title>数据结构之二分搜索树</title>
+      <link>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E4%BA%8C%E5%88%86%E6%90%9C%E7%B4%A2%E6%A0%91/</link>
+      <pubDate>Thu, 25 May 2023 20:11:27 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E4%BA%8C%E5%88%86%E6%90%9C%E7%B4%A2%E6%A0%91/</guid>
+      <description>[toc] 概念及其介绍 概念 二分搜索树（英语：Binary Search Tree），也称为 二叉查找树 、二叉搜索树 、有序二叉树或排序二叉树。满足以下几个条件： 每个节</description>
+    </item>
+    
+    <item>
+      <title>数据结构之堆及堆排序</title>
+      <link>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/</link>
+      <pubDate>Thu, 25 May 2023 20:10:08 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/</guid>
+      <description>[toc] 堆的定义 ***堆（heap）***是计算机科学中一类特殊的数据结构的统称。堆通常是一个可以被看做一棵树的数组对象。堆总是满足下列性质： 堆中</description>
+    </item>
+    
+    <item>
+      <title>排序算法之选择排序</title>
+      <link>https://iceymoss.github.io/post/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E4%B9%8B%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F/</link>
+      <pubDate>Thu, 25 May 2023 20:09:00 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E4%B9%8B%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F/</guid>
+      <description>[toc] 介绍 选择排序是一种简单直观的排序算法，无论什么数据进去都是 O(n²) 的时间复杂度。所以用到它的时候，数据规模越小越好。唯一的好处可能就是不</description>
+    </item>
+    
+    <item>
+      <title>MySQL知识总结</title>
+      <link>https://iceymoss.github.io/post/mysql%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</link>
+      <pubDate>Thu, 25 May 2023 19:43:09 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/mysql%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</guid>
+      <description>[toc] 基础篇 MySQL的数据类型 MySQL 中定义数据字段的类型对你数据库的优化是非常重要的。 MySQL 支持多种类型，大致可以分为三类：数值、日期/时间和字符串(</description>
+    </item>
+    
     <item>
       <title></title>
       <link>https://iceymoss.github.io/post/api%E6%96%87%E6%A1%A3%E8%AF%B4%E6%98%8E/</link>

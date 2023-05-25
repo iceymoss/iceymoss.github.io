@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「前端开发」css入门之基础语法 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「前端开发」css入门之基础语法"/>
+<meta name="twitter:description" content="[toc] 概况 CSS中文名：层叠式样式表，用来给html添加样式的语言 前端三层 分类 语言 功能 结构层 HTML 搭建结构、放置部件、语义描述 样式层 CSS 美化页面、实现"/>
+
+    <meta property="og:title" content="「前端开发」css入门之基础语法" />
+<meta property="og:description" content="[toc] 概况 CSS中文名：层叠式样式表，用来给html添加样式的语言 前端三层 分类 语言 功能 结构层 HTML 搭建结构、放置部件、语义描述 样式层 CSS 美化页面、实现" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91css%E5%85%A5%E9%97%A8%E4%B9%8B%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-05-25T20:21:03+08:00" />
+<meta property="article:modified_time" content="2023-05-25T20:21:03+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「前端开发」css入门之基础语法</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 25, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          3 min read
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>CSS中文名：层叠式样式表，用来给html添加样式的语言</p>
+<h3 id="前端三层">前端三层</h3>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>语言</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结构层</td>
+<td>HTML</td>
+<td>搭建结构、放置部件、语义描述</td>
+</tr>
+<tr>
+<td>样式层</td>
+<td>CSS</td>
+<td>美化页面、实现布局</td>
+</tr>
+<tr>
+<td>行为层</td>
+<td>JavaScrip</td>
+<td>实现交互效果、数据收发、表单验证等</td>
+</tr>
+</tbody>
+</table>
+<h3 id="选择器">选择器</h3>
+<p>css的出现实现了页面结构(html)和样式(css)的分离，他们的关联是使用: <strong>选择器</strong></p>
+<p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>          
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e">/* h1、h3、p是选择器，和html中标签对应 */</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">h1</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">brown</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">h3</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">aquamarine</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">p</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">blueviolet</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">h1</span>&gt;我是一级标题&lt;/<span style="color:#f92672">h1</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">h2</span>&gt;我是二级标题&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">h3</span>&gt;我是三级标题&lt;/<span style="color:#f92672">h3</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h4 id="class选择器">class选择器</h4>
+<p>当我们要选择特定的标签来添加样式时，可以通过html标签中class的值和css样式中名称关联起来</p>
+<p>实例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">spec-h2-2</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">aquamarine</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">spec-p-4</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">blueviolet</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">h2</span>&gt;我是一级标题&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">h2</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;spec-h2-2&#34;</span>&gt;我是二级标题&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">h2</span>&gt;我是三级标题&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">p</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;spec-p-4&#34;</span>&gt;我是一个段落&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="css书写位置">css书写位置</h3>
+<h4 id="内嵌式">内嵌式</h4>
+<p>就是写在html标签<code>&lt;style&gt;&lt;/style&gt;</code>中。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>   .<span style="color:#a6e22e">spec-h2-2</span> {
+</span></span><span style="display:flex;"><span>       	<span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">aquamarine</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>   .<span style="color:#a6e22e">spec-p-4</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">blueviolet</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">style</span>&gt;
+</span></span></code></pre></div><h4 id="外链式">外链式</h4>
+<p>将css样式单独写在后缀为<code>.css</code>的文件中，然后在html中使用<code>&lt;link&gt;&lt;/link&gt;</code>引入</p>
+<h5 id="rel属性">rel属性</h5>
+<p>表示关系，stylesheet就表示样式表</p>
+<h5 id="href属性">href属性</h5>
+<p>引入文件的路径</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">link</span> <span style="color:#a6e22e">rel</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;stylesheet&#34;</span> <span style="color:#a6e22e">href</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../css/style.css&#34;</span>&gt;
+</span></span></code></pre></div><h4 id="导入式">导入式</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>    @<span style="color:#66d9ef">import</span> <span style="color:#f92672">url</span><span style="color:#f92672">(../</span><span style="color:#f92672">css</span><span style="color:#f92672">/</span><span style="color:#f92672">style</span>.<span style="color:#a6e22e">css</span><span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span> &lt;/<span style="color:#f92672">style</span>&gt;
+</span></span></code></pre></div><h4 id="行内式">行内式</h4>
+<p>将样式直接写在html需要添加样式的标签上</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">h2</span> <span style="color:#a6e22e">style</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;color: darkorange; font-size: large; font-style: italic;&#34;</span>&gt;我是三级标题&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span></code></pre></div><h3 id="基本语法">基本语法</h3>
+<p>在后续的css内容中我们都以内嵌式和外链式的方式展示css样式，使用选择器进行关联(绑定)，然后使用key: value键值对，key表示属性，value表示属性值。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-css" data-lang="css"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">选择器</span> {
+</span></span><span style="display:flex;"><span>      key: value;
+</span></span><span style="display:flex;"><span>      <span style="color:#960050;background-color:#1e0010">……</span>;
+</span></span><span style="display:flex;"><span>      <span style="color:#960050;background-color:#1e0010">……</span>;
+</span></span><span style="display:flex;"><span>      <span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>实例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-css" data-lang="css"><span style="display:flex;"><span><span style="color:#f92672">&lt;</span><span style="color:#f92672">style</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">spec-h2-2</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">aquamarine</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">font-size</span>: <span style="color:#66d9ef">large</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">font-style</span>: <span style="color:#66d9ef">italic</span>
+</span></span><span style="display:flex;"><span>     }
+</span></span><span style="display:flex;"><span>     .<span style="color:#a6e22e">spec-p-4</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">color</span>: <span style="color:#66d9ef">blueviolet</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">background-color</span>: rgb(<span style="color:#ae81ff">26</span>, <span style="color:#ae81ff">216</span>, <span style="color:#ae81ff">22</span>);
+</span></span><span style="display:flex;"><span>     }
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/</span><span style="color:#f92672">style</span><span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div>
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
