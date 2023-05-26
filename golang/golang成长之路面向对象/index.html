@@ -1,540 +1,354 @@
-<!doctype html>
-<html lang="zh-cn">
-  <head>
-    <title>「Golang成长之路」面向对象 // iceymoss - 刻意练习，卷无止境</title>
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta charset="utf-8" />
-    <meta name="generator" content="Hugo 0.111.3">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="iceymoss" />
-    <meta name="description" content="" />
-    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
-
-    
-    <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="「Golang成长之路」面向对象"/>
-<meta name="twitter:description" content="[toc] 文章介绍 本文将以golang的”面向对象“为核心展开介绍结构体、面向对象思想、继承、封装、多态(基于接口)和接收者问题。 概述 go的面向对象"/>
-
-    <meta property="og:title" content="「Golang成长之路」面向对象" />
-<meta property="og:description" content="[toc] 文章介绍 本文将以golang的”面向对象“为核心展开介绍结构体、面向对象思想、继承、封装、多态(基于接口)和接收者问题。 概述 go的面向对象" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" /><meta property="article:section" content="golang" />
-<meta property="article:published_time" content="2023-05-25T19:50:51+08:00" />
-<meta property="article:modified_time" content="2023-05-25T19:50:51+08:00" />
-
-
-  </head>
-  <body>
-    <header class="app-header">
-      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
-      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
-      <nav class="app-header-menu">
-          <a class="app-header-menu-item" href="/">首页</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/archives/">归档</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/tags/">标签</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/categories/">类别</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/about/">关于</a>
-      </nav>
-      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
-    </header>
-    <main class="app-container">
-      
-  <article class="post">
-    <header class="post-header">
-      <h1 class ="post-title">「Golang成长之路」面向对象</h1>
-      <div class="post-meta">
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
-  <title>calendar</title>
-  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-</svg>
-          May 25, 2023
-        </div>
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
-  <title>clock</title>
-  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-</svg>
-          6 min read
-        </div>
-      </div>
-    </header>
-    <div class="post-content">
-      <p>[toc]</p>
-<h3 id="文章介绍">文章介绍</h3>
-<p>本文将以golang的”面向对象“为核心展开介绍结构体、面向对象思想、继承、封装、多态(基于接口)和接收者问题。</p>
-<h3 id="概述">概述</h3>
-<p>go的面向对象和其它的面向语言并不太相同。go是没有类的概念的，只需要使用<code>struct</code>就可以完成类的工作，在go中数据是数据，方法是方法，二者比较独立。其次go对继承的实现更像是“组合”。go的接口是鸭子类型：只要你像个鸭子，那么我就认为你是个鸭子，而不需要显式的实现接口。
-面向对象的三个特征：继承、封装、多态 go都可以实现。（多态需要基于接口实现)。</p>
-<h3 id="结构体">结构体</h3>
-<p>在上面说过：“Go 语言中的 struct 和 其他编程语言中的 class 具有同等地位”
-对结构体的定义使用如下关键字：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#960050;background-color:#1e0010">标识符</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">field1</span> <span style="color:#66d9ef">type</span>
-</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">field2</span> <span style="color:#66d9ef">type</span>
-</span></span><span style="display:flex;"><span> }
-</span></span></code></pre></div><p>例如:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 构建一个二叉树的结构体
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">Value</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">Left</span>, <span style="color:#a6e22e">right</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>那么怎么来创建 Node 呢？即实例化：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// 构建一个二叉树的结构体
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">Value</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">Left</span>, <span style="color:#a6e22e">Right</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mian</span>(){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">root</span> <span style="color:#a6e22e">Node</span> <span style="color:#75715e">//创建一个根节点
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//root ：= Node{} 
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span> = <span style="color:#a6e22e">Node</span>{<span style="color:#a6e22e">Value</span>: <span style="color:#ae81ff">3</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//root.left = &amp;Node{}  没有给值时，则默认值为0
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//left和right在结构体中都是指针需要加&amp;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">5</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span>.<span style="color:#a6e22e">Right</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">2</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Rigth</span>.<span style="color:#a6e22e">Left</span> = new(<span style="color:#a6e22e">Node</span>) <span style="color:#75715e">//先new再赋值
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Left</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="go的面向对象思想">Go的面向对象思想</h3>
-<h4 id="go-面向对象的特性">Go 面向对象的特性</h4>
-<ul>
-<li>
-<p>Go 语言不是纯粹的面向对象的语言，准确是描述是，Go 语言支持面向对象编程的特性。</p>
-</li>
-<li>
-<p>Go 语言中没有传统的面向对象编程语言的 class , 而 Go 语言中的 struct 和 其他编程语言中的。</p>
-</li>
-<li>
-<p>class 具有同等地位，也就是说 Go 语言是 基于 struct 来实现 面向对象 的特性的。</p>
-</li>
-<li>
-<p>面向对象编程在 Go 语言中的支持设计得很具有特点，Go 语言放弃了很多面向对象编程的。</p>
-<p>念，如：重载，构造函数，析构函数，隐藏 this 指针等，但是Go 语言可以实现面向对象编程的特性 封装，继承，多态。</p>
-</li>
-<li>
-<p>Go 语言仅支持封装，不支持继承和多态 (在 go 语言中使用接口实现)。</p>
-</li>
-<li>
-<p>Go 语言面向对象编程的支持是语言类型系统 中天然的组成部分，整个类型系统通过接口串联，灵活度高。</p>
-</li>
-</ul>
-<h4 id="属性和方法">属性和方法</h4>
-<ol>
-<li>
-<p>属性：例如人的身高，年龄，体重等，这些是他的属性。用go来描述：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Person</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Length</span> <span style="color:#66d9ef">float32</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Age</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Weight</span> <span style="color:#66d9ef">float32</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div></li>
-<li>
-<p>方法：例如人的吃饭、睡觉、工作等，这些都是他的行为。用go来描述：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Person</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">length</span> <span style="color:#66d9ef">float32</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">weight</span> <span style="color:#66d9ef">float32</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">P</span> <span style="color:#a6e22e">person</span>) <span style="color:#a6e22e">Eat</span>(){
-</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">……</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">P</span> <span style="color:#a6e22e">person</span>) <span style="color:#a6e22e">Sleep</span>(){
-</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">……</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">P</span> <span style="color:#a6e22e">person</span>) <span style="color:#a6e22e">Work</span>(){
-</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">……</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>当然虽然go没有构造函数，但是是可以实现类似构造函数的函数的：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewPerSon</span>() <span style="color:#a6e22e">Person</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Person</span>{}
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//实例化Person
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewPerSon</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//使用属性
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Length</span> = <span style="color:#ae81ff">185.4</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">P</span>.<span style="color:#a6e22e">Age</span> = <span style="color:#ae81ff">22</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">P</span>.<span style="color:#a6e22e">Weight</span> = <span style="color:#ae81ff">140.55</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//调用方法
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Eat</span>()
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Sleep</span>()
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Work</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>同时go有自己的垃圾回收机制(GC)，所以也不需要析构函数。</p>
-</li>
-</ol>
-<h3 id="继承">继承</h3>
-<p>指子类获得父类的属性和方法， 在go中就是使用结构体嵌套结构体</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//父类
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">A</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">a</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span> 
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//子类
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">B</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">c</span> <span style="color:#a6e22e">A</span>  <span style="color:#75715e">//嵌套A
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">d</span> <span style="color:#66d9ef">int</span> 
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>这个就是go中的继承，即：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">testB</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">B</span>{}
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">B</span>.<span style="color:#a6e22e">a</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">B</span>.<span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">B</span>.<span style="color:#a6e22e">c</span>
+<!doctype html><html lang=zh-cn><head><title>「Golang成长之路」面向对象 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「Golang成长之路」面向对象"><meta name=twitter:description content="[toc] 文章介绍 本文将以golang的”面向对象“为核心展开介绍结构体、面向对象思想、继承、封装、多态(基于接口)和接收者问题。 概述 go的面向对象"><meta property="og:title" content="「Golang成长之路」面向对象"><meta property="og:description" content="[toc] 文章介绍 本文将以golang的”面向对象“为核心展开介绍结构体、面向对象思想、继承、封装、多态(基于接口)和接收者问题。 概述 go的面向对象"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-25T19:50:51+08:00"><meta property="article:modified_time" content="2023-05-25T19:50:51+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「Golang成长之路」面向对象</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=文章介绍>文章介绍</h3><p>本文将以golang的”面向对象“为核心展开介绍结构体、面向对象思想、继承、封装、多态(基于接口)和接收者问题。</p><h3 id=概述>概述</h3><p>go的面向对象和其它的面向语言并不太相同。go是没有类的概念的，只需要使用<code>struct</code>就可以完成类的工作，在go中数据是数据，方法是方法，二者比较独立。其次go对继承的实现更像是“组合”。go的接口是鸭子类型：只要你像个鸭子，那么我就认为你是个鸭子，而不需要显式的实现接口。
+面向对象的三个特征：继承、封装、多态 go都可以实现。（多态需要基于接口实现)。</p><h3 id=结构体>结构体</h3><p>在上面说过：“Go 语言中的 struct 和 其他编程语言中的 class 具有同等地位”
+对结构体的定义使用如下关键字：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#960050;background-color:#1e0010>标识符</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>       <span style=color:#a6e22e>field1</span> <span style=color:#66d9ef>type</span>
+</span></span><span style=display:flex><span>       <span style=color:#a6e22e>field2</span> <span style=color:#66d9ef>type</span>
+</span></span><span style=display:flex><span> }
+</span></span></code></pre></div><p>例如:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>// 构建一个二叉树的结构体
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Node</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>Value</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>Left</span>, <span style=color:#a6e22e>right</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>那么怎么来创建 Node 呢？即实例化：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 构建一个二叉树的结构体
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Node</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>Value</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>Left</span>, <span style=color:#a6e22e>Right</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>mian</span>(){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>root</span> <span style=color:#a6e22e>Node</span> <span style=color:#75715e>//创建一个根节点
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//root ：= Node{} 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span> = <span style=color:#a6e22e>Node</span>{<span style=color:#a6e22e>Value</span>: <span style=color:#ae81ff>3</span>}
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//root.left = &amp;Node{}  没有给值时，则默认值为0
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//left和right在结构体中都是指针需要加&amp;
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>5</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span>.<span style=color:#a6e22e>Right</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>2</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Rigth</span>.<span style=color:#a6e22e>Left</span> = new(<span style=color:#a6e22e>Node</span>) <span style=color:#75715e>//先new再赋值
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Left</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=go的面向对象思想>Go的面向对象思想</h3><h4 id=go-面向对象的特性>Go 面向对象的特性</h4><ul><li><p>Go 语言不是纯粹的面向对象的语言，准确是描述是，Go 语言支持面向对象编程的特性。</p></li><li><p>Go 语言中没有传统的面向对象编程语言的 class , 而 Go 语言中的 struct 和 其他编程语言中的。</p></li><li><p>class 具有同等地位，也就是说 Go 语言是 基于 struct 来实现 面向对象 的特性的。</p></li><li><p>面向对象编程在 Go 语言中的支持设计得很具有特点，Go 语言放弃了很多面向对象编程的。</p><p>念，如：重载，构造函数，析构函数，隐藏 this 指针等，但是Go 语言可以实现面向对象编程的特性 封装，继承，多态。</p></li><li><p>Go 语言仅支持封装，不支持继承和多态 (在 go 语言中使用接口实现)。</p></li><li><p>Go 语言面向对象编程的支持是语言类型系统 中天然的组成部分，整个类型系统通过接口串联，灵活度高。</p></li></ul><h4 id=属性和方法>属性和方法</h4><ol><li><p>属性：例如人的身高，年龄，体重等，这些是他的属性。用go来描述：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Person</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Length</span> <span style=color:#66d9ef>float32</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Age</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Weight</span> <span style=color:#66d9ef>float32</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></li><li><p>方法：例如人的吃饭、睡觉、工作等，这些都是他的行为。用go来描述：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Person</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>length</span> <span style=color:#66d9ef>float32</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>age</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>weight</span> <span style=color:#66d9ef>float32</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>P</span> <span style=color:#a6e22e>person</span>) <span style=color:#a6e22e>Eat</span>(){
+</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>……</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>P</span> <span style=color:#a6e22e>person</span>) <span style=color:#a6e22e>Sleep</span>(){
+</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>……</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>P</span> <span style=color:#a6e22e>person</span>) <span style=color:#a6e22e>Work</span>(){
+</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>……</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>当然虽然go没有构造函数，但是是可以实现类似构造函数的函数的：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>NewPerSon</span>() <span style=color:#a6e22e>Person</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>Person</span>{}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//实例化Person
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>p</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>NewPerSon</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//使用属性
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>Length</span> = <span style=color:#ae81ff>185.4</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>P</span>.<span style=color:#a6e22e>Age</span> = <span style=color:#ae81ff>22</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>P</span>.<span style=color:#a6e22e>Weight</span> = <span style=color:#ae81ff>140.55</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//调用方法
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>Eat</span>()
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>Sleep</span>()
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>p</span>.<span style=color:#a6e22e>Work</span>()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>同时go有自己的垃圾回收机制(GC)，所以也不需要析构函数。</p></li></ol><h3 id=继承>继承</h3><p>指子类获得父类的属性和方法， 在go中就是使用结构体嵌套结构体</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//父类
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>A</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>a</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>b</span> <span style=color:#66d9ef>int</span> 
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//子类
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>B</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>c</span> <span style=color:#a6e22e>A</span>  <span style=color:#75715e>//嵌套A
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>d</span> <span style=color:#66d9ef>int</span> 
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>这个就是go中的继承，即：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>testB</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>B</span>{}
+</span></span><span style=display:flex><span><span style=color:#a6e22e>B</span>.<span style=color:#a6e22e>a</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>B</span>.<span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>B</span>.<span style=color:#a6e22e>c</span>
 </span></span></code></pre></div><p>如果一个包是别人写的，那么我们想要扩展它怎么办？
-在 c++ 及 Java 里面我们会使用继承来扩展，相对较麻烦，所以在 Go 中干脆就取消了继承，在 Go 中扩展系统类型及别人的类型有两种方法：</p>
-<ul>
-<li>
-<p>使用组合</p>
-</li>
-<li>
-<p>定义别名</p>
-</li>
-<li>
-<p>使用内嵌</p>
-</li>
-</ul>
-<h4 id="使用组合">使用组合：</h4>
-<p>tree 包</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">tree</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//结构体
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">Value</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">Right</span>, <span style="color:#a6e22e">Left</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//工厂函数(在golang中可以把取地址局部变量给全局变量使用）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GreatNode</span>(<span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#a6e22e">Value</span>:<span style="color:#a6e22e">value</span>}
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>)<span style="color:#a6e22e">Setvalue</span>(<span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>){
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Value</span> = <span style="color:#a6e22e">value</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//遍历树
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) <span style="color:#a6e22e">Traveser</span>(){
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">node</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Left</span>.<span style="color:#a6e22e">Traveser</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Value</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">RightTraveser</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>我们在别人写 tree 包中使用中序遍历，那么我们现在还需要使用后续遍历，而现在 tree 包中没有后序遍历，此时就需要我们自己来实现。</p>
-<p>现在我们在 main 中写一个结构体：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">mytreeNode</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>  <span style="color:#75715e">//node为tree中的Node类型
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
-</span></span></code></pre></div><p>实现：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>   <span style="color:#e6db74">&#34;awesomeProject/tree&#34;</span>
-</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;fmt&#34;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">mytreeNode</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//有接收者的后序遍历
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">myNode</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mytreeNode</span>)<span style="color:#a6e22e">postOrder</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">myNode</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//使用组合，我们构建了mytreeNode的结构体，必须使用mytreeNode{}
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#a6e22e">left</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mytreeNode</span>{<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Left</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">right</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mytreeNode</span>{<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Right</span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">left</span>.<span style="color:#a6e22e">postOrder</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">right</span>.<span style="color:#a6e22e">postOrder</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//普通后序遍历
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">postOrder1</span>(<span style="color:#a6e22e">myNode</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mytreeNode</span>){
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">myNode</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">left</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mytreeNode</span>{<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Left</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">right</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mytreeNode</span>{<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Right</span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">postOrder1</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">left</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">postOrder1</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">right</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">root</span> <span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">root</span> = <span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#a6e22e">Value</span>: <span style="color:#ae81ff">0</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">1</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">2</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span>.<span style="color:#a6e22e">Left</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">3</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span>.<span style="color:#a6e22e">Right</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">4</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Left</span> = new(<span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Left</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">5</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//接收者函数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#a6e22e">myRoot</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mytreeNode</span>{<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">root</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">myRoot</span>.<span style="color:#a6e22e">postOrder</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//普通函数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#a6e22e">postOrder1</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">mytreeNode</span>{<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">root</span>})
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//postOrder1(myRoot)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//341520
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//341520
-</span></span></span></code></pre></div><h4 id="使用别名">使用别名</h4>
-<p>例如：
+在 c++ 及 Java 里面我们会使用继承来扩展，相对较麻烦，所以在 Go 中干脆就取消了继承，在 Go 中扩展系统类型及别人的类型有两种方法：</p><ul><li><p>使用组合</p></li><li><p>定义别名</p></li><li><p>使用内嵌</p></li></ul><h4 id=使用组合>使用组合：</h4><p>tree 包</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>tree</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//结构体
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Node</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>Value</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>Right</span>, <span style=color:#a6e22e>Left</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//工厂函数(在golang中可以把取地址局部变量给全局变量使用）
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>GreatNode</span>(<span style=color:#a6e22e>value</span> <span style=color:#66d9ef>int</span>) <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>{
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#a6e22e>Value</span>:<span style=color:#a6e22e>value</span>}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>)<span style=color:#a6e22e>Setvalue</span>(<span style=color:#a6e22e>value</span> <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Value</span> = <span style=color:#a6e22e>value</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//遍历树
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>) <span style=color:#a6e22e>Traveser</span>(){
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>node</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Left</span>.<span style=color:#a6e22e>Traveser</span>()
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Value</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>RightTraveser</span>()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>我们在别人写 tree 包中使用中序遍历，那么我们现在还需要使用后续遍历，而现在 tree 包中没有后序遍历，此时就需要我们自己来实现。</p><p>现在我们在 main 中写一个结构体：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mytreeNode</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>  <span style=color:#75715e>//node为tree中的Node类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><p>实现：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>   <span style=color:#e6db74>&#34;awesomeProject/tree&#34;</span>
+</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;fmt&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mytreeNode</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//有接收者的后序遍历
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>myNode</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>mytreeNode</span>)<span style=color:#a6e22e>postOrder</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>myNode</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span><span style=color:#75715e>//使用组合，我们构建了mytreeNode的结构体，必须使用mytreeNode{}
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#a6e22e>left</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>mytreeNode</span>{<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Left</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>right</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>mytreeNode</span>{<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Right</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>left</span>.<span style=color:#a6e22e>postOrder</span>()
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>right</span>.<span style=color:#a6e22e>postOrder</span>()
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//普通后序遍历
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>postOrder1</span>(<span style=color:#a6e22e>myNode</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>mytreeNode</span>){
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>myNode</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>left</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>mytreeNode</span>{<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Left</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>right</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>mytreeNode</span>{<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Right</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>postOrder1</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>left</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>postOrder1</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>right</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>root</span> <span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>root</span> = <span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#a6e22e>Value</span>: <span style=color:#ae81ff>0</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>1</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>2</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span>.<span style=color:#a6e22e>Left</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>3</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span>.<span style=color:#a6e22e>Right</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>4</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Left</span> = new(<span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Left</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>5</span>, <span style=color:#66d9ef>nil</span>, <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>()
+</span></span><span style=display:flex><span>   <span style=color:#75715e>//接收者函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#a6e22e>myRoot</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>mytreeNode</span>{<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>root</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>myRoot</span>.<span style=color:#a6e22e>postOrder</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#75715e>//普通函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#a6e22e>postOrder1</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>mytreeNode</span>{<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>root</span>})
+</span></span><span style=display:flex><span>   <span style=color:#75715e>//postOrder1(myRoot)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//341520
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//341520
+</span></span></span></code></pre></div><h4 id=使用别名>使用别名</h4><p>例如：
 现在我们另一个目录下使用别名的方式来编写一个int类型队列 (Queue)。
-同样，我们将队列写在包里</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//定义别名
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Queue</span> []<span style="color:#66d9ef">int</span>
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">queue</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Queue</span> []<span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//加入元素
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">q</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Queue</span>) <span style="color:#a6e22e">Push</span>(<span style="color:#a6e22e">v</span> <span style="color:#66d9ef">int</span>){
-</span></span><span style="display:flex;"><span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">q</span> = append(<span style="color:#f92672">*</span><span style="color:#a6e22e">q</span>, <span style="color:#a6e22e">v</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//移出首元素
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">q</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Queue</span>) <span style="color:#a6e22e">Pop</span>() <span style="color:#66d9ef">int</span> {
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">head</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">q</span>)[<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">q</span> = (<span style="color:#f92672">*</span><span style="color:#a6e22e">q</span>)[<span style="color:#ae81ff">1</span>:]
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">head</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//判断队列是否为空
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">q</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Queue</span>)<span style="color:#a6e22e">IsImpty</span>() <span style="color:#66d9ef">bool</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> len((<span style="color:#f92672">*</span><span style="color:#a6e22e">q</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>在 main 中调用包：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>   <span style="color:#e6db74">&#34;awesomeProject/tree/queue&#34;</span>
-</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;fmt&#34;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">q</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">queue</span>.<span style="color:#a6e22e">Queue</span>{<span style="color:#ae81ff">1</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Push</span>(<span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Push</span>(<span style="color:#ae81ff">3</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Pop</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">q</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">IsImpty</span>())
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Pop</span>())
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Pop</span>())
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">IsImpty</span>())
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>输出：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>[<span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span>]
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">false</span>
-</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">true</span>
-</span></span></code></pre></div><h4 id="内嵌-emdedding">内嵌 (emdedding)</h4>
-<p>内嵌其实也就是语法糖，它能使我们的代码量减少，什么是内嵌呢？看下面：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">mytreeNode</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">mytreeNode</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>   <span style="color:#75715e">//Embedding 内嵌
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+同样，我们将队列写在包里</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//定义别名
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Queue</span> []<span style=color:#66d9ef>int</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>queue</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Queue</span> []<span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//加入元素
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>q</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Queue</span>) <span style=color:#a6e22e>Push</span>(<span style=color:#a6e22e>v</span> <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>   <span style=color:#f92672>*</span><span style=color:#a6e22e>q</span> = append(<span style=color:#f92672>*</span><span style=color:#a6e22e>q</span>, <span style=color:#a6e22e>v</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//移出首元素
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>q</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Queue</span>) <span style=color:#a6e22e>Pop</span>() <span style=color:#66d9ef>int</span> {
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>head</span> <span style=color:#f92672>:=</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>q</span>)[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>   <span style=color:#f92672>*</span><span style=color:#a6e22e>q</span> = (<span style=color:#f92672>*</span><span style=color:#a6e22e>q</span>)[<span style=color:#ae81ff>1</span>:]
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>head</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//判断队列是否为空
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>q</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Queue</span>)<span style=color:#a6e22e>IsImpty</span>() <span style=color:#66d9ef>bool</span>{
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> len((<span style=color:#f92672>*</span><span style=color:#a6e22e>q</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>在 main 中调用包：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>   <span style=color:#e6db74>&#34;awesomeProject/tree/queue&#34;</span>
+</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;fmt&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>q</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>queue</span>.<span style=color:#a6e22e>Queue</span>{<span style=color:#ae81ff>1</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>q</span>.<span style=color:#a6e22e>Push</span>(<span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>q</span>.<span style=color:#a6e22e>Push</span>(<span style=color:#ae81ff>3</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>q</span>.<span style=color:#a6e22e>Pop</span>()
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>q</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>q</span>.<span style=color:#a6e22e>IsImpty</span>())
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>q</span>.<span style=color:#a6e22e>Pop</span>())
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>q</span>.<span style=color:#a6e22e>Pop</span>())
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>q</span>.<span style=color:#a6e22e>IsImpty</span>())
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>输出：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span>[<span style=color:#ae81ff>2</span> <span style=color:#ae81ff>3</span>]
+</span></span><span style=display:flex><span><span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>true</span>
+</span></span></code></pre></div><h4 id=内嵌-emdedding>内嵌 (emdedding)</h4><p>内嵌其实也就是语法糖，它能使我们的代码量减少，什么是内嵌呢？看下面：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mytreeNode</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mytreeNode</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>   <span style=color:#f92672>*</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>   <span style=color:#75715e>//Embedding 内嵌
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
 </span></span></code></pre></div><p>很容易看出：内嵌把 node 给省略了
-使用内嵌后：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//后序遍历
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">myNode</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mytreeNode</span>)<span style="color:#a6e22e">postOrder</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">myNode</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">left</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mytreeNode</span>{<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Left</span>}
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">right</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mytreeNode</span>{<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Right</span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">left</span>.<span style="color:#a6e22e">postOrder</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">right</span>.<span style="color:#a6e22e">postOrder</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">myNode</span>.<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Value</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><blockquote>
-<p>这里简单总结：</p>
-<ul>
-<li>定义别名：最简单</li>
-<li>使用组合：最常用</li>
-<li>使用内嵌：需要省下许多代码</li>
-</ul>
-</blockquote>
-<h3 id="封装">封装</h3>
-<h4 id="封装-1">封装</h4>
-<ul>
-<li>名字一般使用 CamelCase</li>
-<li>首字母大写：public</li>
-<li>首字母小写：private</li>
-</ul>
-<h4 id="包">包</h4>
-<p>包就是每一个程序中的 <code>package</code></p>
-<ul>
-<li>每一个目录只有一个包</li>
-<li>main 包包含了可执行入口</li>
-<li>为机构定义的方法必须放在同一个包内</li>
-<li>可以是不同的文件</li>
-</ul>
-<p>下面是一个包：
-对于这个包而言它我们要做可执行程序 main 中使用，就应该将构造体及其方法的首字母写成大写</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">tree</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//结构体
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">Value</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">Right</span>, <span style="color:#a6e22e">Left</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//工厂函数(在golang中可以把取地址局部变量给全局变量使用）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GreatNode</span>(<span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#a6e22e">Value</span>:<span style="color:#a6e22e">value</span>}
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>)<span style="color:#a6e22e">Setvalue</span>(<span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>){
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Value</span> = <span style="color:#a6e22e">value</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//遍历树
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) <span style="color:#a6e22e">Traveser</span>(){
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">node</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Left</span>.<span style="color:#a6e22e">Traveser</span>()
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Value</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">RightTraveser</span>()
-</span></span><span style="display:flex;"><span>}
+使用内嵌后：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//后序遍历
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>myNode</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>mytreeNode</span>)<span style=color:#a6e22e>postOrder</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>myNode</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>left</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>mytreeNode</span>{<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Left</span>}
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>right</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>mytreeNode</span>{<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Right</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>left</span>.<span style=color:#a6e22e>postOrder</span>()
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>right</span>.<span style=color:#a6e22e>postOrder</span>()
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>myNode</span>.<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Value</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><blockquote><p>这里简单总结：</p><ul><li>定义别名：最简单</li><li>使用组合：最常用</li><li>使用内嵌：需要省下许多代码</li></ul></blockquote><h3 id=封装>封装</h3><h4 id=封装-1>封装</h4><ul><li>名字一般使用 CamelCase</li><li>首字母大写：public</li><li>首字母小写：private</li></ul><h4 id=包>包</h4><p>包就是每一个程序中的 <code>package</code></p><ul><li>每一个目录只有一个包</li><li>main 包包含了可执行入口</li><li>为机构定义的方法必须放在同一个包内</li><li>可以是不同的文件</li></ul><p>下面是一个包：
+对于这个包而言它我们要做可执行程序 main 中使用，就应该将构造体及其方法的首字母写成大写</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>tree</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//结构体
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Node</span> <span style=color:#66d9ef>struct</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>Value</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>Right</span>, <span style=color:#a6e22e>Left</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//工厂函数(在golang中可以把取地址局部变量给全局变量使用）
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>GreatNode</span>(<span style=color:#a6e22e>value</span> <span style=color:#66d9ef>int</span>) <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>{
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#a6e22e>Value</span>:<span style=color:#a6e22e>value</span>}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>)<span style=color:#a6e22e>Setvalue</span>(<span style=color:#a6e22e>value</span> <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Value</span> = <span style=color:#a6e22e>value</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//遍历树
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>) <span style=color:#a6e22e>Traveser</span>(){
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>node</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Left</span>.<span style=color:#a6e22e>Traveser</span>()
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Value</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>RightTraveser</span>()
+</span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>在可执行的 main 中：
 我们引入的包名叫：tree
-所以需要在构造方法中都添加 tree</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">mian</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (<span style="color:#e6db74">&#34;awesomeProject/tree&#34;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>    )
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span>  <span style="color:#a6e22e">mian</span>(){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">root</span> <span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span> <span style="color:#75715e">//创建一个根节点  //root ：= tree.Node{} 
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span> = <span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#a6e22e">Value</span>:  <span style="color:#ae81ff">3</span>}  
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//root.left = &amp;Node{} 没有给值时，则默认值为0 
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//left和right在结构体中都是指针需要加&amp;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">0</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">5</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span>.<span style="color:#a6e22e">Right</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">2</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>} 
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Rigth</span>.<span style="color:#a6e22e">Left</span> =  new(<span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>)  <span style="color:#75715e">//先new再赋值
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Left</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">0</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//调用tree中中序遍历方法
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Traveser</span>()
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Right</span> = new(<span style="color:#a6e22e">tree</span>.<span style="color:#a6e22e">Node</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//调用tree中Setvalue()方法
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Stevalue</span>(<span style="color:#ae81ff">100</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Value</span>)
-</span></span></code></pre></div><p>在其他编程语言中，有点变量和方法是不想让包外访问的，所以需要对属性和方法进行封装，下面看一下go是如何封装的，在go中属性和方法名首字母以大写开头是可以被包外访问的，小写则不能。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Person</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Length</span> <span style="color:#66d9ef">float32</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Age</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">weight</span> <span style="color:#66d9ef">float32</span>  <span style="color:#75715e">//不希望别人知道我的体重用小写
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//不想然别人知道我的工作用小写
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">P</span> <span style="color:#a6e22e">person</span>) <span style="color:#a6e22e">work</span>(){
-</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">……</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="多态">多态</h3>
-<p>go的多态是基于接口<code>interface</code>来实现的，定义一个接口，里面有吃饭、睡觉、行走等</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Tester</span> <span style="color:#66d9ef">interface</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Eat</span>()
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Sleep</span>()
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Wake</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>只要某个结构体实现了这个接口里面的方法，我们就说这个结构体实现了这个接口，例如：我们使用猫(cat)来实现了这个接口的全部方法，那么就可以说猫实现了这个接口，那么这个接口也就是猫，如果是狗(dog)实现了这个接口，那么这个接口就是go；这就是多态。</p>
-<h3 id="值接收者和指针接收者">值接收者和指针接收者</h3>
-<p>值接收者 VS 指针接收者:</p>
-<ul>
-<li>
-<p>改变内容必须用指针接收者</p>
-</li>
-<li>
-<p>结构过大也可以考虑指针接收者</p>
-</li>
-<li>
-<p>一致性：如有指针接收者，最好使用指针接收者</p>
-</li>
-</ul>
-<p>看下面两个函数：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//值接收者
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">node</span> <span style="color:#a6e22e">Node</span>) <span style="color:#a6e22e">setvalue</span>(<span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>){
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Value</span> = <span style="color:#a6e22e">value</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//指针接收者
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) <span style="color:#a6e22e">setvalue</span>(<span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>){
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Value</span> = <span style="color:#a6e22e">value</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="go只有值传递">go只有值传递</h4>
-<p>第一个函数是值传递不会真正的修改 node.Value 的值,只是将实参的副本给到形参。
-第二个函数是指针传参会真正的改变 node.Value 的值，这里也是副本，但这个副本是真正的地址，也就会真正的修改相关位置的值。</p>
-<h4 id="nil-指针也可以调用方法">nil 指针也可以调用方法</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span>  <span style="color:#a6e22e">mian</span>(){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">root</span> <span style="color:#a6e22e">Node</span> <span style="color:#75715e">//创建一个根节点  //root ：= Node{} 
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span> = <span style="color:#a6e22e">Node</span>{<span style="color:#a6e22e">Value</span>:  <span style="color:#ae81ff">3</span>}  
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//root.left = &amp;Node{} 没有给值时，则默认值为0 
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//left和right在结构体中都是指针需要加&amp;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">0</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">5</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Left</span>.<span style="color:#a6e22e">Right</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">2</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>} 
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Rigth</span>.<span style="color:#a6e22e">Left</span> =  new(<span style="color:#a6e22e">Node</span>)  <span style="color:#75715e">//先new再赋值
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">Right</span>.<span style="color:#a6e22e">Left</span> =  <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{<span style="color:#ae81ff">0</span>,  <span style="color:#66d9ef">nil</span>,  <span style="color:#66d9ef">nil</span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">traverse</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出:
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//0 2 3 0 5
-</span></span></span></code></pre></div>
-    </div>
-    <div class="post-footer">
-      
-    </div>
-  </article>
-
-    </main>
-  </body>
-</html>
+所以需要在构造方法中都添加 tree</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>mian</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (<span style=color:#e6db74>&#34;awesomeProject/tree&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span>  <span style=color:#a6e22e>mian</span>(){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>root</span> <span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span> <span style=color:#75715e>//创建一个根节点  //root ：= tree.Node{} 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span> = <span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#a6e22e>Value</span>:  <span style=color:#ae81ff>3</span>}  
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//root.left = &amp;Node{} 没有给值时，则默认值为0 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//left和right在结构体中都是指针需要加&amp;
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>0</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>5</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span>.<span style=color:#a6e22e>Right</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>2</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>} 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Rigth</span>.<span style=color:#a6e22e>Left</span> =  new(<span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>)  <span style=color:#75715e>//先new再赋值
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Left</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>0</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//调用tree中中序遍历方法
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Traveser</span>()
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Right</span> = new(<span style=color:#a6e22e>tree</span>.<span style=color:#a6e22e>Node</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//调用tree中Setvalue()方法
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Stevalue</span>(<span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Value</span>)
+</span></span></code></pre></div><p>在其他编程语言中，有点变量和方法是不想让包外访问的，所以需要对属性和方法进行封装，下面看一下go是如何封装的，在go中属性和方法名首字母以大写开头是可以被包外访问的，小写则不能。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Person</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Length</span> <span style=color:#66d9ef>float32</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Age</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>weight</span> <span style=color:#66d9ef>float32</span>  <span style=color:#75715e>//不希望别人知道我的体重用小写
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//不想然别人知道我的工作用小写
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>P</span> <span style=color:#a6e22e>person</span>) <span style=color:#a6e22e>work</span>(){
+</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>……</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=多态>多态</h3><p>go的多态是基于接口<code>interface</code>来实现的，定义一个接口，里面有吃饭、睡觉、行走等</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Tester</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Eat</span>()
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Sleep</span>()
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Wake</span>()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>只要某个结构体实现了这个接口里面的方法，我们就说这个结构体实现了这个接口，例如：我们使用猫(cat)来实现了这个接口的全部方法，那么就可以说猫实现了这个接口，那么这个接口也就是猫，如果是狗(dog)实现了这个接口，那么这个接口就是go；这就是多态。</p><h3 id=值接收者和指针接收者>值接收者和指针接收者</h3><p>值接收者 VS 指针接收者:</p><ul><li><p>改变内容必须用指针接收者</p></li><li><p>结构过大也可以考虑指针接收者</p></li><li><p>一致性：如有指针接收者，最好使用指针接收者</p></li></ul><p>看下面两个函数：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//值接收者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>node</span> <span style=color:#a6e22e>Node</span>) <span style=color:#a6e22e>setvalue</span>(<span style=color:#a6e22e>value</span> <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Value</span> = <span style=color:#a6e22e>value</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//指针接收者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>node</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Node</span>) <span style=color:#a6e22e>setvalue</span>(<span style=color:#a6e22e>value</span> <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>Value</span> = <span style=color:#a6e22e>value</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=go只有值传递>go只有值传递</h4><p>第一个函数是值传递不会真正的修改 node.Value 的值,只是将实参的副本给到形参。
+第二个函数是指针传参会真正的改变 node.Value 的值，这里也是副本，但这个副本是真正的地址，也就会真正的修改相关位置的值。</p><h4 id=nil-指针也可以调用方法>nil 指针也可以调用方法</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span>  <span style=color:#a6e22e>mian</span>(){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>root</span> <span style=color:#a6e22e>Node</span> <span style=color:#75715e>//创建一个根节点  //root ：= Node{} 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span> = <span style=color:#a6e22e>Node</span>{<span style=color:#a6e22e>Value</span>:  <span style=color:#ae81ff>3</span>}  
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//root.left = &amp;Node{} 没有给值时，则默认值为0 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//left和right在结构体中都是指针需要加&amp;
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>0</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>5</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Left</span>.<span style=color:#a6e22e>Right</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>2</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>} 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Rigth</span>.<span style=color:#a6e22e>Left</span> =  new(<span style=color:#a6e22e>Node</span>)  <span style=color:#75715e>//先new再赋值
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>Right</span>.<span style=color:#a6e22e>Left</span> =  <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>Node</span>{<span style=color:#ae81ff>0</span>,  <span style=color:#66d9ef>nil</span>,  <span style=color:#66d9ef>nil</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>root</span>.<span style=color:#a6e22e>traverse</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出:
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//0 2 3 0 5
+</span></span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>

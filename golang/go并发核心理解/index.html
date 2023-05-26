@@ -1,0 +1,277 @@
+<!doctype html><html lang=zh-cn><head><title>Go并发核心理解 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="Go并发核心理解"><meta name=twitter:description content="[toc] 文章介绍 本文将以实战的模式来介绍go核心channel，首先我们将介绍go的协程，如何开启go协程，然后通过实例来介绍go并发核心goro"><meta property="og:title" content="Go并发核心理解"><meta property="og:description" content="[toc] 文章介绍 本文将以实战的模式来介绍go核心channel，首先我们将介绍go的协程，如何开启go协程，然后通过实例来介绍go并发核心goro"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/go%E5%B9%B6%E5%8F%91%E6%A0%B8%E5%BF%83%E7%90%86%E8%A7%A3/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-25T20:52:24+08:00"><meta property="article:modified_time" content="2023-05-25T20:52:24+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>Go并发核心理解</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a></div></div></header><div class=post-content><p>[toc]</p><h1 id=文章介绍>文章介绍</h1><p>本文将以实战的模式来介绍go核心channel，首先我们将介绍go的协程，如何开启go协程，然后通过实例来介绍go并发核心goroutine和channel。</p><h1 id=go的协程>Go的协程</h1><h2 id=协程coroutine>协程(Coroutine)</h2><p>**百科：当有多个线程在操作时，如果系统只有一个 CPU, 则它根本不可能真正同时进行一个以上的线程，它只能把 CPU 运行时间划分成若干个时间段，再将时间 段分配给各个线程执行，在一个时间段的线程代码运行时，其它线程处于挂起状。. 这种方式我们称之为并发 **。</p><p>首先我们先了解什么是协程(Coroutine)，我们可以称为协作式线程，他的粒度比线程更轻，作用于用户态，操作系统内核态感受不到协程的存在的，协程可以帮助我们高并发的去完成一些指定任务，例如网络IO，文件IO等。</p><h2 id=go协程goroutine>Go协程(goroutine)</h2><p>其实协程的核心都一样，我们知道go原生的支持并发，而这一核心就是goroutine，在go中，main 和创建的 goroutine 是相互作用的，相互给予控制权，就像两个人，各做各的事，并且他们也相互通信，我们来看一下如何创建协程。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//使用go关键字创建协程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//子协程1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;我是goroutine1&#34;</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//子协程2
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;我是goroutine2&#34;</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;我是主goroutine&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>4</span><span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)  <span style=color:#75715e>//go协程运行4毫秒
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><p>这样我们就启动两两个协程，他们不断的打印消息，直到4ms后主协程退出，将子协程kill掉</p><p>继续看实例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;sync&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>m</span> <span style=color:#a6e22e>sync</span>.<span style=color:#a6e22e>Map</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>RwGlobalMap</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>value</span>,<span style=color:#a6e22e>exists</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>Load</span>(<span style=color:#e6db74>&#34;name&#34;</span>); <span style=color:#a6e22e>exists</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;value:&#34;</span>, <span style=color:#a6e22e>value</span>)
+</span></span><span style=display:flex><span>	}<span style=color:#66d9ef>else</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>Store</span>(<span style=color:#e6db74>&#34;name&#34;</span>, <span style=color:#e6db74>&#34;iceymoss&#34;</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>RwGlobalMap</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>RwGlobalMap</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>RwGlobalMap</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>RwGlobalMap</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>我们可以想一想程序输出是什么？</p><p>其实输出不定：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>➜  share_memonry go run main.go
+</span></span><span style=display:flex><span>value: iceymoss
+</span></span><span style=display:flex><span>➜  share_memonry go run main.go
+</span></span><span style=display:flex><span>➜  share_memonry go run main.go
+</span></span><span style=display:flex><span>value: iceymoss
+</span></span><span style=display:flex><span>value: iceymoss
+</span></span><span style=display:flex><span>➜  share_memonry go run main.go
+</span></span><span style=display:flex><span>➜  share_memonry go run main.go
+</span></span><span style=display:flex><span>value: iceymoss
+</span></span><span style=display:flex><span>value: iceymoss
+</span></span><span style=display:flex><span>value: iceymoss
+</span></span><span style=display:flex><span>value: iceymoss
+</span></span></code></pre></div><h1 id=csp并发模型>CSP并发模型</h1><p>CSP模型是上个世纪七十年代提出的，用于描述两个独立的并发实体通过共享的通讯 channel(管道)进行通信的并发模型。 CSP中channel是第一类对象，它不关注发送消息的实体，而关注与发送消息时使用的channel。</p><p>Golang 就是借用CSP模型的一些概念为之实现并发进行理论支持，其实从实际上出发，go语言并没有完全实现了CSP模型的所有理论，仅仅是借用了 process和channel这两个概念。process是在go语言上的表现就是 goroutine 是实际并发执行的实体，每个实体之间是通过channel通讯来实现数据共享。</p><h1 id=go并发核心>Go并发核心</h1><p>channel管道的意思，在go中指用来通讯的管道，用来传输数据，通过协程之间的通讯，下面来看看如何使用channel。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>ch</span> <span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>int</span>  <span style=color:#75715e>//声明一个整型的管道
+</span></span></span></code></pre></div><p>也可以使用make函数进行内存分配和初始化</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>ch</span> <span style=color:#f92672>:=</span> make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>int</span>)
+</span></span></code></pre></div><p>下面使用channel来实现协程之间的通信，直接来看实例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//生产数据
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>ch</span> <span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>100</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ch</span> <span style=color:#f92672>&lt;-</span> <span style=color:#a6e22e>i</span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//接收并处理数据
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>receive</span>(<span style=color:#a6e22e>ch</span> <span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>int</span>, <span style=color:#a6e22e>rch</span> <span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>string</span>){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>num</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>ch</span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;接收到值：&#34;</span>, <span style=color:#a6e22e>num</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>rch</span> <span style=color:#f92672>&lt;-</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Sprintf</span>(<span style=color:#e6db74>&#34;处理后的编号：%d&#34;</span>, <span style=color:#a6e22e>num</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ch</span> <span style=color:#f92672>:=</span> make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>int</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>rch</span> <span style=color:#f92672>:=</span> make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>string</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>receive</span>(<span style=color:#a6e22e>ch</span>, <span style=color:#a6e22e>rch</span>)  <span style=color:#75715e>//此时ch没有数据，子协程rec阻塞，直到其他协程向管道放入数据，阻塞解除
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>ch</span>)         
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>string</span>) {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;收到结果：&#34;</span>, <span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>rch</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}(<span style=color:#a6e22e>rch</span>)
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)  <span style=color:#75715e>//主协程等待1s
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><p>可以想想输出是什么？</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>6</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>6</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>8</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>8</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>9</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>接收到值：</span> <span style=color:#ae81ff>9</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>收到结果：</span> <span style=color:#960050;background-color:#1e0010>处理后的编号：</span><span style=color:#ae81ff>10</span>
+</span></span></code></pre></div><p>接着使用channel实现文件读写协程的交互，看实例：将三个文件中的内容并发的读取，并发写入一个文件中</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>age</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;bufio&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;io&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;os&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> (
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>content</span> = make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>string</span>, <span style=color:#ae81ff>1000</span>) <span style=color:#75715e>//用于传输内容
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>readOk</span> = make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>struct</span>{}, <span style=color:#ae81ff>3</span>)   <span style=color:#75715e>//用于通知消费者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>writeOk</span> = make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>struct</span>{})     <span style=color:#75715e>//用户通知主协程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//ReadToSend 生产者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>ReadToSend</span>(<span style=color:#a6e22e>filename</span> <span style=color:#66d9ef>string</span>){
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//打开文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>file</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>Open</span>(<span style=color:#a6e22e>filename</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#e6db74>&#34;打开文件失败：&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>file</span>.<span style=color:#a6e22e>Close</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//读文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>r</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>bufio</span>.<span style=color:#a6e22e>NewReader</span>(<span style=color:#a6e22e>file</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>line</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>ReadString</span>(<span style=color:#e6db74>&#39;\n&#39;</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>content</span> <span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>line</span>
+</span></span><span style=display:flex><span>		}<span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>==</span> <span style=color:#a6e22e>io</span>.<span style=color:#a6e22e>EOF</span> {
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>line</span>) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>content</span> <span style=color:#f92672>&lt;-</span> <span style=color:#a6e22e>line</span> <span style=color:#f92672>+</span><span style=color:#e6db74>&#34;\n&#34;</span>
+</span></span><span style=display:flex><span>				}
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>			} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#e6db74>&#34;其他错误：&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>			}
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//当生产者协程结束后需要通知消费者协程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//当readTag管道为空时，则关闭content，从而通知消费者协程停止
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>readOk</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>readOk</span>) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> {
+</span></span><span style=display:flex><span>		close(<span style=color:#a6e22e>content</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>WriteFile</span>(<span style=color:#a6e22e>filename</span> <span style=color:#66d9ef>string</span>){
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//打开文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fout</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>OpenFile</span>(<span style=color:#a6e22e>filename</span>, <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>O_CREATE</span>|<span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>O_TRUNC</span>|<span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>O_RDWR</span>, <span style=color:#ae81ff>666</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#e6db74>&#34;打开文件失败：&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>fout</span>.<span style=color:#a6e22e>Close</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//写文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>w</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>bufio</span>.<span style=color:#a6e22e>NewWriter</span>(<span style=color:#a6e22e>fout</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>line</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>content</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>w</span>.<span style=color:#a6e22e>WriteString</span>(<span style=color:#a6e22e>line</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>w</span>.<span style=color:#a6e22e>Flush</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//通知主协程write结束
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>writeOk</span> <span style=color:#f92672>&lt;-</span><span style=color:#66d9ef>struct</span>{}{}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>3</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>readOk</span> <span style=color:#f92672>&lt;-</span><span style=color:#66d9ef>struct</span>{}{}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>ReadToSend</span>(<span style=color:#e6db74>&#34;/data/data1.txt&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>ReadToSend</span>(<span style=color:#e6db74>&#34;/data/data2.txt&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>ReadToSend</span>(<span style=color:#e6db74>&#34;/data/data3.txt&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#a6e22e>WriteFile</span>(<span style=color:#e6db74>&#34;/data/data5.txt&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//当执行writeOk没有数据时，会将主协程阻塞，直到writeOk有数据过来，然后程序运行结束
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>writeOk</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>这个程序显示更加合理，我们没有像之前那样使用time.sleep方法来预估程序执行时间了(预估往往是不靠谱的)，当读协程完成后，就通知写协程：文件读完了并关闭管道；当写协程被收到读协程的结束消息后，要退出循环，然后通知主协程已经写完了，当主协程收到读完消息后，就退出主协程，程序结束。</p><p>接着再看实例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ch</span> <span style=color:#f92672>:=</span> make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>struct</span>{}, <span style=color:#ae81ff>1</span>)  <span style=color:#75715e>//初始化一个管道
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>ch</span> <span style=color:#f92672>&lt;-</span><span style=color:#66d9ef>struct</span>{}{}     <span style=color:#75715e>//向管道添加数据
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>(){
+</span></span><span style=display:flex><span>		<span style=color:#75715e>//子协程1 5秒管道数据拿走，解除主协程的阻塞
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>5</span><span style=color:#f92672>*</span><span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>		<span style=color:#f92672>&lt;-</span> <span style=color:#a6e22e>ch</span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;goroutine1 over&#34;</span>)
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ch</span> <span style=color:#f92672>&lt;-</span> <span style=color:#66d9ef>struct</span>{}{}  <span style=color:#75715e>//管道容量满了，此时主协程将在此行阻塞，等待子协程1将数据拿走，然后放入数据
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;main goroutine run&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ch</span> <span style=color:#f92672>&lt;-</span> <span style=color:#66d9ef>struct</span>{}{} <span style=color:#75715e>//此时子协程2，将阻塞在此行
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;goroutine2 over&#34;</span>)
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//3秒后主协程退出，子协程2一直阻塞，直到主协程退出
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>3</span><span style=color:#f92672>*</span><span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;main exit&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>思考一下程序输出什么：</p><pre tabindex=0><code>goroutine1 over
+main goroutine run
+main exit
+</code></pre><p>接着看实例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>traveseChannal</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ch</span> <span style=color:#f92672>:=</span> make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>int</span>, <span style=color:#ae81ff>3</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ch</span> <span style=color:#f92672>&lt;-</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ch</span> <span style=color:#f92672>&lt;-</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ch</span> <span style=color:#f92672>&lt;-</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span>		close(<span style=color:#a6e22e>ch</span>)   <span style=color:#75715e>//如果不关闭ch,在主协程中ch数据将空读，造成主协程永远阻塞，即死锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	}()
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//遍历ch并拿走ch中的数据
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>item</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>ch</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>item</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;bye&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>traveseChannal</span>()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>再思考一下程序输出什么?</p><pre tabindex=0><code>1
+2
+3
+bye
+</code></pre><p>当程序执行到<code>for item := range ch </code>主协程会读阻塞，然后等待子协程向管道中放入数据</p><h1 id=总结>总结</h1><ul><li>channel满了，就会阻塞写，channel空了就会阻塞读。</li><li>阻塞之后会交出CPU，去执行其他协程，希望其他协程能够帮助自己解除阻塞状态。</li><li>如果阻塞发送在main协程里面，并且没有其他子协程可以执行，那就可以确定，“希望永远等不来”，然后main协程就会自己把自己杀掉，然后报：fatal error: deadlock， 即：死锁。</li><li>如果阻塞发生在子协程里面，就不会发生死锁，因为至少main协程是一个值得等待的“希望”，会一直等(阻塞)下去。</li></ul></div><div class=post-footer></div></article></main></body></html>

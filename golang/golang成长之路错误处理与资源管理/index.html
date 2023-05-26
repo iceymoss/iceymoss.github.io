@@ -1,318 +1,226 @@
-<!doctype html>
-<html lang="zh-cn">
-  <head>
-    <title>「Golang成长之路」错误处理与资源管理 // iceymoss - 刻意练习，卷无止境</title>
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta charset="utf-8" />
-    <meta name="generator" content="Hugo 0.111.3">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="iceymoss" />
-    <meta name="description" content="" />
-    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
-
-    
-    <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="「Golang成长之路」错误处理与资源管理"/>
-<meta name="twitter:description" content="[toc] defer调用 介绍： 确保在函数调用结束时发生 defer就是在程序或函数调用结束后，然后执行defer后面的语句 例如： package main import &#34;fmt&#34; func tryDefer(){ fmt.Println(1) fmt.Println(2) fmt.Println(3) //"/>
-
-    <meta property="og:title" content="「Golang成长之路」错误处理与资源管理" />
-<meta property="og:description" content="[toc] defer调用 介绍： 确保在函数调用结束时发生 defer就是在程序或函数调用结束后，然后执行defer后面的语句 例如： package main import &#34;fmt&#34; func tryDefer(){ fmt.Println(1) fmt.Println(2) fmt.Println(3) //" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/" /><meta property="article:section" content="golang" />
-<meta property="article:published_time" content="2023-05-25T19:56:02+08:00" />
-<meta property="article:modified_time" content="2023-05-25T19:56:02+08:00" />
-
-
-  </head>
-  <body>
-    <header class="app-header">
-      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
-      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
-      <nav class="app-header-menu">
-          <a class="app-header-menu-item" href="/">首页</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/archives/">归档</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/tags/">标签</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/categories/">类别</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/about/">关于</a>
-      </nav>
-      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
-    </header>
-    <main class="app-container">
-      
-  <article class="post">
-    <header class="post-header">
-      <h1 class ="post-title">「Golang成长之路」错误处理与资源管理</h1>
-      <div class="post-meta">
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
-  <title>calendar</title>
-  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-</svg>
-          May 25, 2023
-        </div>
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
-  <title>clock</title>
-  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-</svg>
-          3 min read
-        </div>
-      </div>
-    </header>
-    <div class="post-content">
-      <p>[toc]</p>
-<h3 id="defer调用">defer调用</h3>
-<p><strong>介绍：</strong>
+<!doctype html><html lang=zh-cn><head><title>「Golang成长之路」错误处理与资源管理 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「Golang成长之路」错误处理与资源管理"><meta name=twitter:description content="[toc] defer调用 介绍： 确保在函数调用结束时发生 defer就是在程序或函数调用结束后，然后执行defer后面的语句 例如： package main import &#34;fmt&#34; func tryDefer(){ fmt.Println(1) fmt.Println(2) fmt.Println(3) //"><meta property="og:title" content="「Golang成长之路」错误处理与资源管理"><meta property="og:description" content="[toc] defer调用 介绍： 确保在函数调用结束时发生 defer就是在程序或函数调用结束后，然后执行defer后面的语句 例如： package main import &#34;fmt&#34; func tryDefer(){ fmt.Println(1) fmt.Println(2) fmt.Println(3) //"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%8E%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-25T19:56:02+08:00"><meta property="article:modified_time" content="2023-05-25T19:56:02+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「Golang成长之路」错误处理与资源管理</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=defer调用>defer调用</h3><p><strong>介绍：</strong>
 确保在函数调用结束时发生
 defer就是在程序或函数调用结束后，然后执行defer后面的语句
-例如：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">tryDefer</span>(){
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">3</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//打印：1、2、3
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">3</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//打印：3、2、1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">3</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">4</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//打印：3、2、1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">3</span>)
-</span></span><span style="display:flex;"><span>	panic(<span style="color:#e6db74">&#34;error occurred&#34;</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#ae81ff">4</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//打印：3、2、1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//panic: error occurred
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mian</span>(){
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tryDefer</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><ol>
-<li>在这个例子第二个打印中，前面加上<code>defer</code>关键字后，其后面的 fmt.Println(1)和 fmt.Println(2)都会该程序所有语句执行结束后执行，而defer里面本身是一个栈(先进后出)，所有会先打印2，然后打印1。</li>
-<li>在这个例子的第三个打印中，我们加了关键字<code>return</code>其输出结果还是1、2、3，这里是因为return后程序就会退出，当程序退出前defer仍然会执行</li>
-<li>在这个例子的第四个打印中，我们使用到函数<code>panic()</code>程序会报错退出，但是在结束之前仍然会执行<code>defer</code></li>
-</ol>
-<p>还有一个例子：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">writeFile</span>(<span style="color:#a6e22e">filename</span> <span style="color:#66d9ef">string</span>){
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">file</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">filename</span>)  <span style="color:#75715e">//os.Create()建立文件
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{  <span style="color:#75715e">//err不为空，则文件建立失败，panic输出err信息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		panic(<span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>	
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">File</span>.close() <span style="color:#75715e">//最后将文件关闭
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">writer</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">NerWriter</span>(<span style="color:#a6e22e">file</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">writer</span>.<span style="color:#a6e22e">Flush</span>()
-</span></span><span style="display:flex;"><span>	
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">f</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fibonacci</span>()
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">20</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>{
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintln</span>(<span style="color:#a6e22e">writer</span>, <span style="color:#a6e22e">f</span>())
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">fibonacci</span>() <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">int</span> {
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">a</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">int</span>{
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> = <span style="color:#a6e22e">b</span>, <span style="color:#a6e22e">a</span><span style="color:#f92672">+</span><span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span>
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mian</span>(){
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">writerFile</span>(<span style="color:#e6db74">&#34;fib.txt&#34;</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="错误处理">错误处理</h3>
-<p>前面我们提到了<code>panic()</code>函数其实它也是用来做错误处理的，但是，使用<code>panic</code>程序会挂掉，这是我们不希望看到的。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">file</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#e6db74">&#34;abc.txt&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>	panic(<span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>像上面代码使用panic后程序就会把err中的内容输出，并且挂掉</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">file</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#e6db74">&#34;abc.txt&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">pathError</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">PathError</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span>{
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">pathError</span>)
-</span></span><span style="display:flex;"><span>	}<span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;unknown error &#34;</span>, <span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>使用这种处理方式更好</p>
-<h3 id="panicrecover">panic&amp;recover</h3>
-<h4 id="panic">panic</h4>
-<p><img src="https://cdn.learnku.com/uploads/images/202108/14/69310/WDmKTuijKO.png!large" alt="「Golang成长之路」错误处理与资源管理篇"></p>
-<h4 id="recover">recover</h4>
-<p><img src="https://cdn.learnku.com/uploads/images/202108/14/69310/8575VU2ZrG.png!large" alt="「Golang成长之路」错误处理与资源管理篇"></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">tryRecover</span>(){
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>(){
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> recover()
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.(<span style="color:#66d9ef">error</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span>{
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Error occurred:&#34;</span>, <span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>	}<span style="color:#66d9ef">else</span>{
-</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;I don`t kown what to : %v&#34;</span>, <span style="color:#a6e22e">r</span>)
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>  }()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>panic(<span style="color:#e6db74">&#34;123&#34;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mian</span>(){
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tryRecover</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="统一处理">统一处理</h4>
-<p>服务器统一出错：
-web.go:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>   <span style="color:#e6db74">&#34;learngo/errhandling/filelistingserver/handle&#34;</span>
-</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;log&#34;</span> 
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;net/http&#34;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;os&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//定义一个函数类型
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Apphandle</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">write</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>,
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">request</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) <span style="color:#66d9ef">error</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//函数式编程,传入一个函数Apphandle类型的函数类型，返回一个匿名函数func(http.ResponseWriter,*http.Request)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">errwarappler</span>(<span style="color:#a6e22e">handler</span> <span style="color:#a6e22e">Apphandle</span>) <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">writer</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">request</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-</span></span><span style="display:flex;"><span>      <span style="color:#75715e">//匿名函数func(http.ResponseWriter,*http.Request)内部构造：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>(){
-</span></span><span style="display:flex;"><span>         <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> recover()
-</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;panic:%v\n&#34;</span>, <span style="color:#a6e22e">r</span>)
-</span></span><span style="display:flex;"><span>           <span style="color:#75715e">//写入返回err信息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">writer</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusText</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>), <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>      }()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">handler</span>(<span style="color:#a6e22e">writer</span>, <span style="color:#a6e22e">request</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>         <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Error handle request:%s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>          <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userErr</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#a6e22e">userError</span>); <span style="color:#a6e22e">ok</span>{
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">writer</span>, <span style="color:#a6e22e">userErr</span>.<span style="color:#a6e22e">Massage</span>(), <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusBadRequest</span>)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>         <span style="color:#a6e22e">code</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">switch</span>{
-</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">IsNotExist</span>(<span style="color:#a6e22e">err</span>):  <span style="color:#75715e">//情况一：文件不存在
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">code</span> = <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusNotFound</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">IsPermission</span>(<span style="color:#a6e22e">err</span>): <span style="color:#75715e">//情况二：没有权限
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">code</span> = <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusForbidden</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">default</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">code</span> = <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>         <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">writer</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusText</span>(<span style="color:#a6e22e">code</span>), <span style="color:#a6e22e">code</span>)
-</span></span><span style="display:flex;"><span>      }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">userError</span> <span style="color:#66d9ef">interface</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">error</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Massage</span>() <span style="color:#66d9ef">string</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//传入部分
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/&#34;</span>,<span style="color:#a6e22e">errwarappler</span>(<span style="color:#a6e22e">handle</span>.<span style="color:#a6e22e">Handler</span>))
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:8888&#34;</span> , <span style="color:#66d9ef">nil</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>      panic(<span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>handle.go:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">handle</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>   <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;io/ioutil&#34;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;net/http&#34;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;os&#34;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;strings&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">perfix</span> = <span style="color:#e6db74">&#34;/list/&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">userError</span> <span style="color:#66d9ef">string</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">userError</span>)<span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Massage</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">userError</span>)<span style="color:#a6e22e">Massage</span>() <span style="color:#66d9ef">string</span> {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> string(<span style="color:#a6e22e">e</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">write</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">Request</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) <span style="color:#66d9ef">error</span>{
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Index</span>(<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>, <span style="color:#a6e22e">perfix</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">userError</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;path %s must start&#34;</span> <span style="color:#f92672">+</span>
-</span></span><span style="display:flex;"><span>         <span style="color:#e6db74">&#34;whit %s&#34;</span>,<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>, <span style="color:#a6e22e">perfix</span>))
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">path</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>[len(<span style="color:#a6e22e">perfix</span>):]
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">file</span> , <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">path</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>      <span style="color:#75715e">//将错误信息返回出去
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">file</span>.<span style="color:#a6e22e">Close</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">all</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">file</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">write</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">all</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
-</span></span><span style="display:flex;"><span>}
+例如：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tryDefer</span>(){
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>3</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//打印：1、2、3
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>3</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//打印：3、2、1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>3</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//打印：3、2、1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>3</span>)
+</span></span><span style=display:flex><span>	panic(<span style=color:#e6db74>&#34;error occurred&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//打印：3、2、1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//panic: error occurred
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>mian</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>tryDefer</span>()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><ol><li>在这个例子第二个打印中，前面加上<code>defer</code>关键字后，其后面的 fmt.Println(1)和 fmt.Println(2)都会该程序所有语句执行结束后执行，而defer里面本身是一个栈(先进后出)，所有会先打印2，然后打印1。</li><li>在这个例子的第三个打印中，我们加了关键字<code>return</code>其输出结果还是1、2、3，这里是因为return后程序就会退出，当程序退出前defer仍然会执行</li><li>在这个例子的第四个打印中，我们使用到函数<code>panic()</code>程序会报错退出，但是在结束之前仍然会执行<code>defer</code></li></ol><p>还有一个例子：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>writeFile</span>(<span style=color:#a6e22e>filename</span> <span style=color:#66d9ef>string</span>){
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>file</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>Create</span>(<span style=color:#a6e22e>filename</span>)  <span style=color:#75715e>//os.Create()建立文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{  <span style=color:#75715e>//err不为空，则文件建立失败，panic输出err信息
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>File</span>.close() <span style=color:#75715e>//最后将文件关闭
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>writer</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>bufio</span>.<span style=color:#a6e22e>NerWriter</span>(<span style=color:#a6e22e>file</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>writer</span>.<span style=color:#a6e22e>Flush</span>()
+</span></span><span style=display:flex><span>	
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>f</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fibonacci</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>20</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Fprintln</span>(<span style=color:#a6e22e>writer</span>, <span style=color:#a6e22e>f</span>())
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>fibonacci</span>() <span style=color:#66d9ef>func</span>() <span style=color:#66d9ef>int</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>a</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>, <span style=color:#a6e22e>b</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>func</span>() <span style=color:#66d9ef>int</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span> = <span style=color:#a6e22e>b</span>, <span style=color:#a6e22e>a</span><span style=color:#f92672>+</span><span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>a</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>mian</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>writerFile</span>(<span style=color:#e6db74>&#34;fib.txt&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=错误处理>错误处理</h3><p>前面我们提到了<code>panic()</code>函数其实它也是用来做错误处理的，但是，使用<code>panic</code>程序会挂掉，这是我们不希望看到的。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>file</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>Open</span>(<span style=color:#e6db74>&#34;abc.txt&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>	panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>像上面代码使用panic后程序就会把err中的内容输出，并且挂掉</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>file</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>Open</span>(<span style=color:#e6db74>&#34;abc.txt&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>pathError</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>err</span>.(<span style=color:#f92672>*</span><span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>PathError</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>ok</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>pathError</span>)
+</span></span><span style=display:flex><span>	}<span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;unknown error &#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>使用这种处理方式更好</p><h3 id=panicrecover>panic&amp;recover</h3><h4 id=panic>panic</h4><p><img src=https://cdn.learnku.com/uploads/images/202108/14/69310/WDmKTuijKO.png!large alt=「Golang成长之路」错误处理与资源管理篇></p><h4 id=recover>recover</h4><p><img src=https://cdn.learnku.com/uploads/images/202108/14/69310/8575VU2ZrG.png!large alt=「Golang成长之路」错误处理与资源管理篇></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>tryRecover</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#66d9ef>func</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>r</span> <span style=color:#f92672>:=</span> recover()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>err</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>r</span>.(<span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>ok</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;Error occurred:&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}<span style=color:#66d9ef>else</span>{
+</span></span><span style=display:flex><span>		panic(<span style=color:#e6db74>&#34;I don`t kown what to : %v&#34;</span>, <span style=color:#a6e22e>r</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>  }()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>panic(<span style=color:#e6db74>&#34;123&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>mian</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>tryRecover</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=统一处理>统一处理</h4><p>服务器统一出错：
+web.go:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>   <span style=color:#e6db74>&#34;learngo/errhandling/filelistingserver/handle&#34;</span>
+</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;log&#34;</span> 
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;net/http&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;os&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//定义一个函数类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Apphandle</span> <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>write</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ResponseWriter</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>request</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Request</span>) <span style=color:#66d9ef>error</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//函数式编程,传入一个函数Apphandle类型的函数类型，返回一个匿名函数func(http.ResponseWriter,*http.Request)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>errwarappler</span>(<span style=color:#a6e22e>handler</span> <span style=color:#a6e22e>Apphandle</span>) <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ResponseWriter</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Request</span>) {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>writer</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ResponseWriter</span>, <span style=color:#a6e22e>request</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Request</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>//匿名函数func(http.ResponseWriter,*http.Request)内部构造：
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>defer</span> <span style=color:#66d9ef>func</span>(){
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>r</span> <span style=color:#f92672>:=</span> recover()
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>r</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;panic:%v\n&#34;</span>, <span style=color:#a6e22e>r</span>)
+</span></span><span style=display:flex><span>           <span style=color:#75715e>//写入返回err信息
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Error</span>(<span style=color:#a6e22e>writer</span>, <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusText</span>(<span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusInternalServerError</span>), <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusInternalServerError</span>)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      }()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>handler</span>(<span style=color:#a6e22e>writer</span>, <span style=color:#a6e22e>request</span>)
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;Error handle request:%s&#34;</span>, <span style=color:#a6e22e>err</span>.<span style=color:#a6e22e>Error</span>())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>userErr</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>err</span>.(<span style=color:#a6e22e>userError</span>); <span style=color:#a6e22e>ok</span>{
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Error</span>(<span style=color:#a6e22e>writer</span>, <span style=color:#a6e22e>userErr</span>.<span style=color:#a6e22e>Massage</span>(), <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusBadRequest</span>)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>code</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusOK</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>switch</span>{
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>case</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>IsNotExist</span>(<span style=color:#a6e22e>err</span>):  <span style=color:#75715e>//情况一：文件不存在
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>code</span> = <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusNotFound</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>case</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>IsPermission</span>(<span style=color:#a6e22e>err</span>): <span style=color:#75715e>//情况二：没有权限
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>code</span> = <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusForbidden</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>default</span>:
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>code</span> = <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusInternalServerError</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Error</span>(<span style=color:#a6e22e>writer</span>, <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>StatusText</span>(<span style=color:#a6e22e>code</span>), <span style=color:#a6e22e>code</span>)
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>userError</span> <span style=color:#66d9ef>interface</span>{
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>error</span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Massage</span>() <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#75715e>//传入部分
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>HandleFunc</span>(<span style=color:#e6db74>&#34;/&#34;</span>,<span style=color:#a6e22e>errwarappler</span>(<span style=color:#a6e22e>handle</span>.<span style=color:#a6e22e>Handler</span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ListenAndServe</span>(<span style=color:#e6db74>&#34;:8888&#34;</span> , <span style=color:#66d9ef>nil</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>      panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>handle.go:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>handle</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>   <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;io/ioutil&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;net/http&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;os&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;strings&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>perfix</span> = <span style=color:#e6db74>&#34;/list/&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>userError</span> <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>e</span> <span style=color:#a6e22e>userError</span>)<span style=color:#a6e22e>Error</span>() <span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>e</span>.<span style=color:#a6e22e>Massage</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>e</span> <span style=color:#a6e22e>userError</span>)<span style=color:#a6e22e>Massage</span>() <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> string(<span style=color:#a6e22e>e</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>Handler</span>(<span style=color:#a6e22e>write</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ResponseWriter</span>, <span style=color:#a6e22e>Request</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Request</span>) <span style=color:#66d9ef>error</span>{
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>Index</span>(<span style=color:#a6e22e>Request</span>.<span style=color:#a6e22e>URL</span>.<span style=color:#a6e22e>Path</span>, <span style=color:#a6e22e>perfix</span>) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>userError</span>(<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Sprintf</span>(<span style=color:#e6db74>&#34;path %s must start&#34;</span> <span style=color:#f92672>+</span>
+</span></span><span style=display:flex><span>         <span style=color:#e6db74>&#34;whit %s&#34;</span>,<span style=color:#a6e22e>Request</span>.<span style=color:#a6e22e>URL</span>.<span style=color:#a6e22e>Path</span>, <span style=color:#a6e22e>perfix</span>))
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>path</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>Request</span>.<span style=color:#a6e22e>URL</span>.<span style=color:#a6e22e>Path</span>[len(<span style=color:#a6e22e>perfix</span>):]
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>file</span> , <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>Open</span>(<span style=color:#a6e22e>path</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>      <span style=color:#75715e>//将错误信息返回出去
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>err</span>
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>file</span>.<span style=color:#a6e22e>Close</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>all</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ioutil</span>.<span style=color:#a6e22e>ReadAll</span>(<span style=color:#a6e22e>file</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>err</span>
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>write</span>.<span style=color:#a6e22e>Write</span>(<span style=color:#a6e22e>all</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p><strong>注意：error和panic</strong>
 在意料之外的情况：使用panic
-在意料之内的情况：使用error</p>
-
-    </div>
-    <div class="post-footer">
-      
-    </div>
-  </article>
-
-    </main>
-  </body>
-</html>
+在意料之内的情况：使用error</p></div><div class=post-footer></div></article></main></body></html>

@@ -1,356 +1,242 @@
-<!doctype html>
-<html lang="zh-cn">
-  <head>
-    <title>「Golang成长之路」基础语法 // iceymoss - 刻意练习，卷无止境</title>
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta charset="utf-8" />
-    <meta name="generator" content="Hugo 0.111.3">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="iceymoss" />
-    <meta name="description" content="" />
-    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
-
-    
-    <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="「Golang成长之路」基础语法"/>
-<meta name="twitter:description" content="[toc] 文章介绍 本系列文章将带你快速入门go这门编程语言，重点以实际应用为主，本文将介绍:变量、常量与枚举、数据类型、调节语句、循环语句、函数、指"/>
-
-    <meta property="og:title" content="「Golang成长之路」基础语法" />
-<meta property="og:description" content="[toc] 文章介绍 本系列文章将带你快速入门go这门编程语言，重点以实际应用为主，本文将介绍:变量、常量与枚举、数据类型、调节语句、循环语句、函数、指" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/" /><meta property="article:section" content="golang" />
-<meta property="article:published_time" content="2023-05-25T19:49:41+08:00" />
-<meta property="article:modified_time" content="2023-05-25T19:49:41+08:00" />
-
-
-  </head>
-  <body>
-    <header class="app-header">
-      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
-      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
-      <nav class="app-header-menu">
-          <a class="app-header-menu-item" href="/">首页</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/archives/">归档</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/tags/">标签</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/categories/">类别</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/about/">关于</a>
-      </nav>
-      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
-    </header>
-    <main class="app-container">
-      
-  <article class="post">
-    <header class="post-header">
-      <h1 class ="post-title">「Golang成长之路」基础语法</h1>
-      <div class="post-meta">
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
-  <title>calendar</title>
-  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-</svg>
-          May 25, 2023
-        </div>
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
-  <title>clock</title>
-  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-</svg>
-          4 min read
-        </div>
-      </div>
-    </header>
-    <div class="post-content">
-      <p>[toc]</p>
-<h3 id="文章介绍">文章介绍</h3>
-<p>本系列文章将带你快速入门go这门编程语言，重点以实际应用为主，本文将介绍:变量、常量与枚举、数据类型、调节语句、循环语句、函数、指针、go的传值方式。</p>
-<h3 id="变量定义">变量定义</h3>
-<p>Golang 的变量定义相比 c/c++，其最为特殊之处在于 c/c++ 是将变量类型放在变量的前面，而 Go 语言则是将变量类型放在变量的后面，如下：
-这是 c/c++:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;iostream&gt;</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">using</span> <span style="color:#66d9ef">namespace</span> std
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> a;
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> b;
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">float</span> c;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Go语言变量定义：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//求和
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">add</span>(<span style="color:#a6e22e">k</span> <span style="color:#66d9ef">int</span> , <span style="color:#a6e22e">y</span> <span style="color:#66d9ef">int</span> ){
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">a</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span> 
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">a</span> = <span style="color:#a6e22e">k</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">y</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">b</span> = <span style="color:#a6e22e">k</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">y</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">a</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">a</span>)
-</span></span></code></pre></div><h3 id="常量与枚举">常量与枚举</h3>
-<h4 id="常量">常量</h4>
-<p>说完变量 来说说常量，如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (<span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#e6db74">&#34;math&#34;</span>
-</span></span><span style="display:flex;"><span>     )
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">consts</span>(){
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> (
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">filename</span> = <span style="color:#e6db74">&#34;abc.txt&#34;</span>
-</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> = <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">c</span> <span style="color:#66d9ef">int</span> 
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">c</span> = int(<span style="color:#a6e22e">math</span>.<span style="color:#a6e22e">Sqrt</span>((<span style="color:#ae81ff">3</span><span style="color:#f92672">*</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span><span style="color:#f92672">*</span><span style="color:#ae81ff">4</span>)))
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">c</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#e6db74">&#34;\n&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">filename</span>,<span style="color:#a6e22e">c</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">consts</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//5
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//abc.txt  5
-</span></span></span></code></pre></div><h4 id="枚举iota">枚举(iota）：</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">consts</span>(){
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> (
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">cpp</span> = <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">java</span> = <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">python</span> = <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">golang</span> = <span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">cpp</span>, <span style="color:#a6e22e">java</span>, <span style="color:#a6e22e">python</span>, <span style="color:#a6e22e">golang</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">consts</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：0 1 2 3
-</span></span></span></code></pre></div><p>在 Golang 中可以使用 iota 来实现自增：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//枚举自增
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">enums</span>(){
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">const</span>(
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">cpp</span> = <span style="color:#66d9ef">iota</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">java</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">python</span> 
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">golang</span>  
-</span></span><span style="display:flex;"><span>   )
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">cpp</span>, <span style="color:#a6e22e">java</span>, <span style="color:#a6e22e">python</span>, <span style="color:#a6e22e">golang</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">enums</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：0 1 2 3 
-</span></span></span></code></pre></div><p>但是iota的用法较灵活：没新的一行 iota累加1</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> (
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">a</span> = <span style="color:#66d9ef">iota</span>   <span style="color:#75715e">//0
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">b</span>          <span style="color:#75715e">//1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">c</span>          <span style="color:#75715e">//2
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">d</span> = <span style="color:#e6db74">&#34;ha&#34;</span>   <span style="color:#75715e">//独立值， 会继续累加：iota += 1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">e</span>          <span style="color:#75715e">//&#34;ha&#34;   iota += 1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">f</span> = <span style="color:#ae81ff">100</span>    <span style="color:#75715e">//iota +=1  后续会没有赋值，默认为100，直到出现iota为止
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">g</span>          <span style="color:#75715e">//100  iota +=1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">h</span> = <span style="color:#66d9ef">iota</span>   <span style="color:#75715e">//7,恢复计数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">i</span>          <span style="color:#75715e">//8
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    )
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">a</span>,<span style="color:#a6e22e">b</span>,<span style="color:#a6e22e">c</span>,<span style="color:#a6e22e">d</span>,<span style="color:#a6e22e">e</span>,<span style="color:#a6e22e">f</span>,<span style="color:#a6e22e">g</span>,<span style="color:#a6e22e">h</span>,<span style="color:#a6e22e">i</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：0 1 3 ha ha 100 100 8
-</span></span></span></code></pre></div><h3 id="条件语句">条件语句</h3>
-<h4 id="if语句">if语句</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">int</span> = <span style="color:#ae81ff">59</span>  <span style="color:#75715e">//对于Go语言变量定义也可是：x := 59 可以不对类型进行划分
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">x</span> &lt; <span style="color:#ae81ff">60</span> {  <span style="color:#75715e">//x &lt; 60 为true；x &gt;= 60 为false
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#e6db74">&#34;不及格&#34;</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="if-else语句">if-else语句</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">filename</span> = <span style="color:#e6db74">&#34;abc1.txt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pass</span>, <span style="color:#a6e22e">err</span>  <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadFile</span>(<span style="color:#a6e22e">filename</span>) <span style="color:#75715e">//pass接受filename信息，err接受出错信息，如果读取正常则err == nil
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%s\n&#34;</span>,<span style="color:#a6e22e">pass</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="switch语句">switch语句</h4>
-<p>在 Go 语言中每一个 case 下是不需要 break 的，它会自动的结束。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">evel1</span>(<span style="color:#a6e22e">a</span>,<span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span> , <span style="color:#a6e22e">op</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">int</span> {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">op</span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;+&#34;</span>:
-</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span><span style="color:#f92672">+</span><span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;-&#34;</span>:
-</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span><span style="color:#f92672">-</span><span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;*&#34;</span>:
-</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span><span style="color:#f92672">*</span><span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;/&#34;</span>:
-</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span><span style="color:#f92672">/</span><span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">default</span>:
-</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="循环语句">循环语句</h3>
-<p>在 Go 中循环语句最不同的就是没有 <code>while</code> 循环，对于 Go 语言，只是用 for 循环就够用了。</p>
-<h4 id="for">for</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">for</span>{  <span style="color:#75715e">//不使用如何条件，就是死循环
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#e6db74">&#34;Golang&#34;</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//求100的阶乘
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">add2</span>() <span style="color:#66d9ef">int</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sum</span> <span style="color:#66d9ef">int</span> = <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">100</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>{
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">sum</span> = <span style="color:#a6e22e">sum</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">i</span>
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">sum</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//sum:5050
-</span></span></span></code></pre></div><h4 id="for--range">for -range</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sum</span>(<span style="color:#a6e22e">numbers</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">int</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">s</span><span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">numbers</span>{
-</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">s</span> <span style="color:#f92672">+=</span> <span style="color:#a6e22e">numbers</span>[<span style="color:#a6e22e">i</span>]
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">s</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">sum</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>))
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="while的替代">while的替代</h4>
-<p>前面说过 go 没有 <code>while</code>，其实只需要使用 <code>for</code> 循环就可以实现 <code>while</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//没有起始条件和递增条件，就是while循环
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">10</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#e6db74">&#34;Golang&#34;</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="函数">函数</h3>
-<p>在前面的内容中，其实就已经出现函数了，在 Go 中函数的返回值可以有多个，函数在定义是是将返回类型放在函数名的后面。定义函数是需要使用关键字 <code>func</code>。</p>
-<p><strong>特点：go的函数可以有多个返回值</strong></p>
-<ol>
-<li>
-<p>函数的返回类型放在函数名的后面</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//求100的阶乘
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">add2</span>() <span style="color:#66d9ef">int</span> {  <span style="color:#75715e">//将int放在函数名之后
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sum</span> <span style="color:#66d9ef">int</span> = <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">100</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">sum</span> = <span style="color:#a6e22e">sum</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">i</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> <span style="color:#a6e22e">sum</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div></li>
-<li>
-<p>多个返回值</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//交换数值函数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sawp</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span> ) (<span style="color:#66d9ef">int</span>,<span style="color:#66d9ef">int</span> ){  <span style="color:#75715e">//返回两个int类型的值
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">b</span> ,<span style="color:#a6e22e">a</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//求商，求余
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">div</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">int</span>){
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span><span style="color:#f92672">/</span><span style="color:#a6e22e">b</span> ,<span style="color:#a6e22e">a</span><span style="color:#f92672">%</span><span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sum</span>(<span style="color:#a6e22e">numbers</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">int</span>{
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">s</span><span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">numbers</span>{
-</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">s</span> <span style="color:#f92672">+=</span> <span style="color:#a6e22e">numbers</span>[<span style="color:#a6e22e">i</span>]
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">s</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">sum</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>))
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：15
-</span></span></span></code></pre></div></li>
-</ol>
-<h3 id="指针">指针</h3>
-<h4 id="什么是指针">什么是指针</h4>
-<p>在 Go 语言中指针并没有像 c/c++ 中那么麻烦</p>
-<p>指针：一个指针变量指向了一个值的内存地址。（也就是我们声明了一个指针之后，可以像变量赋值一样，把一个值的内存地址放入到指针当中。）类似于变量和常量。
-下面来看一个下例子：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//go指针
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">pointer</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">a</span> <span style="color:#66d9ef">int</span> = <span style="color:#ae81ff">5</span>   
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">pa</span><span style="color:#f92672">*</span> <span style="color:#66d9ef">int</span>  <span style="color:#75715e">//声明一个指针
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#a6e22e">pa</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">a</span>      <span style="color:#75715e">//将指针指向a的地址
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">pa</span> = <span style="color:#ae81ff">1</span>      <span style="color:#75715e">//更改指针指向地址的值
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">a</span>)
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">pointer</span>()
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：1
-</span></span></span></code></pre></div><h4 id="go函数的传参方式">Go函数的传参方式：</h4>
-<h5 id="值传递">值传递：</h5>
-<p>使用普通变量作为函数参数的时候，在传递参数时只是对变量值得拷贝，就是将实参的值复制给变参，当函数对变参进行处理时，并不会影响原来实参的值。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">swap</span>(<span style="color:#a6e22e">a</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span>) {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">temp</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">temp</span> = <span style="color:#a6e22e">a</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">a</span> = <span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">b</span> = <span style="color:#a6e22e">temp</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">5</span>
-</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">y</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">swap</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)
-</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出x,y值并没有变化
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//5 10
-</span></span></span></code></pre></div><p>传递给 swap 的是 x，y 的值得拷贝，函数对拷贝的值做了交换，但却没有改变 x,y 的值。</p>
-<h5 id="指针传递">&ldquo;指针传递&rdquo;</h5>
-<p>函数的变量不仅可以使用普通变量，还可以使用指针变量，使用指针变量作为函数的参数时，在进行参数传递时将是一个地址拷贝，即将实参的内存地址复制给变参，这时对变参的修改也将会影响到实参的值。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">swap</span>(<span style="color:#a6e22e">a</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">int</span>) {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">temp</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">temp</span> = <span style="color:#f92672">*</span><span style="color:#a6e22e">a</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">a</span> = <span style="color:#f92672">*</span><span style="color:#a6e22e">b</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">b</span> = <span style="color:#a6e22e">temp</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">5</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">y</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">swap</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">y</span>)
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//输出：10 5
-</span></span></span></code></pre></div>
-    </div>
-    <div class="post-footer">
-      
-    </div>
-  </article>
-
-    </main>
-  </body>
-</html>
+<!doctype html><html lang=zh-cn><head><title>「Golang成长之路」基础语法 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「Golang成长之路」基础语法"><meta name=twitter:description content="[toc] 文章介绍 本系列文章将带你快速入门go这门编程语言，重点以实际应用为主，本文将介绍:变量、常量与枚举、数据类型、调节语句、循环语句、函数、指"><meta property="og:title" content="「Golang成长之路」基础语法"><meta property="og:description" content="[toc] 文章介绍 本系列文章将带你快速入门go这门编程语言，重点以实际应用为主，本文将介绍:变量、常量与枚举、数据类型、调节语句、循环语句、函数、指"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-25T19:49:41+08:00"><meta property="article:modified_time" content="2023-05-25T19:49:41+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「Golang成长之路」基础语法</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>4 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=文章介绍>文章介绍</h3><p>本系列文章将带你快速入门go这门编程语言，重点以实际应用为主，本文将介绍:变量、常量与枚举、数据类型、调节语句、循环语句、函数、指针、go的传值方式。</p><h3 id=变量定义>变量定义</h3><p>Golang 的变量定义相比 c/c++，其最为特殊之处在于 c/c++ 是将变量类型放在变量的前面，而 Go 语言则是将变量类型放在变量的后面，如下：
+这是 c/c++:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>using</span> <span style=color:#66d9ef>namespace</span> std
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> a;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> b;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>float</span> c;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Go语言变量定义：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//求和
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>add</span>(<span style=color:#a6e22e>k</span> <span style=color:#66d9ef>int</span> , <span style=color:#a6e22e>y</span> <span style=color:#66d9ef>int</span> ){
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>a</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>b</span> <span style=color:#66d9ef>int</span> 
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>a</span> = <span style=color:#a6e22e>k</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>y</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>b</span> = <span style=color:#a6e22e>k</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>y</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>a</span>)
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>a</span>)
+</span></span></code></pre></div><h3 id=常量与枚举>常量与枚举</h3><h4 id=常量>常量</h4><p>说完变量 来说说常量，如下：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>     <span style=color:#e6db74>&#34;math&#34;</span>
+</span></span><span style=display:flex><span>     )
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>consts</span>(){
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> (
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>filename</span> = <span style=color:#e6db74>&#34;abc.txt&#34;</span>
+</span></span><span style=display:flex><span>       <span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span> = <span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>c</span> <span style=color:#66d9ef>int</span> 
+</span></span><span style=display:flex><span><span style=color:#a6e22e>c</span> = int(<span style=color:#a6e22e>math</span>.<span style=color:#a6e22e>Sqrt</span>((<span style=color:#ae81ff>3</span><span style=color:#f92672>*</span><span style=color:#ae81ff>3</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>4</span><span style=color:#f92672>*</span><span style=color:#ae81ff>4</span>)))
+</span></span><span style=display:flex><span><span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>c</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#e6db74>&#34;\n&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>filename</span>,<span style=color:#a6e22e>c</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>consts</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//5
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//abc.txt  5
+</span></span></span></code></pre></div><h4 id=枚举iota>枚举(iota）：</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>consts</span>(){
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> (
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>cpp</span> = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>java</span> = <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>python</span> = <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>golang</span> = <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>cpp</span>, <span style=color:#a6e22e>java</span>, <span style=color:#a6e22e>python</span>, <span style=color:#a6e22e>golang</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>consts</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：0 1 2 3
+</span></span></span></code></pre></div><p>在 Golang 中可以使用 iota 来实现自增：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//枚举自增
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>enums</span>(){
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>const</span>(
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>cpp</span> = <span style=color:#66d9ef>iota</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>java</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>python</span> 
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>golang</span>  
+</span></span><span style=display:flex><span>   )
+</span></span><span style=display:flex><span><span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>cpp</span>, <span style=color:#a6e22e>java</span>, <span style=color:#a6e22e>python</span>, <span style=color:#a6e22e>golang</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>enums</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：0 1 2 3 
+</span></span></span></code></pre></div><p>但是iota的用法较灵活：没新的一行 iota累加1</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> (
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>a</span> = <span style=color:#66d9ef>iota</span>   <span style=color:#75715e>//0
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>b</span>          <span style=color:#75715e>//1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>c</span>          <span style=color:#75715e>//2
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>d</span> = <span style=color:#e6db74>&#34;ha&#34;</span>   <span style=color:#75715e>//独立值， 会继续累加：iota += 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>e</span>          <span style=color:#75715e>//&#34;ha&#34;   iota += 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>f</span> = <span style=color:#ae81ff>100</span>    <span style=color:#75715e>//iota +=1  后续会没有赋值，默认为100，直到出现iota为止
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>g</span>          <span style=color:#75715e>//100  iota +=1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>h</span> = <span style=color:#66d9ef>iota</span>   <span style=color:#75715e>//7,恢复计数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>i</span>          <span style=color:#75715e>//8
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    )
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>a</span>,<span style=color:#a6e22e>b</span>,<span style=color:#a6e22e>c</span>,<span style=color:#a6e22e>d</span>,<span style=color:#a6e22e>e</span>,<span style=color:#a6e22e>f</span>,<span style=color:#a6e22e>g</span>,<span style=color:#a6e22e>h</span>,<span style=color:#a6e22e>i</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：0 1 3 ha ha 100 100 8
+</span></span></span></code></pre></div><h3 id=条件语句>条件语句</h3><h4 id=if语句>if语句</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>x</span> <span style=color:#66d9ef>int</span> = <span style=color:#ae81ff>59</span>  <span style=color:#75715e>//对于Go语言变量定义也可是：x := 59 可以不对类型进行划分
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> &lt; <span style=color:#ae81ff>60</span> {  <span style=color:#75715e>//x &lt; 60 为true；x &gt;= 60 为false
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#e6db74>&#34;不及格&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=if-else语句>if-else语句</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>filename</span> = <span style=color:#e6db74>&#34;abc1.txt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>pass</span>, <span style=color:#a6e22e>err</span>  <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ioutil</span>.<span style=color:#a6e22e>ReadFile</span>(<span style=color:#a6e22e>filename</span>) <span style=color:#75715e>//pass接受filename信息，err接受出错信息，如果读取正常则err == nil
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;%s\n&#34;</span>,<span style=color:#a6e22e>pass</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=switch语句>switch语句</h4><p>在 Go 语言中每一个 case 下是不需要 break 的，它会自动的结束。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>evel1</span>(<span style=color:#a6e22e>a</span>,<span style=color:#a6e22e>b</span> <span style=color:#66d9ef>int</span> , <span style=color:#a6e22e>op</span> <span style=color:#66d9ef>string</span>) <span style=color:#66d9ef>int</span> {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>switch</span> <span style=color:#a6e22e>op</span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;+&#34;</span>:
+</span></span><span style=display:flex><span>       <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>a</span><span style=color:#f92672>+</span><span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;-&#34;</span>:
+</span></span><span style=display:flex><span>       <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>a</span><span style=color:#f92672>-</span><span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;*&#34;</span>:
+</span></span><span style=display:flex><span>       <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>a</span><span style=color:#f92672>*</span><span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;/&#34;</span>:
+</span></span><span style=display:flex><span>       <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>a</span><span style=color:#f92672>/</span><span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>default</span>:
+</span></span><span style=display:flex><span>       <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=循环语句>循环语句</h3><p>在 Go 中循环语句最不同的就是没有 <code>while</code> 循环，对于 Go 语言，只是用 for 循环就够用了。</p><h4 id=for>for</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>for</span>{  <span style=color:#75715e>//不使用如何条件，就是死循环
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#e6db74>&#34;Golang&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//求100的阶乘
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>add2</span>() <span style=color:#66d9ef>int</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>sum</span> <span style=color:#66d9ef>int</span> = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>100</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>{
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>sum</span> = <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>i</span>
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>sum</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//sum:5050
+</span></span></span></code></pre></div><h4 id=for--range>for -range</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>sum</span>(<span style=color:#a6e22e>numbers</span> <span style=color:#f92672>...</span><span style=color:#66d9ef>int</span>) <span style=color:#66d9ef>int</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>s</span><span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>numbers</span>{
+</span></span><span style=display:flex><span>       <span style=color:#a6e22e>s</span> <span style=color:#f92672>+=</span> <span style=color:#a6e22e>numbers</span>[<span style=color:#a6e22e>i</span>]
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>s</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>sum</span>(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>4</span>, <span style=color:#ae81ff>5</span>))
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=while的替代>while的替代</h4><p>前面说过 go 没有 <code>while</code>，其实只需要使用 <code>for</code> 循环就可以实现 <code>while</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//没有起始条件和递增条件，就是while循环
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>10</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#e6db74>&#34;Golang&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=函数>函数</h3><p>在前面的内容中，其实就已经出现函数了，在 Go 中函数的返回值可以有多个，函数在定义是是将返回类型放在函数名的后面。定义函数是需要使用关键字 <code>func</code>。</p><p><strong>特点：go的函数可以有多个返回值</strong></p><ol><li><p>函数的返回类型放在函数名的后面</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//求100的阶乘
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>add2</span>() <span style=color:#66d9ef>int</span> {  <span style=color:#75715e>//将int放在函数名之后
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>sum</span> <span style=color:#66d9ef>int</span> = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>100</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>sum</span> = <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>i</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>return</span> <span style=color:#a6e22e>sum</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></li><li><p>多个返回值</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//交换数值函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>sawp</span>(<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span> <span style=color:#66d9ef>int</span> ) (<span style=color:#66d9ef>int</span>,<span style=color:#66d9ef>int</span> ){  <span style=color:#75715e>//返回两个int类型的值
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>b</span> ,<span style=color:#a6e22e>a</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//求商，求余
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>div</span>(<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span> <span style=color:#66d9ef>int</span>) (<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>a</span><span style=color:#f92672>/</span><span style=color:#a6e22e>b</span> ,<span style=color:#a6e22e>a</span><span style=color:#f92672>%</span><span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>sum</span>(<span style=color:#a6e22e>numbers</span> <span style=color:#f92672>...</span><span style=color:#66d9ef>int</span>) <span style=color:#66d9ef>int</span>{
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>s</span><span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>numbers</span>{
+</span></span><span style=display:flex><span>       <span style=color:#a6e22e>s</span> <span style=color:#f92672>+=</span> <span style=color:#a6e22e>numbers</span>[<span style=color:#a6e22e>i</span>]
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>s</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>sum</span>(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>4</span>, <span style=color:#ae81ff>5</span>))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：15
+</span></span></span></code></pre></div></li></ol><h3 id=指针>指针</h3><h4 id=什么是指针>什么是指针</h4><p>在 Go 语言中指针并没有像 c/c++ 中那么麻烦</p><p>指针：一个指针变量指向了一个值的内存地址。（也就是我们声明了一个指针之后，可以像变量赋值一样，把一个值的内存地址放入到指针当中。）类似于变量和常量。
+下面来看一个下例子：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//go指针
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>pointer</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>a</span> <span style=color:#66d9ef>int</span> = <span style=color:#ae81ff>5</span>   
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>pa</span><span style=color:#f92672>*</span> <span style=color:#66d9ef>int</span>  <span style=color:#75715e>//声明一个指针
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#a6e22e>pa</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>a</span>      <span style=color:#75715e>//将指针指向a的地址
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#f92672>*</span><span style=color:#a6e22e>pa</span> = <span style=color:#ae81ff>1</span>      <span style=color:#75715e>//更改指针指向地址的值
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>a</span>)
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>pointer</span>()
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：1
+</span></span></span></code></pre></div><h4 id=go函数的传参方式>Go函数的传参方式：</h4><h5 id=值传递>值传递：</h5><p>使用普通变量作为函数参数的时候，在传递参数时只是对变量值得拷贝，就是将实参的值复制给变参，当函数对变参进行处理时，并不会影响原来实参的值。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>swap</span>(<span style=color:#a6e22e>a</span> <span style=color:#66d9ef>int</span>, <span style=color:#a6e22e>b</span> <span style=color:#66d9ef>int</span>) {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>temp</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>temp</span> = <span style=color:#a6e22e>a</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>a</span> = <span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>b</span> = <span style=color:#a6e22e>temp</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span> <span style=color:#a6e22e>y</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>10</span>
+</span></span><span style=display:flex><span> <span style=color:#a6e22e>swap</span>(<span style=color:#a6e22e>x</span>, <span style=color:#a6e22e>y</span>)
+</span></span><span style=display:flex><span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>x</span>, <span style=color:#a6e22e>y</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出x,y值并没有变化
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//5 10
+</span></span></span></code></pre></div><p>传递给 swap 的是 x，y 的值得拷贝，函数对拷贝的值做了交换，但却没有改变 x,y 的值。</p><h5 id=指针传递>&ldquo;指针传递&rdquo;</h5><p>函数的变量不仅可以使用普通变量，还可以使用指针变量，使用指针变量作为函数的参数时，在进行参数传递时将是一个地址拷贝，即将实参的内存地址复制给变参，这时对变参的修改也将会影响到实参的值。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>swap</span>(<span style=color:#a6e22e>a</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>int</span>, <span style=color:#a6e22e>b</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>int</span>) {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>temp</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>   <span style=color:#a6e22e>temp</span> = <span style=color:#f92672>*</span><span style=color:#a6e22e>a</span>
+</span></span><span style=display:flex><span>   <span style=color:#f92672>*</span><span style=color:#a6e22e>a</span> = <span style=color:#f92672>*</span><span style=color:#a6e22e>b</span>
+</span></span><span style=display:flex><span>   <span style=color:#f92672>*</span><span style=color:#a6e22e>b</span> = <span style=color:#a6e22e>temp</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>x</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>y</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>10</span>
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>swap</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>x</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>y</span>)
+</span></span><span style=display:flex><span>     <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Print</span>(<span style=color:#a6e22e>x</span>, <span style=color:#a6e22e>y</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//输出：10 5
+</span></span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>

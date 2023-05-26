@@ -1,0 +1,226 @@
+<!doctype html><html lang=zh-cn><head><title>参数配置之viper // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="参数配置之viper"><meta name=twitter:description content="[toc] 文章介绍 本文我们将来介绍一下如何从第三方包viper来获取配置文件的配置信息，以及开发模式下的配置和上线产品如何使用进行viper做配置映"><meta property="og:title" content="参数配置之viper"><meta property="og:description" content="[toc] 文章介绍 本文我们将来介绍一下如何从第三方包viper来获取配置文件的配置信息，以及开发模式下的配置和上线产品如何使用进行viper做配置映"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/post/%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E4%B9%8Bviper/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-25T20:55:37+08:00"><meta property="article:modified_time" content="2023-05-25T20:55:37+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>参数配置之viper</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>2 min read</div></div></header><div class=post-content><p>[toc]</p><h3 id=文章介绍>文章介绍</h3><p>本文我们将来介绍一下如何从第三方包viper来获取配置文件的配置信息，以及开发模式下的配置和上线产品如何使用进行viper做配置映射</p><h3 id=viper的安装>viper的安装</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>go get github.com/spf13/viper
+</span></span></code></pre></div><h3 id=快速开始>快速开始</h3><p>实例目录结构：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>ch1
+</span></span><span style=display:flex><span>├── config.yaml    //配置文件
+</span></span><span style=display:flex><span>└── main.go  			 //viper读取配置
+</span></span></code></pre></div><p>config.yaml:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#e6db74>&#39;user-web&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>mysql</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>host</span>: <span style=color:#e6db74>&#39;127.0.0.1&#39;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>port</span>: <span style=color:#ae81ff>3306</span>
+</span></span></code></pre></div><p>main.go:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/spf13/viper&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Host</span> <span style=color:#66d9ef>string</span> <span style=color:#e6db74>`mapstructure:&#34;host&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Port</span> <span style=color:#66d9ef>int</span>    <span style=color:#e6db74>`mapstructure:&#34;port&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//ServerConfig 将配置文件内容映射为struct
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ServerConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerName</span> <span style=color:#66d9ef>string</span>      <span style=color:#e6db74>`mapstructure:&#34;name&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SqlConfig</span>  <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#e6db74>`mapstructure:&#34;mysql&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//new对象
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>v</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>viper</span>.<span style=color:#a6e22e>New</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//读取配置文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>SetConfigFile</span>(<span style=color:#e6db74>&#34;viper_test/ch1/config.yaml&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>ReadInConfig</span>(); <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerConfig</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ServerConfig</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>在上述代码中我们定义了两个结构体：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Host</span> <span style=color:#66d9ef>string</span> <span style=color:#e6db74>`mapstructure:&#34;host&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Port</span> <span style=color:#66d9ef>int</span>    <span style=color:#e6db74>`mapstructure:&#34;port&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//ServerConfig 将配置文件内容映射为struct
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ServerConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerName</span> <span style=color:#66d9ef>string</span>      <span style=color:#e6db74>`mapstructure:&#34;name&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SqlConfig</span>  <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#e6db74>`mapstructure:&#34;mysql&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>这两个结构体用来做配置映射，这里使用<code>mapstructure</code>为配置做tag</p><p>完整代码：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/spf13/viper&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Host</span> <span style=color:#66d9ef>string</span> <span style=color:#e6db74>`mapstructure:&#34;host&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Port</span> <span style=color:#66d9ef>int</span>    <span style=color:#e6db74>`mapstructure:&#34;port&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//ServerConfig 将配置文件内容映射为struct
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ServerConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerName</span> <span style=color:#66d9ef>string</span>      <span style=color:#e6db74>`mapstructure:&#34;name&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SqlConfig</span>  <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#e6db74>`mapstructure:&#34;mysql&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//new一个viper对象
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>v</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>viper</span>.<span style=color:#a6e22e>New</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//获取配置文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>SetConfigFile</span>(<span style=color:#e6db74>&#34;viper_test/ch1/config.yaml&#34;</span>)
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//将配置读入viper对象中
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>ReadInConfig</span>(); <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerConfig</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ServerConfig</span>{}
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//将读取到的配置信息映射至ServerConfig中
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>输出：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span><span style=color:#f92672>{</span>user-web <span style=color:#f92672>{</span>127.0.0.1 3306<span style=color:#f92672>}}</span>
+</span></span></code></pre></div><h3 id=实时监控配置>实时监控配置</h3><p>viper为我们提供了实时监控配置的功能</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>WatchConfig</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>OnConfigChange</span>(<span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>e</span> <span style=color:#a6e22e>fsnotify</span>.<span style=color:#a6e22e>Event</span>) {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;配置变化：&#34;</span>, <span style=color:#a6e22e>e</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>_</span> = <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>ReadInConfig</span>()
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>	})
+</span></span></code></pre></div><p>事例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/fsnotify/fsnotify&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/spf13/viper&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Host</span> <span style=color:#66d9ef>string</span> <span style=color:#e6db74>`mapstructure:&#34;host&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Port</span> <span style=color:#66d9ef>int</span>    <span style=color:#e6db74>`mapstructure:&#34;port&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//ServerConfig 将配置文件内容映射为struct
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ServerConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerName</span> <span style=color:#66d9ef>string</span>      <span style=color:#e6db74>`mapstructure:&#34;name&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SqlConfig</span>  <span style=color:#a6e22e>mysqlConfig</span> <span style=color:#e6db74>`mapstructure:&#34;mysql&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//new对象
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>v</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>viper</span>.<span style=color:#a6e22e>New</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//读取配置文件
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>SetConfigFile</span>(<span style=color:#e6db74>&#34;viper_test/ch1/config.yaml&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>ReadInConfig</span>(); <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerConfig</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ServerConfig</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>WatchConfig</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>OnConfigChange</span>(<span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>e</span> <span style=color:#a6e22e>fsnotify</span>.<span style=color:#a6e22e>Event</span>) {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;配置变化：&#34;</span>, <span style=color:#a6e22e>e</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>_</span> = <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>ReadInConfig</span>()
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//延迟程序退出时间
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>300</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>运行程序后我们对port进行更改，会有如下输出：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span><span style=color:#f92672>{</span>user-web <span style=color:#f92672>{</span>127.0.0.1 3306<span style=color:#f92672>}}</span>
+</span></span><span style=display:flex><span>配置变化： WRITE         <span style=color:#e6db74>&#34;viper_test/ch1/config.yaml&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>{</span>user-web <span style=color:#f92672>{</span>127.0.0.1 3303<span style=color:#f92672>}}</span>
+</span></span><span style=display:flex><span>配置变化： WRITE         <span style=color:#e6db74>&#34;viper_test/ch1/config.yaml&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>{</span>user-web <span style=color:#f92672>{</span>127.0.0.1 3306<span style=color:#f92672>}}</span>
+</span></span></code></pre></div><h3 id=线上线下环境隔离>线上线下环境隔离</h3><p>目录结构：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>ch02</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>├──</span> <span style=color:#a6e22e>config</span><span style=color:#f92672>-</span><span style=color:#a6e22e>debug</span>.<span style=color:#a6e22e>yaml</span>   <span style=color:#75715e>//开发环境
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#960050;background-color:#1e0010>├──</span> <span style=color:#a6e22e>config</span><span style=color:#f92672>-</span><span style=color:#a6e22e>por</span>.<span style=color:#a6e22e>yaml</span>			<span style=color:#75715e>//线上环境
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#960050;background-color:#1e0010>└──</span> <span style=color:#a6e22e>main</span>.<span style=color:#66d9ef>go</span>
+</span></span></code></pre></div><p>config-debug.yaml：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#e6db74>&#39;user-web-debug&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>mysql</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>host</span>: <span style=color:#e6db74>&#39;127.0.0.1&#39;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>port</span>: <span style=color:#ae81ff>3306</span>
+</span></span></code></pre></div><p>config-por.yaml:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#e6db74>&#39;user-web&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>mysql</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>host</span>: <span style=color:#e6db74>&#39;195.1.43.12&#39;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>port</span>: <span style=color:#ae81ff>2000</span>
+</span></span></code></pre></div><p>根据条件读写线上\线下配置并做监控</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/fsnotify/fsnotify&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/spf13/viper&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//将配置文件嵌套映射
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>MysqlServerConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Host</span> <span style=color:#66d9ef>string</span> <span style=color:#e6db74>`mapstructure:&#34;host&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Port</span> <span style=color:#66d9ef>int</span>    <span style=color:#e6db74>`mapstructure:&#34;port&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//将配置文件内容映射为struct
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ServerConfig</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerName</span> <span style=color:#66d9ef>string</span>            <span style=color:#e6db74>`mapstructure:&#34;name&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Mysql</span>      <span style=color:#a6e22e>MysqlServerConfig</span> <span style=color:#e6db74>`mapstructure:&#34;mysql&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//通过环境变量，将线上线下环境隔离
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>GetEnvInfo</span>(<span style=color:#a6e22e>env</span> <span style=color:#66d9ef>string</span>) <span style=color:#66d9ef>bool</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>viper</span>.<span style=color:#a6e22e>AutomaticEnv</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>viper</span>.<span style=color:#a6e22e>GetBool</span>(<span style=color:#a6e22e>env</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>debug</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>GetEnvInfo</span>(<span style=color:#e6db74>&#34;MXSHOP_DEBUG&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>configFilePrefix</span> <span style=color:#f92672>:=</span> <span style=color:#e6db74>&#34;config&#34;</span>
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//默认为线上配置
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>configFileName</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Sprintf</span>(<span style=color:#e6db74>&#34;viper_test/ch02/%s-por.yaml&#34;</span>, <span style=color:#a6e22e>configFilePrefix</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>debug</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>configFileName</span> = <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Sprintf</span>(<span style=color:#e6db74>&#34;viper_test/ch02/%s-debug.yaml&#34;</span>, <span style=color:#a6e22e>configFilePrefix</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>viper</span>.<span style=color:#a6e22e>New</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>SetConfigFile</span>(<span style=color:#a6e22e>configFileName</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>ReadInConfig</span>(); <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServerConfig</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ServerConfig</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>ServerConfig</span>); <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>WatchConfig</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>OnConfigChange</span>(<span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>e</span> <span style=color:#a6e22e>fsnotify</span>.<span style=color:#a6e22e>Event</span>) {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;配置变化：&#34;</span>, <span style=color:#a6e22e>e</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>_</span> = <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>ReadInConfig</span>()
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>ServerConfig</span>)
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>300</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>

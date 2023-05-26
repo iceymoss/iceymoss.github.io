@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Golands on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/goland/</link>
+    <description>Recent content in Golands on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 25 May 2023 19:45:18 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/goland/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>「Golang成长之路」内建容器</title>
+      <link>https://iceymoss.github.io/goland/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E5%86%85%E5%BB%BA%E5%AE%B9%E5%99%A8/</link>
+      <pubDate>Thu, 25 May 2023 19:45:18 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/goland/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E5%86%85%E5%BB%BA%E5%AE%B9%E5%99%A8/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,462 +1,315 @@
-<!doctype html>
-<html lang="zh-cn">
-  <head>
-    <title>「前端开发」html入门表单与属性 // iceymoss - 刻意练习，卷无止境</title>
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta charset="utf-8" />
-    <meta name="generator" content="Hugo 0.111.3">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="iceymoss" />
-    <meta name="description" content="" />
-    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
-
-    
-    <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="「前端开发」html入门表单与属性"/>
-<meta name="twitter:description" content="[toc] 表单的创建 表单是什么 表单是用来采集信息，比如我们的登录、注册、发表评论、购买商品等等，都需要使用表单来提交信息然后给到后台服务器。 表单标签"/>
-
-    <meta property="og:title" content="「前端开发」html入门表单与属性" />
-<meta property="og:description" content="[toc] 表单的创建 表单是什么 表单是用来采集信息，比如我们的登录、注册、发表评论、购买商品等等，都需要使用表单来提交信息然后给到后台服务器。 表单标签" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E8%A1%A8%E5%8D%95%E4%B8%8E%E5%B1%9E%E6%80%A7/" /><meta property="article:section" content="post" />
-<meta property="article:published_time" content="2023-05-25T20:20:21+08:00" />
-<meta property="article:modified_time" content="2023-05-25T20:20:21+08:00" />
-
-
-  </head>
-  <body>
-    <header class="app-header">
-      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
-      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
-      <nav class="app-header-menu">
-          <a class="app-header-menu-item" href="/">首页</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/archives/">归档</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/tags/">标签</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/categories/">类别</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/about/">关于</a>
-      </nav>
-      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
-    </header>
-    <main class="app-container">
-      
-  <article class="post">
-    <header class="post-header">
-      <h1 class ="post-title">「前端开发」html入门表单与属性</h1>
-      <div class="post-meta">
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
-  <title>calendar</title>
-  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-</svg>
-          May 25, 2023
-        </div>
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
-  <title>clock</title>
-  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-</svg>
-          7 min read
-        </div>
-      </div>
-    </header>
-    <div class="post-content">
-      <p>[toc]</p>
-<h3 id="表单的创建">表单的创建</h3>
-<h4 id="表单是什么">表单是什么</h4>
-<p>表单是用来采集信息，比如我们的登录、注册、发表评论、购买商品等等，都需要使用表单来提交信息然后给到后台服务器。</p>
-<h4 id="表单标签formform">表单标签<code>&lt;form&gt;&lt;/form&gt;</code></h4>
-<h5 id="action属性">action属性</h5>
-<p>表示提交表单的地址</p>
-<h5 id="method属性">method属性</h5>
-<p>提交表单的http方法</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span> &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;save.php&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;&lt;/<span style="color:#f92672">form</span>&gt;
-</span></span></code></pre></div><h3 id="基本控件">基本控件</h3>
-<h4 id="单行文本框">单行文本框</h4>
-<h5 id="type属性">type属性</h5>
-<p>指该输入款输入的类型</p>
-<blockquote>
-<p>text：文本</p>
-<p>file：文件</p>
-<p>image：图片</p>
-<p>……</p>
-</blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span>&gt;
-</span></span></code></pre></div><h5 id="value属性">value属性</h5>
-<p>表示输入框已经填好的值</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;123456&#34;</span>&gt;
-</span></span></code></pre></div><h5 id="placeholder属性">placeholder属性</h5>
-<p>表示文本框中提示的内容</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;
-</span></span></code></pre></div><h5 id="disabled属性">disabled属性</h5>
-<p>将文本框锁死，意思就是不能向输入框中写入信息</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span> &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;123456&#34;</span> <span style="color:#a6e22e">disabled</span>&gt;
-</span></span></code></pre></div><h4 id="实例">实例</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;save.php&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;用户名：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;admin&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;密码：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;国籍：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;中国&#34;</span> <span style="color:#a6e22e">disabled</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;  
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="单选框radio">单选框radio</h4>
-<p>radio在输入框中表现为按钮选择样式</p>
-<p>value：为选择当期按钮后，提交的值</p>
-<p>name：多个当radio类型的输入框的name的值相同时，对应的输入框值按钮选择形成互斥关系</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;sex&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;男&#34;</span>&gt;男
-</span></span></code></pre></div><h5 id="实例-1">实例：</h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;save.php&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;用户名：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;admin&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;密码：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;国籍：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;中国&#34;</span> <span style="color:#a6e22e">disabled</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>              
-</span></span><span style="display:flex;"><span>              	<span style="color:#75715e">&lt;!-- 注意：这里性别和学历是不同的类别，name值不能相同，不然同样会出现互斥关系 --&gt;</span>
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;性别：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;sex&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;男&#34;</span>&gt;男
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;sex&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;女&#34;</span>&gt;女
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;学历：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;degree&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;小学&#34;</span>&gt;小学
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;degree&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;初中&#34;</span>&gt;初中
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;degree&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;高中&#34;</span>&gt;高中
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;degree&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;专科&#34;</span>&gt;专科
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;degree&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;本科&#34;</span>&gt;本科
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;degree&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;研究生&#34;</span>&gt;研究生
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><p>有一种情况：当我们点击男，或者本科学历等这些文本时，网页不会给我们选择输入框按钮，那么如何将点击范围扩大到文本上呢？答案是：<code> &lt;label&gt;&lt;/label&gt;</code>标签。</p>
-<h5 id="labellabel"><code>&lt;label&gt;&lt;/label&gt;</code></h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;save.php&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;用户名：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;admin&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;密码：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;国籍：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;中国&#34;</span> <span style="color:#a6e22e">disabled</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>               
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;性别：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;sex&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;男&#34;</span>&gt;男
-</span></span><span style="display:flex;"><span>                    &lt;/<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;radio&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;sex&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;女&#34;</span>&gt;女
-</span></span><span style="display:flex;"><span>                    &lt;/<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;      
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="复选框checkbox">复选框checkbox</h4>
-<p>复选框表示可以选择多个</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;checkbox&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hobby&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;篮球&#34;</span>&gt;篮球
-</span></span></code></pre></div><h5 id="实例-2">实例：</h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;save.php&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;用户名：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;admin&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;密码：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;国籍：&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;中国&#34;</span> <span style="color:#a6e22e">disabled</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;爱好：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;checkbox&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hobby&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;篮球&#34;</span>&gt;篮球
-</span></span><span style="display:flex;"><span>                    &lt;/<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;checkbox&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hobby&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;足球&#34;</span>&gt;足球
-</span></span><span style="display:flex;"><span>                    &lt;/<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;checkbox&#34;</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hobby&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;打游戏&#34;</span>&gt;打游戏
-</span></span><span style="display:flex;"><span>                    &lt;/<span style="color:#f92672">label</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="密码框">密码框</h4>
-<p>当前输入框内容会被隐藏为小圆点</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;password&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;
-</span></span></code></pre></div><h5 id="实例-3">实例</h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;用户名：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入用户名&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">P</span>&gt;密码：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;password&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">P</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;验证码：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;4820&#34;</span> <span style="color:#a6e22e">disabled</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="下拉框">下拉框</h4>
-<p>下拉菜单</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">select</span>&gt;
-</span></span><span style="display:flex;"><span>       &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Alipay&#34;</span>&gt;支付宝&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>       ……
-</span></span><span style="display:flex;"><span>  		 ……
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">select</span>&gt;
-</span></span></code></pre></div><h5 id="实例-4">实例</h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://127.0.0.1:8080/user/pay&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;支付方式：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">select</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Alipay&#34;</span>&gt;支付宝&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Wachatpay&#34;</span>&gt;微信&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UnionPay&#34;</span>&gt;银联&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                    &lt;/<span style="color:#f92672">select</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="多行文本框">多行文本框</h4>
-<p>多行文本框可以用来做留言、评论等</p>
-<h6 id="cols属性">cols属性</h6>
-<p>指例数(宽度)</p>
-<h6 id="rows属性">rows属性</h6>
-<p>指行数(高度)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">textarea</span> <span style="color:#a6e22e">cols</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;70&#34;</span> <span style="color:#a6e22e">rows</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;30&#34;</span>&gt;&lt;/<span style="color:#f92672">textarea</span>&gt;
-</span></span></code></pre></div><h5 id="实例-5">实例</h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt; 
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;留言：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">textarea</span> <span style="color:#a6e22e">cols</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;70&#34;</span> <span style="color:#a6e22e">rows</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;30&#34;</span>&gt;&lt;/<span style="color:#f92672">textarea</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="三种按钮">三种按钮</h4>
-<table>
-<thead>
-<tr>
-<th>type属性值</th>
-<th>按钮种类</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>button</td>
-<td>按钮，可以写成<code>&lt;button&gt;&lt;/button&gt;</code></td>
-</tr>
-<tr>
-<td>submit</td>
-<td>提交按钮,将form标签中的输入框的内容进行向url提交</td>
-</tr>
-<tr>
-<td>reset</td>
-<td>重置按钮，将form标签中的输入框的内容进行重置</td>
-</tr>
-</tbody>
-</table>
-<h5 id="实例-6">实例</h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;用户名：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入用户名&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">P</span>&gt;密码：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;password&#34;</span> <span style="color:#a6e22e">placeholder</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;请输入密码&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">P</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;验证码：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;4820&#34;</span> <span style="color:#a6e22e">disabled</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;普通按钮：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;button&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;每日打卡&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;提交按钮：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;submit&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;点击提交&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;重置按钮：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;reset&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;点击重置&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="更多输入框">更多输入框</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://127.0.0.1:8080/user/test&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;颜色选择控件：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;color&#34;</span> &gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;日期选择控件：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;date&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;时间选择控件：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;time&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">&lt;!-- 点击提交时会验证该输入是否符合邮件命名规则 --&gt;</span>
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">P</span>&gt;电子邮件选择控件：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;email&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">P</span>&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">&lt;!-- 点击提交时会验证此输入框是否有输入 --&gt;</span>
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;必填项：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">required</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;数字范围：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;number&#34;</span> <span style="color:#a6e22e">min</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0&#34;</span> <span style="color:#a6e22e">max</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;120&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;拖拽条：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;range&#34;</span> <span style="color:#a6e22e">min</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;10&#34;</span> <span style="color:#a6e22e">max</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;100&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;搜索框：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;search&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">&lt;!-- 点击提交时会验证此输入的url是否合法 --&gt;</span>
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;网址：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;url&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;提交按钮：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;submit&#34;</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;点击提交&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div><h4 id="智能感应datalistdatalist">智能感应<code>&lt;datalist&gt;&lt;/datalist&gt;</code></h4>
-<p>该标签和<code>&lt;input&gt;</code>绑定起来使用</p>
-<h5 id="实例-7">实例</h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
-</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">head</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">form</span> <span style="color:#a6e22e">action</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style="color:#a6e22e">method</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;post&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;<span style="color:#f92672">p</span>&gt;省份：
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">list</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;province-list&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                    &lt;<span style="color:#f92672">datalist</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;province-list&#34;</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;山西&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;山东&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;河南&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;河北&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;湖南&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;湖北&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;广西&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                        &lt;<span style="color:#f92672">option</span> <span style="color:#a6e22e">value</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;广东&#34;</span>&gt;&lt;/<span style="color:#f92672">option</span>&gt;
-</span></span><span style="display:flex;"><span>                    &lt;/<span style="color:#f92672">datalist</span>&gt;
-</span></span><span style="display:flex;"><span>                &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">form</span>&gt;
-</span></span><span style="display:flex;"><span>            &lt;/<span style="color:#f92672">p</span>&gt;
-</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">div</span>&gt;
-</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
-</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
-</span></span></code></pre></div>
-    </div>
-    <div class="post-footer">
-      
-    </div>
-  </article>
-
-    </main>
-  </body>
-</html>
+<!doctype html><html lang=zh-cn><head><title>「前端开发」html入门表单与属性 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「前端开发」html入门表单与属性"><meta name=twitter:description content="[toc] 表单的创建 表单是什么 表单是用来采集信息，比如我们的登录、注册、发表评论、购买商品等等，都需要使用表单来提交信息然后给到后台服务器。 表单标签"><meta property="og:title" content="「前端开发」html入门表单与属性"><meta property="og:description" content="[toc] 表单的创建 表单是什么 表单是用来采集信息，比如我们的登录、注册、发表评论、购买商品等等，都需要使用表单来提交信息然后给到后台服务器。 表单标签"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E8%A1%A8%E5%8D%95%E4%B8%8E%E5%B1%9E%E6%80%A7/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-25T20:20:21+08:00"><meta property="article:modified_time" content="2023-05-25T20:20:21+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「前端开发」html入门表单与属性</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>7 min read</div></div></header><div class=post-content><p>[toc]</p><h3 id=表单的创建>表单的创建</h3><h4 id=表单是什么>表单是什么</h4><p>表单是用来采集信息，比如我们的登录、注册、发表评论、购买商品等等，都需要使用表单来提交信息然后给到后台服务器。</p><h4 id=表单标签formform>表单标签<code>&lt;form>&lt;/form></code></h4><h5 id=action属性>action属性</h5><p>表示提交表单的地址</p><h5 id=method属性>method属性</h5><p>提交表单的http方法</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span> &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;save.php&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;&lt;/<span style=color:#f92672>form</span>&gt;
+</span></span></code></pre></div><h3 id=基本控件>基本控件</h3><h4 id=单行文本框>单行文本框</h4><h5 id=type属性>type属性</h5><p>指该输入款输入的类型</p><blockquote><p>text：文本</p><p>file：文件</p><p>image：图片</p><p>……</p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span>&gt;
+</span></span></code></pre></div><h5 id=value属性>value属性</h5><p>表示输入框已经填好的值</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;123456&#34;</span>&gt;
+</span></span></code></pre></div><h5 id=placeholder属性>placeholder属性</h5><p>表示文本框中提示的内容</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;
+</span></span></code></pre></div><h5 id=disabled属性>disabled属性</h5><p>将文本框锁死，意思就是不能向输入框中写入信息</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span> &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;123456&#34;</span> <span style=color:#a6e22e>disabled</span>&gt;
+</span></span></code></pre></div><h4 id=实例>实例</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;save.php&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;用户名：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;admin&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;密码：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;国籍：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;中国&#34;</span> <span style=color:#a6e22e>disabled</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;  
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=单选框radio>单选框radio</h4><p>radio在输入框中表现为按钮选择样式</p><p>value：为选择当期按钮后，提交的值</p><p>name：多个当radio类型的输入框的name的值相同时，对应的输入框值按钮选择形成互斥关系</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;sex&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;男&#34;</span>&gt;男
+</span></span></code></pre></div><h5 id=实例-1>实例：</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;save.php&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;用户名：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;admin&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;密码：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;国籍：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;中国&#34;</span> <span style=color:#a6e22e>disabled</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>              
+</span></span><span style=display:flex><span>              	<span style=color:#75715e>&lt;!-- 注意：这里性别和学历是不同的类别，name值不能相同，不然同样会出现互斥关系 --&gt;</span>
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;性别：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;sex&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;男&#34;</span>&gt;男
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;sex&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;女&#34;</span>&gt;女
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;学历：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;degree&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;小学&#34;</span>&gt;小学
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;degree&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;初中&#34;</span>&gt;初中
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;degree&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;高中&#34;</span>&gt;高中
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;degree&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;专科&#34;</span>&gt;专科
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;degree&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;本科&#34;</span>&gt;本科
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;degree&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;研究生&#34;</span>&gt;研究生
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><p>有一种情况：当我们点击男，或者本科学历等这些文本时，网页不会给我们选择输入框按钮，那么如何将点击范围扩大到文本上呢？答案是：<code> &lt;label>&lt;/label></code>标签。</p><h5 id=labellabel><code>&lt;label>&lt;/label></code></h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;save.php&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;用户名：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;admin&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;密码：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;国籍：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;中国&#34;</span> <span style=color:#a6e22e>disabled</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>               
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;性别：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;sex&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;男&#34;</span>&gt;男
+</span></span><span style=display:flex><span>                    &lt;/<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;radio&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;sex&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;女&#34;</span>&gt;女
+</span></span><span style=display:flex><span>                    &lt;/<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;      
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=复选框checkbox>复选框checkbox</h4><p>复选框表示可以选择多个</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;checkbox&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;hobby&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;篮球&#34;</span>&gt;篮球
+</span></span></code></pre></div><h5 id=实例-2>实例：</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;save.php&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;用户名：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;admin&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;密码：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;国籍：&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;中国&#34;</span> <span style=color:#a6e22e>disabled</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;爱好：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;checkbox&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;hobby&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;篮球&#34;</span>&gt;篮球
+</span></span><span style=display:flex><span>                    &lt;/<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;checkbox&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;hobby&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;足球&#34;</span>&gt;足球
+</span></span><span style=display:flex><span>                    &lt;/<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;checkbox&#34;</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;hobby&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;打游戏&#34;</span>&gt;打游戏
+</span></span><span style=display:flex><span>                    &lt;/<span style=color:#f92672>label</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=密码框>密码框</h4><p>当前输入框内容会被隐藏为小圆点</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;password&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;
+</span></span></code></pre></div><h5 id=实例-3>实例</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;用户名：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入用户名&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>P</span>&gt;密码：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;password&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>P</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;验证码：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;4820&#34;</span> <span style=color:#a6e22e>disabled</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=下拉框>下拉框</h4><p>下拉菜单</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>select</span>&gt;
+</span></span><span style=display:flex><span>       &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;Alipay&#34;</span>&gt;支付宝&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>       ……
+</span></span><span style=display:flex><span>  		 ……
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>select</span>&gt;
+</span></span></code></pre></div><h5 id=实例-4>实例</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://127.0.0.1:8080/user/pay&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;支付方式：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>select</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;Alipay&#34;</span>&gt;支付宝&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;Wachatpay&#34;</span>&gt;微信&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UnionPay&#34;</span>&gt;银联&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                    &lt;/<span style=color:#f92672>select</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=多行文本框>多行文本框</h4><p>多行文本框可以用来做留言、评论等</p><h6 id=cols属性>cols属性</h6><p>指例数(宽度)</p><h6 id=rows属性>rows属性</h6><p>指行数(高度)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>textarea</span> <span style=color:#a6e22e>cols</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;70&#34;</span> <span style=color:#a6e22e>rows</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;30&#34;</span>&gt;&lt;/<span style=color:#f92672>textarea</span>&gt;
+</span></span></code></pre></div><h5 id=实例-5>实例</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt; 
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;留言：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>textarea</span> <span style=color:#a6e22e>cols</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;70&#34;</span> <span style=color:#a6e22e>rows</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;30&#34;</span>&gt;&lt;/<span style=color:#f92672>textarea</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=三种按钮>三种按钮</h4><table><thead><tr><th>type属性值</th><th>按钮种类</th></tr></thead><tbody><tr><td>button</td><td>按钮，可以写成<code>&lt;button>&lt;/button></code></td></tr><tr><td>submit</td><td>提交按钮,将form标签中的输入框的内容进行向url提交</td></tr><tr><td>reset</td><td>重置按钮，将form标签中的输入框的内容进行重置</td></tr></tbody></table><h5 id=实例-6>实例</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;用户名：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入用户名&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>P</span>&gt;密码：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;password&#34;</span> <span style=color:#a6e22e>placeholder</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;请输入密码&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>P</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;验证码：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;4820&#34;</span> <span style=color:#a6e22e>disabled</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;普通按钮：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;button&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;每日打卡&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;提交按钮：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;submit&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;点击提交&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;重置按钮：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;reset&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;点击重置&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=更多输入框>更多输入框</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://127.0.0.1:8080/user/test&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;颜色选择控件：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;color&#34;</span> &gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;日期选择控件：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;date&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;时间选择控件：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;time&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e>&lt;!-- 点击提交时会验证该输入是否符合邮件命名规则 --&gt;</span>
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>P</span>&gt;电子邮件选择控件：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;email&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>P</span>&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e>&lt;!-- 点击提交时会验证此输入框是否有输入 --&gt;</span>
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;必填项：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>required</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;数字范围：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;number&#34;</span> <span style=color:#a6e22e>min</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;0&#34;</span> <span style=color:#a6e22e>max</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;120&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;拖拽条：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;range&#34;</span> <span style=color:#a6e22e>min</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;10&#34;</span> <span style=color:#a6e22e>max</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;100&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;搜索框：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;search&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e>&lt;!-- 点击提交时会验证此输入的url是否合法 --&gt;</span>
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;网址：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;url&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;提交按钮：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;submit&#34;</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;点击提交&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div><h4 id=智能感应datalistdatalist>智能感应<code>&lt;datalist>&lt;/datalist></code></h4><p>该标签和<code>&lt;input></code>绑定起来使用</p><h5 id=实例-7>实例</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
+</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>head</span>&gt;
+</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>form</span> <span style=color:#a6e22e>action</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://127.0.0.1:8080/user/login&#34;</span> <span style=color:#a6e22e>method</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;post&#34;</span>&gt;
+</span></span><span style=display:flex><span>                &lt;<span style=color:#f92672>p</span>&gt;省份：
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>input</span> <span style=color:#a6e22e>type</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;text&#34;</span> <span style=color:#a6e22e>list</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;province-list&#34;</span>&gt;
+</span></span><span style=display:flex><span>                    &lt;<span style=color:#f92672>datalist</span> <span style=color:#a6e22e>id</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;province-list&#34;</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;山西&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;山东&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;河南&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;河北&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;湖南&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;湖北&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;广西&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                        &lt;<span style=color:#f92672>option</span> <span style=color:#a6e22e>value</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;广东&#34;</span>&gt;&lt;/<span style=color:#f92672>option</span>&gt;
+</span></span><span style=display:flex><span>                    &lt;/<span style=color:#f92672>datalist</span>&gt;
+</span></span><span style=display:flex><span>                &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>form</span>&gt;
+</span></span><span style=display:flex><span>            &lt;/<span style=color:#f92672>p</span>&gt;
+</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>div</span>&gt;
+</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>body</span>&gt;
+</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
+</span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>

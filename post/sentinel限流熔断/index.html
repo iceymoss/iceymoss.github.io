@@ -1,0 +1,344 @@
+<!doctype html><html lang=zh-cn><head><title>Sentinel限流熔断 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="Sentinel限流熔断"><meta name=twitter:description content="[toc] 文章介绍 本文将介绍什么是限流和熔断， alibaba开源的Sentinel、安装、实战 什么是限流\熔断\降级 限流：在我们的后天系统中，如果那"><meta property="og:title" content="Sentinel限流熔断"><meta property="og:description" content="[toc] 文章介绍 本文将介绍什么是限流和熔断， alibaba开源的Sentinel、安装、实战 什么是限流\熔断\降级 限流：在我们的后天系统中，如果那"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/post/sentinel%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-25T20:42:08+08:00"><meta property="article:modified_time" content="2023-05-25T20:42:08+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>Sentinel限流熔断</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</div></div></header><div class=post-content><p>[toc]</p><h3 id=文章介绍>文章介绍</h3><p>本文将介绍什么是限流和熔断， alibaba开源的Sentinel、安装、实战</p><h3 id=什么是限流熔断降级>什么是限流\熔断\降级</h3><p><strong>限流</strong>：在我们的后天系统中，如果那一天突然进入大量流量，我们服务原本最高只能处理同时2k的请求，突然一</p><p>下就来来了5k的请求，这对服务器的压力是不是很要命，这很可能直接导致服务器宕机，崩溃，导致原本2K的处</p><p>理量都不能处理了，这时候我们需要限流，限流的作用就是保持访问量到达服务器最高的情况下，对多余的请求</p><p>不做处理，相比之下，比服务器直接挂掉是好很多的。例如在双十一的时候，我们要下单就会看到类似"请求繁</p><p>忙，请稍后重试！"。</p><p><strong>熔断</strong>:相信大家对断路器并不陌生，它就相当于一个开关，打开后可以阻止流量通过。比如保险丝，当电流过大</p><p>时，就会熔断，从而避免元器件损坏。</p><p>服务熔断是指调用方访问服务时通过断路器做代理进行访问，断路器会持续观察服务返回的成功、失败的状态，</p><p>当失败超过设置的阈值时断路器打开，请求就不能真正地访问到服务了。</p><p><strong>使用场景</strong></p><ul><li>服务故障或者升级时，让客户端快速失败</li><li>失败处理逻辑容易定义</li><li>响应耗时较长，客户端设置的<code>read timeout</code>会比较长，防止客户端大量重试请求导致的连接、线程资源不能释放</li></ul><p>**降级 **:服务降级是从整个系统的负荷情况出发和考虑的，对某些负荷会比较高的情况，为了预防某些功能（业务</p><p>场景）出现负荷过载或者响应慢的情况，在其内部暂时舍弃对一些非核心的接口和数据的请求，而直接返回一个</p><p>提前准备好的fallback（退路）错误处理信息。这样，虽然提供的是一个有损的服务，但却保证了整个系统的稳</p><p>定性和可用性。</p><h3 id=什么是sentinel>什么是Sentinel</h3><p>Sentinel是阿里开源的项目，提供了流量控制、熔断降级、系统负载保护等多个维度来保障服务之间的稳定性。
+官网：https://github.com/alibaba/Sentinel/wiki</p><p>2012年，Sentinel诞生于阿里巴巴，其主要目标是流量控制。2013-2017年，Sentinel迅速发展，并成为阿里巴巴所有微服务的基本组成部分。 它已在6000多个应用程序中使用，涵盖了几乎所有核心电子商务场景。2018年，Sentinel演变为一个开源项目。2020年，Sentinel Golang发布。</p><p><strong>特点</strong> ：</p><p><strong>丰富的应用场景</strong> ：Sentinel 承接了阿里巴巴近 10 年的双十一大促流量的核心场景，例如秒杀（即
+突发流量控制在系统容量可以承受的范围）、消息削峰填谷、集群流量控制、实时熔断下游不可用应用等。
+<strong>完备的实时监控</strong> ：Sentinel 同时提供实时的监控功能。您可以在控制台中看到接入应用的单台机
+器秒级数据，甚至 500 台以下规模的集群的汇总运行情况。</p><p>**生态广广泛 **</p><h3 id=sentinel-的历史>Sentinel 的历史</h3><ul><li>2012 年，Sentinel 诞生，主要功能为入口流量控制。</li><li>2013-2017 年，Sentinel 在阿里巴巴集团内部迅速发展，成为基础技术模块，覆盖了所有的核心场景。Sentinel 也因此积累了大量的流量归整场景以及生产实践。</li><li>2018 年，Sentinel 开源，并持续演进。</li><li>2019 年，Sentinel 朝着多语言扩展的方向不断探索，推出 <a href=https://github.com/alibaba/sentinel-cpp>C++ 原生版本</a>，同时针对 Service Mesh 场景也推出了 <a href=https://github.com/alibaba/Sentinel/tree/master/sentinel-cluster/sentinel-cluster-server-envoy-rls>Envoy 集群流量控制支持</a>，以解决 Service Mesh 架构下多语言限流的问题。</li><li>2020 年，推出 <a href=https://github.com/alibaba/sentinel-golang>Sentinel Go 版本</a>，继续朝着云原生方向演进。</li><li>2021 年，Sentinel 正在朝着 2.0 云原生高可用决策中心组件进行演进；同时推出了 <a href=https://github.com/sentinel-group/sentinel-rust>Sentinel Rust 原生版本</a>。同时我们也在 Rust 社区进行了 Envoy WASM extension 及 eBPF extension 等场景探索。</li><li>2022 年，Sentinel 品牌升级为流量治理，领域涵盖流量路由/调度、流量染色、流控降级、过载保护/实例摘除等；同时社区将流量治理相关标准抽出到 <a href=https://opensergo.io/>OpenSergo 标准</a>中，Sentinel 作为流量治理标准实现。</li></ul><h3 id=sentinel-go的安装>Sentinel-go的安装</h3><p><a href=https://github.com/alibaba/sentinel-golang>Sentinel-go开源地址</a></p><p><a href=https://sentinelguard.io/zh-cn/docs/golang/quick-start.html>官网文档</a></p><p>安装：<code>go get github.com/alibaba/sentinel-golang/api</code></p><h3 id=go限流实战>Go限流实战</h3><h4 id=qps限流>qps限流</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sentinel</span> <span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/api&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/base&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/flow&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//基于sentinel的qps限流
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//必须初始化
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>InitDefault</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;Unexpected error: %+v&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//配置限流规则：1秒内通过10次
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>LoadRules</span>([]<span style=color:#f92672>*</span><span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Rule</span>{
+</span></span><span style=display:flex><span>		{
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>Resource</span>:               <span style=color:#e6db74>&#34;some_test&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>TokenCalculateStrategy</span>: <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Direct</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>ControlBehavior</span>:        <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Reject</span>, <span style=color:#75715e>//超过直接拒绝
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>Threshold</span>:              <span style=color:#ae81ff>10</span>,          <span style=color:#75715e>//请求次数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>StatIntervalInMs</span>:       <span style=color:#ae81ff>1000</span>,        <span style=color:#75715e>//允许时间内
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		},
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;Unexpected error: %+v&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>12</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>e</span>, <span style=color:#a6e22e>b</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>Entry</span>(<span style=color:#e6db74>&#34;some_test&#34;</span>, <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>WithTrafficType</span>(<span style=color:#a6e22e>base</span>.<span style=color:#a6e22e>Inbound</span>))
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>b</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;限流了&#34;</span>)
+</span></span><span style=display:flex><span>		} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;检查通过&#34;</span>)
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>e</span>.<span style=color:#a6e22e>Exit</span>()
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>打印结果：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>检查通过</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>限流了</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>限流了</span>
+</span></span></code></pre></div><h4 id=thrnotting>Thrnotting</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sentinel</span> <span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/api&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/base&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/flow&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//基于sentinel的qps限流
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//必须初始化
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>InitDefault</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;Unexpected error: %+v&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//配置限流规则
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>LoadRules</span>([]<span style=color:#f92672>*</span><span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Rule</span>{
+</span></span><span style=display:flex><span>		{
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>Resource</span>:               <span style=color:#e6db74>&#34;some_test&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>TokenCalculateStrategy</span>: <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Direct</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>ControlBehavior</span>:        <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Throttling</span>, <span style=color:#75715e>//匀速通过
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>Threshold</span>:              <span style=color:#ae81ff>10</span>,              <span style=color:#75715e>//请求次数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>StatIntervalInMs</span>:       <span style=color:#ae81ff>1000</span>,            <span style=color:#75715e>//允许时间内
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		},
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;Unexpected error: %+v&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>12</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>e</span>, <span style=color:#a6e22e>b</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>Entry</span>(<span style=color:#e6db74>&#34;some_test&#34;</span>, <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>WithTrafficType</span>(<span style=color:#a6e22e>base</span>.<span style=color:#a6e22e>Inbound</span>))
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>b</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;限流了&#34;</span>)
+</span></span><span style=display:flex><span>		} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;检查通过&#34;</span>)
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>e</span>.<span style=color:#a6e22e>Exit</span>()
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><pre tabindex=0><code>检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+检查通过
+</code></pre><h4 id=warrm_up>Warrm_up</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;math/rand&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sentinel</span> <span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/api&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/base&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/flow&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//先初始化sentinel
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>InitDefault</span>()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;初始化sentinel 异常: %v&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>globalTotal</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>passTotal</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>blockTotal</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ch</span> <span style=color:#f92672>:=</span> make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>struct</span>{})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//配置限流规则
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>LoadRules</span>([]<span style=color:#f92672>*</span><span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Rule</span>{
+</span></span><span style=display:flex><span>		{
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>Resource</span>:               <span style=color:#e6db74>&#34;some-test&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>TokenCalculateStrategy</span>: <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>WarmUp</span>, <span style=color:#75715e>//冷启动策略
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>ControlBehavior</span>:        <span style=color:#a6e22e>flow</span>.<span style=color:#a6e22e>Reject</span>, <span style=color:#75715e>//直接拒绝
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>Threshold</span>:              <span style=color:#ae81ff>1000</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>WarmUpPeriodSec</span>:        <span style=color:#ae81ff>30</span>,
+</span></span><span style=display:flex><span>		},
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatalf</span>(<span style=color:#e6db74>&#34;加载规则失败: %v&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//我会在每一秒统计一次，这一秒只能 你通过了多少，总共有多少， block了多少, 每一秒会产生很多的block
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>100</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>globalTotal</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>e</span>, <span style=color:#a6e22e>b</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>Entry</span>(<span style=color:#e6db74>&#34;some-test&#34;</span>, <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>WithTrafficType</span>(<span style=color:#a6e22e>base</span>.<span style=color:#a6e22e>Inbound</span>))
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>b</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>					<span style=color:#75715e>//fmt.Println(&#34;限流了&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>					<span style=color:#a6e22e>blockTotal</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>(<span style=color:#a6e22e>rand</span>.<span style=color:#a6e22e>Uint64</span>()<span style=color:#f92672>%</span><span style=color:#ae81ff>10</span>) <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)
+</span></span><span style=display:flex><span>				} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>passTotal</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>(<span style=color:#a6e22e>rand</span>.<span style=color:#a6e22e>Uint64</span>()<span style=color:#f92672>%</span><span style=color:#ae81ff>10</span>) <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>e</span>.<span style=color:#a6e22e>Exit</span>()
+</span></span><span style=display:flex><span>				}
+</span></span><span style=display:flex><span>			}
+</span></span><span style=display:flex><span>		}()
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>oldTotal</span> <span style=color:#66d9ef>int</span> <span style=color:#75715e>//过去1s总共有多少个
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>oldPass</span> <span style=color:#66d9ef>int</span>  <span style=color:#75715e>//过去1s总共pass多少个
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>oldBlock</span> <span style=color:#66d9ef>int</span> <span style=color:#75715e>//过去1s总共block多少个
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>oneSecondTotal</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>globalTotal</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>oldTotal</span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>oldTotal</span> = <span style=color:#a6e22e>globalTotal</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>oneSecondPass</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>passTotal</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>oldPass</span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>oldPass</span> = <span style=color:#a6e22e>passTotal</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>oneSecondBlock</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>blockTotal</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>oldBlock</span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>oldBlock</span> = <span style=color:#a6e22e>blockTotal</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;total:%d, pass:%d, block:%d\n&#34;</span>, <span style=color:#a6e22e>oneSecondTotal</span>, <span style=color:#a6e22e>oneSecondPass</span>, <span style=color:#a6e22e>oneSecondBlock</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>ch</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>打印结果：逐渐到达1k,在1k位置上下波动</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>total:11, pass:9, block:0
+</span></span><span style=display:flex><span>total:21966, pass:488, block:21420
+</span></span><span style=display:flex><span>total:21793, pass:339, block:21414
+</span></span><span style=display:flex><span>total:21699, pass:390, block:21255
+</span></span><span style=display:flex><span>total:21104, pass:393, block:20654
+</span></span><span style=display:flex><span>total:21363, pass:453, block:20831
+</span></span><span style=display:flex><span>total:21619, pass:491, block:21052
+</span></span><span style=display:flex><span>total:21986, pass:533, block:21415
+</span></span><span style=display:flex><span>total:21789, pass:594, block:21123
+</span></span><span style=display:flex><span>total:21561, pass:685, block:20820
+</span></span><span style=display:flex><span>total:21663, pass:873, block:20717
+</span></span><span style=display:flex><span>total:20904, pass:988, block:19831
+</span></span><span style=display:flex><span>total:21500, pass:996, block:20423
+</span></span><span style=display:flex><span>total:21769, pass:1014, block:20682
+</span></span><span style=display:flex><span>total:20893, pass:1019, block:19837
+</span></span><span style=display:flex><span>total:21561, pass:973, block:20524
+</span></span><span style=display:flex><span>total:21601, pass:1014, block:20517
+</span></span><span style=display:flex><span>total:21475, pass:993, block:20420
+</span></span><span style=display:flex><span>total:21457, pass:983, block:20418
+</span></span><span style=display:flex><span>total:21397, pass:1024, block:20320
+</span></span><span style=display:flex><span>total:21690, pass:996, block:20641
+</span></span><span style=display:flex><span>total:21526, pass:991, block:20457
+</span></span><span style=display:flex><span>total:21779, pass:1036, block:20677
+</span></span></code></pre></div><h3 id=go熔断实战>Go熔断实战</h3><p>这里我们介绍一个错误数量的，<a href=https://sentinelguard.io/zh-cn/docs/golang/circuit-breaking.html>查看详细熔断机制</a></p><h4 id=error_count>error_count</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;errors&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;math/rand&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sentinel</span> <span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/api&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/circuitbreaker&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/core/config&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/logging&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;github.com/alibaba/sentinel-golang/util&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>stateChangeTestListener</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>s</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>stateChangeTestListener</span>) <span style=color:#a6e22e>OnTransformToClosed</span>(<span style=color:#a6e22e>prev</span> <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>State</span>, <span style=color:#a6e22e>rule</span> <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>Rule</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;rule.steategy: %+v, From %s to Closed, time: %d\n&#34;</span>, <span style=color:#a6e22e>rule</span>.<span style=color:#a6e22e>Strategy</span>, <span style=color:#a6e22e>prev</span>.<span style=color:#a6e22e>String</span>(), <span style=color:#a6e22e>util</span>.<span style=color:#a6e22e>CurrentTimeMillis</span>())
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>s</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>stateChangeTestListener</span>) <span style=color:#a6e22e>OnTransformToOpen</span>(<span style=color:#a6e22e>prev</span> <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>State</span>, <span style=color:#a6e22e>rule</span> <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>Rule</span>, <span style=color:#a6e22e>snapshot</span> <span style=color:#66d9ef>interface</span>{}) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;rule.steategy: %+v, From %s to Open, snapshot: %d, time: %d\n&#34;</span>, <span style=color:#a6e22e>rule</span>.<span style=color:#a6e22e>Strategy</span>, <span style=color:#a6e22e>prev</span>.<span style=color:#a6e22e>String</span>(), <span style=color:#a6e22e>snapshot</span>, <span style=color:#a6e22e>util</span>.<span style=color:#a6e22e>CurrentTimeMillis</span>())
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>s</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>stateChangeTestListener</span>) <span style=color:#a6e22e>OnTransformToHalfOpen</span>(<span style=color:#a6e22e>prev</span> <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>State</span>, <span style=color:#a6e22e>rule</span> <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>Rule</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;rule.steategy: %+v, From %s to Half-Open, time: %d\n&#34;</span>, <span style=color:#a6e22e>rule</span>.<span style=color:#a6e22e>Strategy</span>, <span style=color:#a6e22e>prev</span>.<span style=color:#a6e22e>String</span>(), <span style=color:#a6e22e>util</span>.<span style=color:#a6e22e>CurrentTimeMillis</span>())
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//基于连接数的降级模式
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>total</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>totalPass</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>totalBlock</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>totalErr</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>conf</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>NewDefaultConfig</span>()
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// for testing, logging output to console
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>conf</span>.<span style=color:#a6e22e>Sentinel</span>.<span style=color:#a6e22e>Log</span>.<span style=color:#a6e22e>Logger</span> = <span style=color:#a6e22e>logging</span>.<span style=color:#a6e22e>NewConsoleLogger</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>InitWithConfig</span>(<span style=color:#a6e22e>conf</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ch</span> <span style=color:#f92672>:=</span> make(<span style=color:#66d9ef>chan</span> <span style=color:#66d9ef>struct</span>{})
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Register a state change listener so that we could observer the state change of the internal circuit breaker.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>RegisterStateChangeListeners</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>stateChangeTestListener</span>{})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>LoadRules</span>([]<span style=color:#f92672>*</span><span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>Rule</span>{
+</span></span><span style=display:flex><span>		<span style=color:#75715e>// Statistic time span=10s, recoveryTimeout=3s, maxErrorCount=50
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		{
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>Resource</span>:         <span style=color:#e6db74>&#34;abc&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>Strategy</span>:         <span style=color:#a6e22e>circuitbreaker</span>.<span style=color:#a6e22e>ErrorCount</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>RetryTimeoutMs</span>:   <span style=color:#ae81ff>3000</span>, <span style=color:#75715e>//3s只有尝试回复
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>MinRequestAmount</span>: <span style=color:#ae81ff>10</span>,   <span style=color:#75715e>//静默数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#a6e22e>StatIntervalMs</span>:   <span style=color:#ae81ff>5000</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>Threshold</span>:        <span style=color:#ae81ff>50</span>,
+</span></span><span style=display:flex><span>		},
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>logging</span>.<span style=color:#a6e22e>Info</span>(<span style=color:#e6db74>&#34;[CircuitBreaker ErrorCount] Sentinel Go circuit breaking demo is running. You may see the pass/block metric in the metric log.&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>total</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>e</span>, <span style=color:#a6e22e>b</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>Entry</span>(<span style=color:#e6db74>&#34;abc&#34;</span>)
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>b</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>				<span style=color:#75715e>// g1 blocked
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>				<span style=color:#a6e22e>totalBlock</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;协程熔断了&#34;</span>)
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>(<span style=color:#a6e22e>rand</span>.<span style=color:#a6e22e>Uint64</span>()<span style=color:#f92672>%</span><span style=color:#ae81ff>20</span>) <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)
+</span></span><span style=display:flex><span>			} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>totalPass</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>rand</span>.<span style=color:#a6e22e>Uint64</span>()<span style=color:#f92672>%</span><span style=color:#ae81ff>20</span> &gt; <span style=color:#ae81ff>9</span> {
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>totalErr</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>					<span style=color:#75715e>// Record current invocation as error.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>					<span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>TraceError</span>(<span style=color:#a6e22e>e</span>, <span style=color:#a6e22e>errors</span>.<span style=color:#a6e22e>New</span>(<span style=color:#e6db74>&#34;biz error&#34;</span>))
+</span></span><span style=display:flex><span>				}
+</span></span><span style=display:flex><span>				<span style=color:#75715e>// g1 passed
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>				<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>(<span style=color:#a6e22e>rand</span>.<span style=color:#a6e22e>Uint64</span>()<span style=color:#f92672>%</span><span style=color:#ae81ff>20</span><span style=color:#f92672>+</span><span style=color:#ae81ff>10</span>) <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>e</span>.<span style=color:#a6e22e>Exit</span>()
+</span></span><span style=display:flex><span>			}
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>total</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>e</span>, <span style=color:#a6e22e>b</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>sentinel</span>.<span style=color:#a6e22e>Entry</span>(<span style=color:#e6db74>&#34;abc&#34;</span>)
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>b</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>				<span style=color:#75715e>// g2 blocked
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>				<span style=color:#a6e22e>totalBlock</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>(<span style=color:#a6e22e>rand</span>.<span style=color:#a6e22e>Uint64</span>()<span style=color:#f92672>%</span><span style=color:#ae81ff>20</span>) <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)
+</span></span><span style=display:flex><span>			} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>				<span style=color:#75715e>// g2 passed
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>				<span style=color:#a6e22e>totalPass</span><span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>(<span style=color:#a6e22e>rand</span>.<span style=color:#a6e22e>Uint64</span>()<span style=color:#f92672>%</span><span style=color:#ae81ff>80</span>) <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Millisecond</span>)
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>e</span>.<span style=color:#a6e22e>Exit</span>()
+</span></span><span style=display:flex><span>			}
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>for</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>totalErr</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}()
+</span></span><span style=display:flex><span>	<span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>ch</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>

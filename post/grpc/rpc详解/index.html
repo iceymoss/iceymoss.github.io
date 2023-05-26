@@ -1,0 +1,125 @@
+<!doctype html><html lang=zh-cn><head><title>Rpc详解 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="Rpc详解"><meta name=twitter:description content="[toc] 文章介绍 本文主要介绍 RPC 是什么， 为什么要使用 RPC，使用 RPC 需要解决问题及 RPC 使用实例 RPC 是什么 RPC Rpc（Remote Procedure Call）远程过程调用协议"><meta property="og:title" content="Rpc详解"><meta property="og:description" content="[toc] 文章介绍 本文主要介绍 RPC 是什么， 为什么要使用 RPC，使用 RPC 需要解决问题及 RPC 使用实例 RPC 是什么 RPC Rpc（Remote Procedure Call）远程过程调用协议"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/post/grpc/rpc%E8%AF%A6%E8%A7%A3/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-25T20:44:59+08:00"><meta property="article:modified_time" content="2023-05-25T20:44:59+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>Rpc详解</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/rpc/>Rpc</a>
+<a class=tag href=https://iceymoss.github.io/tags/grpc/>Grpc</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=文章介绍>文章介绍</h3><p>本文主要介绍 RPC 是什么， 为什么要使用 RPC，使用 RPC 需要解决问题及 RPC 使用实例</p><h3 id=rpc-是什么>RPC 是什么</h3><h4 id=rpc>RPC</h4><p>Rpc（Remote Procedure Call）远程过程调用协议，一种通过网络从远程计算机上请求服务，而不需要了解底层</p><p>网络技术的协议。RPC 它假定某些协议的存在，例如 TPC/UDP 等，为通信程序之间携带信息数据。在 OSI 网络</p><p>七层模型中，RPC 跨越了传输层和应用层，RPC 使得开发，包括网络分布式多程序在内的应用程序更加容易。</p><p>简单一点说：就是向远程服务器发送请求，做业务处理或任务计算等 (即程序)，就是想要把调用远程服务器中方</p><p>法的过程和像调用本地方法一样简单。</p><h4 id=为什么要使用-rpc>为什么要使用 RPC</h4><p>当我们无法在一个进程内，甚至通过本第地调用的方式满足我们的需求时，比如我们的通讯系统，甚至不同的组</p><p>织间的通讯，由于计算能力需要横向扩展，需要在多台机器组成的集群上部署应用，这才能是我们进行远程的通</p><p>讯；又或者说电商系统，我们不可能靠着本地调用就能满足我们的需求，例如提交订单的处理方法，库存处理方</p><p>法等在本地调用，在肯定是不行的，这是用户发起相应的请求由我们远程服务器去做业务处理和计算的。所以</p><p>RPC 就显得如此重要了。</p><h4 id=使用-rpc-需要解决问题>使用 RPC 需要解决问题</h4><p>这里我们来看，我们想象一下当我们在远程调用 (也就是使用 RPC) 的过程中，我们需要执行的函数或者方法在远</p><p>程机器上，例如我们要调用远程计算机的 add 方法，下面就会有这几个问题：</p><ol><li><p><strong>Call ID 映射</strong>。 我们要怎么告诉远程计算机我们需要调用的是 add 方法，而不是 reduce 方法，mult 方法，</p><p>divi 方法等，在本地调用中，函数体是直接通过函数指针来指定的，当我们调用本地 add 方法时，编译器会</p><p>自动给我们调用到它相应的函数指针，而在远程调用中，使用指针明显是不行的，因为两个进程的地址不</p><p>同。所以，在 RPC 中，所有函数都必须有一个唯一的 ID，这个 ID 在所有进程中都是唯一确定的，客户端在</p><p>调用时都必须附加上这个 ID，然后我们还需要在客户端和服务端分别维护一个 <strong>{函数 &lt;—–> Call ID }</strong> 的对应</p><p>表，两者的表不一定需要完全相同，但相同的函数对应的 Call ID 必须相同，当客户端需要进行远程调用时，</p><p>它就查一下这个表，找出相应的 Call ID，然后把它传给服务端，服务端也通过查表，来确定客户端需要调用</p><p>的函数，然后执行相应函数的代码。</p></li><li><p><strong>序列化及反序列化</strong>。客户端怎么把参数值传给远程的函数呢？在本地调用中，我们只需要把参数压到栈里，</p><p>然后让函数自己去栈里读就行。但是在远程过程调用时，客户端跟服务端是不同的进程，不能通过内存来传</p><p>递参数。甚至有时候客户端和服务端使用的都不是同一种语言（比如服务端用 C++，客户端用 Java 或者</p><p>Go）。这时候就需要客户端把参数先转成一个字节流，传给服务端后，再把字节流转成自己能读取的格式。</p><p>这个过程叫序列化和反序列化。同理，从服务端返回的值也需要序列化反序列化的过程。</p><p>整个流程如下：</p><p><img src=https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/gorm/5glZiYH2P6.png alt></p></li><li><p><strong>网络传输</strong>。远程调用往往用在网络上，客户端和服务端是通过网络连接的。所有的数据都需要通过网络传</p><p>输，因此就需要有一个网络传输层。网络传输层需要把 Call ID 和序列化后的参数字节流传给服务端，然后再</p><p>把序列化后的调用结果传回客户端。只要能完成这两者的，都可以作为传输层使用。因此，它所使用的协议</p><p>其实是不限的，能完成传输就行。尽管大部分 RPC 框架都使用 TCP 协议，但其实 UDP 也可以，而 gRPC 干</p><p>脆就用了 HTTP2。Java 的 Netty 也属于这层的东西。</p></li></ol><p>解决了上面三个问题，我们就能实现 RPC 了，现在我们再看看，客户端和服务端在 RPC 中的工作是什么：</p><p><strong>客户端 (client):</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>将这个调用映射为</span><span style=color:#a6e22e>Call</span> <span style=color:#a6e22e>ID</span><span style=color:#960050;background-color:#1e0010>。这里假设用最简单的字符串当</span><span style=color:#a6e22e>Call</span> <span style=color:#a6e22e>ID</span><span style=color:#960050;background-color:#1e0010>的方法，例如这里可以：</span><span style=color:#a6e22e>http</span>:<span style=color:#75715e>//127.0.0.1:8080/add?a=1&amp;b=1，即直接使用add作为path，又或者http://127.0.0.1:8080/?method=add&amp;a=1&amp;b=1等
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>将</span><span style=color:#a6e22e>Call</span> <span style=color:#a6e22e>ID</span><span style=color:#960050;background-color:#1e0010>，</span><span style=color:#a6e22e>a</span><span style=color:#960050;background-color:#1e0010>和</span><span style=color:#a6e22e>b</span><span style=color:#960050;background-color:#1e0010>序列化。可以直接将它们的值以二进制形式打包</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> <span style=color:#960050;background-color:#1e0010>把</span><span style=color:#ae81ff>2</span><span style=color:#960050;background-color:#1e0010>中得到的数据包发送给</span><span style=color:#a6e22e>ServerAddr</span><span style=color:#960050;background-color:#1e0010>，这需要使用网络传输层</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> <span style=color:#960050;background-color:#1e0010>等待服务器返回结果</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> <span style=color:#960050;background-color:#1e0010>如果服务器调用成功，那么就将结果反序列化，并赋给</span><span style=color:#a6e22e>total</span>
+</span></span></code></pre></div><p><strong>服务端 (service)：</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>在本地维护一个</span><span style=color:#a6e22e>Call</span> <span style=color:#a6e22e>ID</span><span style=color:#960050;background-color:#1e0010>到函数指针的映射</span><span style=color:#a6e22e>call_id_map</span><span style=color:#960050;background-color:#1e0010>，可以用</span><span style=color:#a6e22e>dict</span><span style=color:#960050;background-color:#1e0010>完成</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>等待请求，包括多线程的并发处理能力</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> <span style=color:#960050;background-color:#1e0010>得到一个请求后，将其数据包反序列化，得到</span><span style=color:#a6e22e>Call</span> <span style=color:#a6e22e>ID</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> <span style=color:#960050;background-color:#1e0010>通过在</span><span style=color:#a6e22e>call_id_map</span><span style=color:#960050;background-color:#1e0010>中查找，得到相应的函数指针</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>5.</span> <span style=color:#960050;background-color:#1e0010>将</span><span style=color:#a6e22e>a</span><span style=color:#960050;background-color:#1e0010>和</span><span style=color:#a6e22e>rb</span><span style=color:#960050;background-color:#1e0010>反序列化后，在本地调用</span><span style=color:#a6e22e>add</span><span style=color:#960050;background-color:#1e0010>函数，得到结果</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>6.</span> <span style=color:#960050;background-color:#1e0010>将结果序列化后通过网络返回给</span><span style=color:#a6e22e>Client</span>
+</span></span></code></pre></div><p><strong>注意：</strong></p><ul><li>Call ID 可以是字符串，也可以是整数 ID，映射其实是一个哈希表</li><li>序列化与反序列化可以自己写，当然也可以使用 Protobuf 或者 FlatBuffers 之类的。</li><li>网络传输库可以自己实现 socket，也可以使用 asio，ZeroMQ，Netty 之类。</li></ul><h3 id=rpc-实例>RPC 实例</h3><p>我们来简单模拟一下 RPC 的调用过程，实例介绍：客户端需要调用远程计算机上的计算方法，这里以加法为例 (当然可以非常复杂的大型计算)</p><p>客户端的调用时无需关心远程服务端的 add 方法是怎么实现的，我们只需要在客户端对远程调用的 add 方法的过程进行封装：</p><p><strong>service:</strong></p><p>由于是简单的例子，就不做完整的错误处理了</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;encoding/json&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;net/http&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;strconv&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//http://127:0:0:1:8000/add?a=1&amp;b=2
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//Call ID 使用request.URL.PATH
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>HandleFunc</span>(<span style=color:#e6db74>&#34;/add&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>writer</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ResponseWriter</span>, <span style=color:#a6e22e>request</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Request</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>//解析参数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>request</span>.<span style=color:#a6e22e>ParseForm</span>()
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>                panic(<span style=color:#e6db74>&#34;解码失败&#34;</span>)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;path:&#34;</span>, <span style=color:#a6e22e>request</span>.<span style=color:#a6e22e>URL</span>.<span style=color:#a6e22e>Path</span>)
+</span></span><span style=display:flex><span>            <span style=color:#75715e>//取出参数,做类型转换
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>strconv</span>.<span style=color:#a6e22e>Atoi</span>(<span style=color:#a6e22e>request</span>.<span style=color:#a6e22e>Form</span>[<span style=color:#e6db74>&#34;a&#34;</span>][<span style=color:#ae81ff>0</span>])
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>                panic(<span style=color:#e6db74>&#34;转换失败&#34;</span>)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>b</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>strconv</span>.<span style=color:#a6e22e>Atoi</span>(<span style=color:#a6e22e>request</span>.<span style=color:#a6e22e>Form</span>[<span style=color:#e6db74>&#34;b&#34;</span>][<span style=color:#ae81ff>0</span>])
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>                panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#75715e>//返回的数据格式：json{&#34;data&#34;:3}
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#75715e>//使用json编码，即序列化
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>writer</span>.<span style=color:#a6e22e>Header</span>().<span style=color:#a6e22e>Set</span>(<span style=color:#e6db74>&#34;Content-Type&#34;</span>, <span style=color:#e6db74>&#34;application/json&#34;</span>)
+</span></span><span style=display:flex><span>            <span style=color:#75715e>//序列化
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#a6e22e>jData</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>json</span>.<span style=color:#a6e22e>Marshal</span>(<span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>int</span>{
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;data&#34;</span>: <span style=color:#a6e22e>a</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>b</span>,
+</span></span><span style=display:flex><span>            })
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>                panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>writer</span>.<span style=color:#a6e22e>Write</span>(<span style=color:#a6e22e>jData</span>)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>                panic(<span style=color:#e6db74>&#34;写入失败&#34;</span>)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        })
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//监听端口
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ListenAndServe</span>(<span style=color:#e6db74>&#34;:8080&#34;</span>, <span style=color:#66d9ef>nil</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>        panic(<span style=color:#e6db74>&#34;监听失败&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>启动服务端</p><p><strong>client</strong>:</p><p>这里同样不做完整的错误处理了
+这里我们使用第三方包：<code>github.com/kirinlabs/HttpRequest</code>
+使用以下命令获取:</p><pre tabindex=0><code>go get github.com/kirinlabs/HttpRequest
+</code></pre><p>当然你也可以使用其他相关的方法来连接我们的 service</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;encoding/json&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;github.com/kirinlabs/HttpRequest&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//解析结构
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ResponseData</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>data</span> <span style=color:#66d9ef>int</span> <span style=color:#e6db74>`json:&#34;data&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//对add进行封装
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>add</span>(<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span> <span style=color:#66d9ef>int</span>) <span style=color:#66d9ef>int</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//生成一个实例
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>req</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>HttpRequest</span>.<span style=color:#a6e22e>NewRequest</span>()
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Sprintf</span>(<span style=color:#e6db74>&#34;http://127.0.0.1:8080/add?a=%d&amp;b=%d&#34;</span>, <span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span>))
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>        panic(<span style=color:#e6db74>&#34;连接失败&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>body</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>res</span>.<span style=color:#a6e22e>Body</span>()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>        panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>resData</span> <span style=color:#a6e22e>ResponseData</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>err</span> = <span style=color:#a6e22e>json</span>.<span style=color:#a6e22e>Unmarshal</span>(<span style=color:#a6e22e>body</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>resData</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>        panic(<span style=color:#e6db74>&#34;解码失败&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>resData</span>.<span style=color:#a6e22e>data</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>add</span>(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>4</span>))
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>打印结果：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{<span style=color:#f92672>&#34;data&#34;</span>:<span style=color:#ae81ff>5</span>}
+</span></span></code></pre></div><p>当然我们也可以直接在浏览器里访问：</p><p>http://127.0.0.1:8080/add?a=1&amp;b=4</p><p>返回：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{<span style=color:#f92672>&#34;data&#34;</span>:<span style=color:#ae81ff>5</span>}
+</span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>

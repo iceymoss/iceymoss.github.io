@@ -1,188 +1,92 @@
-<!doctype html>
-<html lang="zh-cn">
-  <head>
-    <title>「Golang成长之路」标准库之flag // iceymoss - 刻意练习，卷无止境</title>
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta charset="utf-8" />
-    <meta name="generator" content="Hugo 0.111.3">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="iceymoss" />
-    <meta name="description" content="" />
-    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
-
-    
-    <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="「Golang成长之路」标准库之flag"/>
-<meta name="twitter:description" content="[toc] flag Go语言内置的flag包实现了命令行参数的解析，flag包使得开发命令行工具更为简单。 os.Args 如果你只是简单的想要获取命令行参数，可以像下面的"/>
-
-    <meta property="og:title" content="「Golang成长之路」标准库之flag" />
-<meta property="og:description" content="[toc] flag Go语言内置的flag包实现了命令行参数的解析，flag包使得开发命令行工具更为简单。 os.Args 如果你只是简单的想要获取命令行参数，可以像下面的" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E6%A0%87%E5%87%86%E5%BA%93%E4%B9%8Bflag/" /><meta property="article:section" content="golang" />
-<meta property="article:published_time" content="2023-05-25T20:05:04+08:00" />
-<meta property="article:modified_time" content="2023-05-25T20:05:04+08:00" />
-
-
-  </head>
-  <body>
-    <header class="app-header">
-      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
-      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
-      <nav class="app-header-menu">
-          <a class="app-header-menu-item" href="/">首页</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/archives/">归档</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/tags/">标签</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/categories/">类别</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/about/">关于</a>
-      </nav>
-      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
-    </header>
-    <main class="app-container">
-      
-  <article class="post">
-    <header class="post-header">
-      <h1 class ="post-title">「Golang成长之路」标准库之flag</h1>
-      <div class="post-meta">
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
-  <title>calendar</title>
-  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-</svg>
-          May 25, 2023
-        </div>
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
-  <title>clock</title>
-  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-</svg>
-          3 min read
-        </div>
-      </div>
-    </header>
-    <div class="post-content">
-      <p>[toc]</p>
-<h3 id="flag">flag</h3>
-<p>Go语言内置的flag包实现了命令行参数的解析，flag包使得开发命令行工具更为简单。</p>
-<h4 id="osargs">os.Args</h4>
-<p>如果你只是简单的想要获取命令行参数，可以像下面的代码示例一样使用os.Args来获取命令行参数。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;os&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//ArgsDemo 如果你只是简单的想要获取命令行参数，可以像下面的代码示例一样使用os.Args来获取命令行参数。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//os.Args是一个存储命令行参数的字符串切片，它的第一个元素是执行文件的名称。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ArgsDemo</span>(){
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//os.Args是一个[]string
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Args</span>) &gt; <span style="color:#ae81ff">0</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">index</span>, <span style="color:#a6e22e">arg</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Args</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;args[%d]=%v\n&#34;</span>, <span style="color:#a6e22e">index</span>, <span style="color:#a6e22e">arg</span>)
-</span></span><span style="display:flex;"><span>		}
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ArgsDemo</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>然后进行编译：<code>go build main.go</code>后执行输出：</p>
-<pre tabindex="0"><code>$ ./main 您好 吃饭了嘛？
+<!doctype html><html lang=zh-cn><head><title>「Golang成长之路」标准库之flag // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「Golang成长之路」标准库之flag"><meta name=twitter:description content="[toc] flag Go语言内置的flag包实现了命令行参数的解析，flag包使得开发命令行工具更为简单。 os.Args 如果你只是简单的想要获取命令行参数，可以像下面的"><meta property="og:title" content="「Golang成长之路」标准库之flag"><meta property="og:description" content="[toc] flag Go语言内置的flag包实现了命令行参数的解析，flag包使得开发命令行工具更为简单。 os.Args 如果你只是简单的想要获取命令行参数，可以像下面的"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E6%A0%87%E5%87%86%E5%BA%93%E4%B9%8Bflag/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-25T20:05:04+08:00"><meta property="article:modified_time" content="2023-05-25T20:05:04+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「Golang成长之路」标准库之flag</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=flag>flag</h3><p>Go语言内置的flag包实现了命令行参数的解析，flag包使得开发命令行工具更为简单。</p><h4 id=osargs>os.Args</h4><p>如果你只是简单的想要获取命令行参数，可以像下面的代码示例一样使用os.Args来获取命令行参数。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;os&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span><span style=color:#75715e>//ArgsDemo 如果你只是简单的想要获取命令行参数，可以像下面的代码示例一样使用os.Args来获取命令行参数。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//os.Args是一个存储命令行参数的字符串切片，它的第一个元素是执行文件的名称。
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>ArgsDemo</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//os.Args是一个[]string
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>Args</span>) &gt; <span style=color:#ae81ff>0</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>index</span>, <span style=color:#a6e22e>arg</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>os</span>.<span style=color:#a6e22e>Args</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;args[%d]=%v\n&#34;</span>, <span style=color:#a6e22e>index</span>, <span style=color:#a6e22e>arg</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ArgsDemo</span>()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>然后进行编译：<code>go build main.go</code>后执行输出：</p><pre tabindex=0><code>$ ./main 您好 吃饭了嘛？
 args[0]=./main
 args[1]=您好
 args[2]=吃饭了嘛？
-</code></pre><h3 id="定义命令行flag参数">定义命令行flag参数</h3>
-<p>有两种定义flag参数方法</p>
-<h4 id="flagtype">flag.Type()</h4>
-<p>方法定义：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">String</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">value</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">usage</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#66d9ef">string</span>
-</span></span></code></pre></div><p>Type(flag名&quot;, &ldquo;默认值&rdquo;, &ldquo;帮助信息&rdquo;)，例如我们下面以，姓名，年龄，性别为例子：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">name</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">String</span>(<span style="color:#e6db74">&#34;name&#34;</span>, <span style="color:#e6db74">&#34;iceymoss&#34;</span>, <span style="color:#e6db74">&#34;姓名&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">age</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Int</span>(<span style="color:#e6db74">&#34;age&#34;</span>, <span style="color:#ae81ff">18</span>, <span style="color:#e6db74">&#34;年龄&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gender</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Bool</span>(<span style="color:#e6db74">&#34;gender&#34;</span>, <span style="color:#66d9ef">false</span>, <span style="color:#e6db74">&#34;性别&#34;</span>)
-</span></span></code></pre></div><p>这里需要注意的是，方法的返回值是指针，即对应类型的指针。</p>
-<h4 id="flagtypevar">flag.TypeVar()</h4>
-<p>基本格式如下： flag.TypeVar(Type指针, flag名, 默认值, 帮助信息) 例如我们要定义姓名、年龄、性别三个命令行参数，我们可以按如下方式定义：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">gender</span> <span style="color:#66d9ef">bool</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">StringVar</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">name</span>, <span style="color:#e6db74">&#34;name&#34;</span>,<span style="color:#e6db74">&#34;iceymoss&#34;</span>, <span style="color:#e6db74">&#34;姓名&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">IntVar</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">age</span>, <span style="color:#e6db74">&#34;age&#34;</span>, <span style="color:#ae81ff">18</span>, <span style="color:#e6db74">&#34;年龄&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">BoolVar</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">gender</span>,<span style="color:#e6db74">&#34;gender&#34;</span>, <span style="color:#66d9ef">false</span>, <span style="color:#e6db74">&#34;性别&#34;</span>)
-</span></span></code></pre></div><h4 id="flagparse">flag.Parse()</h4>
-<p>通过以上两种方法定义好命令行flag参数后，需要通过调用flag.Parse()来对命令行参数进行解析。</p>
-<p>支持的命令行参数格式有以下几种：</p>
-<ul>
-<li>-flag xxx （使用空格，一个-符号）</li>
-<li>&ndash;flag xxx （使用空格，两个-符号）</li>
-<li>-flag=xxx （使用等号，一个-符号）</li>
-<li>&ndash;flag=xxx （使用等号，两个-符号）</li>
-</ul>
-<p>其中，布尔类型的参数必须使用等号的方式指定。</p>
-<p>Flag解析在第一个非flag参数（单个”-“不是flag参数）之前停止，或者在终止符”–“之后停止。</p>
-<h4 id="flagargs">flag.Args()</h4>
-<p>返回命令行参数后的其他参数，以[]string类型</p>
-<h4 id="flagnarg">flag.NArg()</h4>
-<p>flag.NArg() //返回命令行参数后的其他参数个数</p>
-<h4 id="flagnflag">flag.NFlag()</h4>
-<p>flag.NFlag() //返回使用的命令行参数个数</p>
-<h3 id="实例">实例</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;flag&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">gender</span> <span style="color:#66d9ef">bool</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">StringVar</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">name</span>, <span style="color:#e6db74">&#34;name&#34;</span>,<span style="color:#e6db74">&#34;iceymoss&#34;</span>, <span style="color:#e6db74">&#34;姓名&#34;</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">IntVar</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">age</span>, <span style="color:#e6db74">&#34;age&#34;</span>, <span style="color:#ae81ff">18</span>, <span style="color:#e6db74">&#34;年龄&#34;</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">BoolVar</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">gender</span>,<span style="color:#e6db74">&#34;gender&#34;</span>, <span style="color:#66d9ef">false</span>, <span style="color:#e6db74">&#34;性别&#34;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//解析命令行参数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Parse</span>()
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;name:%s, age:%d, gender: %t&#34;</span>, <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">age</span>, <span style="color:#a6e22e">gender</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//返回命令行参数后的其他参数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Args</span>())
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//返回命令行参数后的其他参数个数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">NArg</span>())
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//返回使用的命令行参数个数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">NFlag</span>())
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>或者</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;flag&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">name</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">String</span>( <span style="color:#e6db74">&#34;name&#34;</span>,<span style="color:#e6db74">&#34;iceymoss&#34;</span>, <span style="color:#e6db74">&#34;姓名&#34;</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">age</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Int</span>(<span style="color:#e6db74">&#34;age&#34;</span>, <span style="color:#ae81ff">18</span>, <span style="color:#e6db74">&#34;年龄&#34;</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">gender</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Bool</span>(<span style="color:#e6db74">&#34;gender&#34;</span>, <span style="color:#66d9ef">false</span>, <span style="color:#e6db74">&#34;性别&#34;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//解析命令行参数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Parse</span>()
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;name:%s, age:%d, gender: %t\n&#34;</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">name</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">age</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">gender</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//返回命令行参数后的其他参数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Args</span>())
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//返回命令行参数后的其他参数个数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">NArg</span>())
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//返回使用的命令行参数个数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">NFlag</span>())
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="如何使用">如何使用</h3>
-<p>使用命令：<code>go build main.go</code>编译，然后使用命令：</p>
-<pre tabindex="0"><code>$ ./main -help
+</code></pre><h3 id=定义命令行flag参数>定义命令行flag参数</h3><p>有两种定义flag参数方法</p><h4 id=flagtype>flag.Type()</h4><p>方法定义：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>String</span>(<span style=color:#a6e22e>name</span> <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>value</span> <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>usage</span> <span style=color:#66d9ef>string</span>) <span style=color:#f92672>*</span><span style=color:#66d9ef>string</span>
+</span></span></code></pre></div><p>Type(flag名", &ldquo;默认值&rdquo;, &ldquo;帮助信息&rdquo;)，例如我们下面以，姓名，年龄，性别为例子：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>name</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>String</span>(<span style=color:#e6db74>&#34;name&#34;</span>, <span style=color:#e6db74>&#34;iceymoss&#34;</span>, <span style=color:#e6db74>&#34;姓名&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>age</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Int</span>(<span style=color:#e6db74>&#34;age&#34;</span>, <span style=color:#ae81ff>18</span>, <span style=color:#e6db74>&#34;年龄&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gender</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Bool</span>(<span style=color:#e6db74>&#34;gender&#34;</span>, <span style=color:#66d9ef>false</span>, <span style=color:#e6db74>&#34;性别&#34;</span>)
+</span></span></code></pre></div><p>这里需要注意的是，方法的返回值是指针，即对应类型的指针。</p><h4 id=flagtypevar>flag.TypeVar()</h4><p>基本格式如下： flag.TypeVar(Type指针, flag名, 默认值, 帮助信息) 例如我们要定义姓名、年龄、性别三个命令行参数，我们可以按如下方式定义：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>name</span> <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>age</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>gender</span> <span style=color:#66d9ef>bool</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>StringVar</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>name</span>, <span style=color:#e6db74>&#34;name&#34;</span>,<span style=color:#e6db74>&#34;iceymoss&#34;</span>, <span style=color:#e6db74>&#34;姓名&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>IntVar</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>age</span>, <span style=color:#e6db74>&#34;age&#34;</span>, <span style=color:#ae81ff>18</span>, <span style=color:#e6db74>&#34;年龄&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>BoolVar</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>gender</span>,<span style=color:#e6db74>&#34;gender&#34;</span>, <span style=color:#66d9ef>false</span>, <span style=color:#e6db74>&#34;性别&#34;</span>)
+</span></span></code></pre></div><h4 id=flagparse>flag.Parse()</h4><p>通过以上两种方法定义好命令行flag参数后，需要通过调用flag.Parse()来对命令行参数进行解析。</p><p>支持的命令行参数格式有以下几种：</p><ul><li>-flag xxx （使用空格，一个-符号）</li><li>&ndash;flag xxx （使用空格，两个-符号）</li><li>-flag=xxx （使用等号，一个-符号）</li><li>&ndash;flag=xxx （使用等号，两个-符号）</li></ul><p>其中，布尔类型的参数必须使用等号的方式指定。</p><p>Flag解析在第一个非flag参数（单个”-“不是flag参数）之前停止，或者在终止符”–“之后停止。</p><h4 id=flagargs>flag.Args()</h4><p>返回命令行参数后的其他参数，以[]string类型</p><h4 id=flagnarg>flag.NArg()</h4><p>flag.NArg() //返回命令行参数后的其他参数个数</p><h4 id=flagnflag>flag.NFlag()</h4><p>flag.NFlag() //返回使用的命令行参数个数</p><h3 id=实例>实例</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;flag&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>name</span> <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>age</span> <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>gender</span> <span style=color:#66d9ef>bool</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>StringVar</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>name</span>, <span style=color:#e6db74>&#34;name&#34;</span>,<span style=color:#e6db74>&#34;iceymoss&#34;</span>, <span style=color:#e6db74>&#34;姓名&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>IntVar</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>age</span>, <span style=color:#e6db74>&#34;age&#34;</span>, <span style=color:#ae81ff>18</span>, <span style=color:#e6db74>&#34;年龄&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>BoolVar</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>gender</span>,<span style=color:#e6db74>&#34;gender&#34;</span>, <span style=color:#66d9ef>false</span>, <span style=color:#e6db74>&#34;性别&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//解析命令行参数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Parse</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;name:%s, age:%d, gender: %t&#34;</span>, <span style=color:#a6e22e>name</span>, <span style=color:#a6e22e>age</span>, <span style=color:#a6e22e>gender</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//返回命令行参数后的其他参数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Args</span>())
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//返回命令行参数后的其他参数个数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>NArg</span>())
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//返回使用的命令行参数个数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>NFlag</span>())
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>或者</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;flag&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>name</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>String</span>( <span style=color:#e6db74>&#34;name&#34;</span>,<span style=color:#e6db74>&#34;iceymoss&#34;</span>, <span style=color:#e6db74>&#34;姓名&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>age</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Int</span>(<span style=color:#e6db74>&#34;age&#34;</span>, <span style=color:#ae81ff>18</span>, <span style=color:#e6db74>&#34;年龄&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>gender</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Bool</span>(<span style=color:#e6db74>&#34;gender&#34;</span>, <span style=color:#66d9ef>false</span>, <span style=color:#e6db74>&#34;性别&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//解析命令行参数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Parse</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;name:%s, age:%d, gender: %t\n&#34;</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>name</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>age</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>gender</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//返回命令行参数后的其他参数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>Args</span>())
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//返回命令行参数后的其他参数个数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>NArg</span>())
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//返回使用的命令行参数个数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>flag</span>.<span style=color:#a6e22e>NFlag</span>())
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=如何使用>如何使用</h3><p>使用命令：<code>go build main.go</code>编译，然后使用命令：</p><pre tabindex=0><code>$ ./main -help
 Usage of ./main:
   -age int
         年龄 (default 18)
@@ -190,25 +94,14 @@ Usage of ./main:
         性别
   -name string
         姓名 (default &#34;iceymoss&#34;)
-</code></pre><p>使用命令行flag参数</p>
-<pre tabindex="0"><code>$ ./main --name 土拨鼠 -age 22 -gender=true 
+</code></pre><p>使用命令行flag参数</p><pre tabindex=0><code>$ ./main --name 土拨鼠 -age 22 -gender=true 
 name:土拨鼠, age:22, gender: true
 []
 0
 3
-</code></pre><p>使用非flag参数：</p>
-<pre tabindex="0"><code>$ ./main a b c d
+</code></pre><p>使用非flag参数：</p><pre tabindex=0><code>$ ./main a b c d
 name:iceymoss, age:18, gender: false
 [a b c d]
 4
 0
-</code></pre>
-    </div>
-    <div class="post-footer">
-      
-    </div>
-  </article>
-
-    </main>
-  </body>
-</html>
+</code></pre></div><div class=post-footer></div></article></main></body></html>

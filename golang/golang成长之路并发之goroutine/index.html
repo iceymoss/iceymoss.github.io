@@ -1,217 +1,95 @@
-<!doctype html>
-<html lang="zh-cn">
-  <head>
-    <title>「Golang成长之路」并发之Goroutine // iceymoss - 刻意练习，卷无止境</title>
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta charset="utf-8" />
-    <meta name="generator" content="Hugo 0.111.3">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="iceymoss" />
-    <meta name="description" content="" />
-    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
-
-    
-    <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="「Golang成长之路」并发之Goroutine"/>
-<meta name="twitter:description" content="[toc] 并发 goroutine 并发编程表现为程序有若干个自主的活动单元组成，在今天的互联网中，一个web服务器可能一次处理上千个请求，而平板电脑和手机在渲染用户界"/>
-
-    <meta property="og:title" content="「Golang成长之路」并发之Goroutine" />
-<meta property="og:description" content="[toc] 并发 goroutine 并发编程表现为程序有若干个自主的活动单元组成，在今天的互联网中，一个web服务器可能一次处理上千个请求，而平板电脑和手机在渲染用户界" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E5%B9%B6%E5%8F%91%E4%B9%8Bgoroutine/" /><meta property="article:section" content="golang" />
-<meta property="article:published_time" content="2023-05-25T19:57:15+08:00" />
-<meta property="article:modified_time" content="2023-05-25T19:57:15+08:00" />
-
-
-  </head>
-  <body>
-    <header class="app-header">
-      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
-      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
-      <nav class="app-header-menu">
-          <a class="app-header-menu-item" href="/">首页</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/archives/">归档</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/tags/">标签</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/categories/">类别</a>
-             - 
-          
-          <a class="app-header-menu-item" href="/about/">关于</a>
-      </nav>
-      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
-    </header>
-    <main class="app-container">
-      
-  <article class="post">
-    <header class="post-header">
-      <h1 class ="post-title">「Golang成长之路」并发之Goroutine</h1>
-      <div class="post-meta">
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
-  <title>calendar</title>
-  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
-</svg>
-          May 25, 2023
-        </div>
-        <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
-  <title>clock</title>
-  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-</svg>
-          4 min read
-        </div>
-      </div>
-    </header>
-    <div class="post-content">
-      <p>[toc]</p>
-<h3 id="并发">并发</h3>
-<h4 id="goroutine">goroutine</h4>
-<p>并发编程表现为程序有若干个自主的活动单元组成，在今天的互联网中，一个web服务器可能一次处理上千个请求，而平板电脑和手机在渲染用户界面的同时，后端还同步进行着计算和处理网络请求等。
+<!doctype html><html lang=zh-cn><head><title>「Golang成长之路」并发之Goroutine // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「Golang成长之路」并发之Goroutine"><meta name=twitter:description content="[toc] 并发 goroutine 并发编程表现为程序有若干个自主的活动单元组成，在今天的互联网中，一个web服务器可能一次处理上千个请求，而平板电脑和手机在渲染用户界"><meta property="og:title" content="「Golang成长之路」并发之Goroutine"><meta property="og:description" content="[toc] 并发 goroutine 并发编程表现为程序有若干个自主的活动单元组成，在今天的互联网中，一个web服务器可能一次处理上千个请求，而平板电脑和手机在渲染用户界"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E5%B9%B6%E5%8F%91%E4%B9%8Bgoroutine/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-25T19:57:15+08:00"><meta property="article:modified_time" content="2023-05-25T19:57:15+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「Golang成长之路」并发之Goroutine</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>4 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=并发>并发</h3><h4 id=goroutine>goroutine</h4><p>并发编程表现为程序有若干个自主的活动单元组成，在今天的互联网中，一个web服务器可能一次处理上千个请求，而平板电脑和手机在渲染用户界面的同时，后端还同步进行着计算和处理网络请求等。
 在go语言中每一个并发执行的活动称之为goroutine，而在我们最常见的main函数中其实也是一个goroutine(主goroutine），在此之前，我们所见的介绍语法或者程序都是顺序执行的，但是在并发编程的领域里，如果从顺序编程获取的直觉可能让我们加倍迷茫。
 在此我们需要理解什么是并发：
-<em><strong>百科：当有多个线程在操作时,如果系统只有一个CPU,则它根本不可能真正同时进行一个以上的线程，它只能把CPU运行时间划分成若干个时间段,再将时间 段分配给各个线程执行，在一个时间段的线程代码运行时，其它线程处于挂起状。.这种方式我们称之为并发(Concurrent)。</strong></em></p>
-<p><img src="https://cdn.learnku.com/uploads/images/202108/23/69310/Hl0SHIe7Xc.png!large" alt="「Golang成长之路」并发之Goroutine">
-（这个是普通函数的运行模式，main将其控制权交给调用的函数，最后在返回给main）</p>
-<p>我的理解：举个例子，我一边在上网课，一边在做笔记，我在做笔记的时候需要将网课暂停，等我的笔记做完后又继续看网课，这两件事就可以看作是一个并发的过程。</p>
-<p><img src="https://cdn.learnku.com/uploads/images/202108/23/69310/0dymQkQASp.png!large" alt="「Golang成长之路」并发之Goroutine"></p>
-<p>（协程则是：main和创建的goroutine是相互作用的，相互给予控制权，就像两个人，各做各的事，并且他们也相互通信）</p>
-<h4 id="进程">进程</h4>
-<p>进程是操作系统调度和资源分配的基本单位。</p>
-<h4 id="线程">线程</h4>
-<p>是系统调用的最小单位，是进程里实践运行的实体，一个进程可以有多个线程。</p>
-<h4 id="协程">协程</h4>
-<p>跟轻量级的线程。</p>
-<h4 id="线程和协程的区别">线程和协程的区别</h4>
-<ol>
-<li>
-<p>由于协程的特性, 适合执行大量的<strong>I/O 密集型任务</strong>, 而线程在这方面弱于协程。</p>
-</li>
-<li>
-<p>协程涉及到函数的切换, 多线程涉及到线程的切换, 所以都有<strong>执行上下文</strong>, 但是协程不是被操作系统内核所管理, 而完全是由程序所控制（也就是在<strong>用户态</strong>执行）, 这样带来的好处就是性能得到了很大的提升, 不会像线程那样需要<strong>在内核态进行上下文切换</strong>来消耗资源，因此<strong>协程的开销远远小于线程的开销</strong>。</p>
-</li>
-<li>
-<p>同一时间, 在多核处理器的环境下, <strong>多个线程是可以并行的</strong>，但是<strong>运行的协程的函数却只能有一个</strong>，<strong>其他的协程的函数都被suspend</strong>, 即<strong>协程是并发的</strong>。</p>
-</li>
-<li>
-<p>由于协程在同一个线程中, 所以不需要用来守卫临界区段的同步性原语（primitive）比如互斥锁、信号量等，并且<strong>不需要来自操作系统的支持。</strong></p>
-</li>
-<li>
-<p>在协程之间的切换不需要涉及任何系统调用或任何阻塞调用。</p>
-</li>
-<li>
-<p><strong>通常的线程是抢先式(即由操作系统分配执行权)</strong>, 而协程是<strong>由程序分配执行权</strong>。</p>
-</li>
-</ol>
-<h3 id="go关键字">go关键字</h3>
-<p>当一个程序启动时，只有一个goroutine来调用<code>main</code>，称他为主goroutine，新的goroutine通过<code>go</code>关键字来进行创建，看下面例子：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">3</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//使用go关键字创建goroutine
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#75715e">//匿名函数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>          <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">3</span>; <span style="color:#a6e22e">j</span> <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">j</span><span style="color:#f92672">--</span> {
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;gorouting&#34;</span>, <span style="color:#a6e22e">j</span>)
-</span></span><span style="display:flex;"><span>          }
-</span></span><span style="display:flex;"><span>       }()
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;gorouting main:&#34;</span>, <span style="color:#a6e22e">i</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//控制程序运行时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Microsecond</span>)
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>当然，也可以将匿名函数拿出来：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>   <span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;time&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">doWorker</span>() {
-</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">3</span>; <span style="color:#a6e22e">j</span> <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">j</span><span style="color:#f92672">--</span> {
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;gorouting&#34;</span>, <span style="color:#a6e22e">j</span>)
-</span></span><span style="display:flex;"><span>     }
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">3</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//使用go关键字创建goroutine
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>       <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">doWroker</span>()
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;gorouting mian:&#34;</span>, <span style="color:#a6e22e">i</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//控制程序运行时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Microsecond</span>)
-</span></span><span style="display:flex;"><span>   }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>先来看看打印结果：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#a6e22e">mian</span>: <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#a6e22e">mian</span>: <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#a6e22e">mian</span>: <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">0</span>
-</span></span></code></pre></div><p>第二遍运行：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#a6e22e">mian</span>: <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#a6e22e">mian</span>: <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#a6e22e">mian</span>: <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">3</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gorouting</span> <span style="color:#ae81ff">0</span>
-</span></span></code></pre></div><p>***程序解释：***其实可以看出，每一遍的运行结果都是不一样的，当程序加入第一个for ， i=0时，运行到关键字<code>go</code>时，新的goroutine就创建了，但是程序不会立即执行新的goroutine，它会进行执行main中其余的代码，在我们的这个例子中，第一遍运行，时就是这个结果，第二遍运行时也是同样的。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>(){
-</span></span><span style="display:flex;"><span>	 <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">a</span>[<span style="color:#ae81ff">10</span>] <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>	 <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">10</span>;<span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>{
-</span></span><span style="display:flex;"><span>	     <span style="color:#75715e">//使用go关键字创建goroutine
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>         <span style="color:#75715e">//匿名函数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span>){
-</span></span><span style="display:flex;"><span>         	<span style="color:#66d9ef">for</span>{
-</span></span><span style="display:flex;"><span>          	  <span style="color:#a6e22e">a</span>[<span style="color:#a6e22e">i</span>]<span style="color:#f92672">++</span>
-</span></span><span style="display:flex;"><span>        	 }
-</span></span><span style="display:flex;"><span>     	 }(<span style="color:#a6e22e">i</span>)
-</span></span><span style="display:flex;"><span> 	  }
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Microsecond</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">a</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>打印结果：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>[<span style="color:#ae81ff">39904</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">9122</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">7123</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span>]
-</span></span></code></pre></div><p>***程序解释：***在for循环中一共创建了10个goroutine，有的goroutine执行了，有的还处于等待状态，但是我们给主goroutine的时间不多，所以有一些还来不及执行就被主goroutine杀掉了，这样我们就能理解打印结果了。</p>
-<h3 id="goroutine切换点可能">goroutine切换点(可能)</h3>
-<p><em><strong>goroutine可能切换:</strong></em></p>
-<ol>
-<li>I/O、select</li>
-<li>channel</li>
-<li>等待锁</li>
-<li>函数调用(有时)</li>
-<li>runtime.Gosched</li>
-</ol>
-
-    </div>
-    <div class="post-footer">
-      
-    </div>
-  </article>
-
-    </main>
-  </body>
-</html>
+<em><strong>百科：当有多个线程在操作时,如果系统只有一个CPU,则它根本不可能真正同时进行一个以上的线程，它只能把CPU运行时间划分成若干个时间段,再将时间 段分配给各个线程执行，在一个时间段的线程代码运行时，其它线程处于挂起状。.这种方式我们称之为并发(Concurrent)。</strong></em></p><p><img src=https://cdn.learnku.com/uploads/images/202108/23/69310/Hl0SHIe7Xc.png!large alt=「Golang成长之路」并发之Goroutine>
+（这个是普通函数的运行模式，main将其控制权交给调用的函数，最后在返回给main）</p><p>我的理解：举个例子，我一边在上网课，一边在做笔记，我在做笔记的时候需要将网课暂停，等我的笔记做完后又继续看网课，这两件事就可以看作是一个并发的过程。</p><p><img src=https://cdn.learnku.com/uploads/images/202108/23/69310/0dymQkQASp.png!large alt=「Golang成长之路」并发之Goroutine></p><p>（协程则是：main和创建的goroutine是相互作用的，相互给予控制权，就像两个人，各做各的事，并且他们也相互通信）</p><h4 id=进程>进程</h4><p>进程是操作系统调度和资源分配的基本单位。</p><h4 id=线程>线程</h4><p>是系统调用的最小单位，是进程里实践运行的实体，一个进程可以有多个线程。</p><h4 id=协程>协程</h4><p>跟轻量级的线程。</p><h4 id=线程和协程的区别>线程和协程的区别</h4><ol><li><p>由于协程的特性, 适合执行大量的<strong>I/O 密集型任务</strong>, 而线程在这方面弱于协程。</p></li><li><p>协程涉及到函数的切换, 多线程涉及到线程的切换, 所以都有<strong>执行上下文</strong>, 但是协程不是被操作系统内核所管理, 而完全是由程序所控制（也就是在<strong>用户态</strong>执行）, 这样带来的好处就是性能得到了很大的提升, 不会像线程那样需要<strong>在内核态进行上下文切换</strong>来消耗资源，因此<strong>协程的开销远远小于线程的开销</strong>。</p></li><li><p>同一时间, 在多核处理器的环境下, <strong>多个线程是可以并行的</strong>，但是<strong>运行的协程的函数却只能有一个</strong>，<strong>其他的协程的函数都被suspend</strong>, 即<strong>协程是并发的</strong>。</p></li><li><p>由于协程在同一个线程中, 所以不需要用来守卫临界区段的同步性原语（primitive）比如互斥锁、信号量等，并且<strong>不需要来自操作系统的支持。</strong></p></li><li><p>在协程之间的切换不需要涉及任何系统调用或任何阻塞调用。</p></li><li><p><strong>通常的线程是抢先式(即由操作系统分配执行权)</strong>, 而协程是<strong>由程序分配执行权</strong>。</p></li></ol><h3 id=go关键字>go关键字</h3><p>当一个程序启动时，只有一个goroutine来调用<code>main</code>，称他为主goroutine，新的goroutine通过<code>go</code>关键字来进行创建，看下面例子：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>3</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
+</span></span><span style=display:flex><span>   <span style=color:#75715e>//使用go关键字创建goroutine
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#75715e>//匿名函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>j</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>3</span>; <span style=color:#a6e22e>j</span> <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>j</span><span style=color:#f92672>--</span> {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;gorouting&#34;</span>, <span style=color:#a6e22e>j</span>)
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>       }()
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;gorouting main:&#34;</span>, <span style=color:#a6e22e>i</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//控制程序运行时间
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Microsecond</span>)
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>当然，也可以将匿名函数拿出来：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>   <span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>doWorker</span>() {
+</span></span><span style=display:flex><span>     <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>j</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>3</span>; <span style=color:#a6e22e>j</span> <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>j</span><span style=color:#f92672>--</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;gorouting&#34;</span>, <span style=color:#a6e22e>j</span>)
+</span></span><span style=display:flex><span>     }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>3</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
+</span></span><span style=display:flex><span>   <span style=color:#75715e>//使用go关键字创建goroutine
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>       <span style=color:#66d9ef>go</span> <span style=color:#a6e22e>doWroker</span>()
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;gorouting mian:&#34;</span>, <span style=color:#a6e22e>i</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//控制程序运行时间
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Microsecond</span>)
+</span></span><span style=display:flex><span>   }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>先来看看打印结果：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#a6e22e>mian</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#a6e22e>mian</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#a6e22e>mian</span>: <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>0</span>
+</span></span></code></pre></div><p>第二遍运行：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#a6e22e>mian</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#a6e22e>mian</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#a6e22e>mian</span>: <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>gorouting</span> <span style=color:#ae81ff>0</span>
+</span></span></code></pre></div><p>***程序解释：***其实可以看出，每一遍的运行结果都是不一样的，当程序加入第一个for ， i=0时，运行到关键字<code>go</code>时，新的goroutine就创建了，但是程序不会立即执行新的goroutine，它会进行执行main中其余的代码，在我们的这个例子中，第一遍运行，时就是这个结果，第二遍运行时也是同样的。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>	 <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>a</span>[<span style=color:#ae81ff>10</span>] <span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span>	 <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#ae81ff>10</span>;<span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>{
+</span></span><span style=display:flex><span>	     <span style=color:#75715e>//使用go关键字创建goroutine
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>         <span style=color:#75715e>//匿名函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      	<span style=color:#66d9ef>go</span> <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>i</span> <span style=color:#66d9ef>int</span>){
+</span></span><span style=display:flex><span>         	<span style=color:#66d9ef>for</span>{
+</span></span><span style=display:flex><span>          	  <span style=color:#a6e22e>a</span>[<span style=color:#a6e22e>i</span>]<span style=color:#f92672>++</span>
+</span></span><span style=display:flex><span>        	 }
+</span></span><span style=display:flex><span>     	 }(<span style=color:#a6e22e>i</span>)
+</span></span><span style=display:flex><span> 	  }
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Microsecond</span>)
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>a</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>打印结果：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span>[<span style=color:#ae81ff>39904</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>9122</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>7123</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span>]
+</span></span></code></pre></div><p>***程序解释：***在for循环中一共创建了10个goroutine，有的goroutine执行了，有的还处于等待状态，但是我们给主goroutine的时间不多，所以有一些还来不及执行就被主goroutine杀掉了，这样我们就能理解打印结果了。</p><h3 id=goroutine切换点可能>goroutine切换点(可能)</h3><p><em><strong>goroutine可能切换:</strong></em></p><ol><li>I/O、select</li><li>channel</li><li>等待锁</li><li>函数调用(有时)</li><li>runtime.Gosched</li></ol></div><div class=post-footer></div></article></main></body></html>

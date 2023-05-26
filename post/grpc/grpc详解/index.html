@@ -1,0 +1,1034 @@
+<!doctype html><html lang=zh-cn><head><title>Grpc详解 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="Grpc详解"><meta name=twitter:description content="[toc] 文章介绍 在阅读本文之前建议您先阅读RPC核心概念理解和GRPC之protobuf理解，在本文中我们不再过多介绍GRPC的基础部分，主要介绍"><meta property="og:title" content="Grpc详解"><meta property="og:description" content="[toc] 文章介绍 在阅读本文之前建议您先阅读RPC核心概念理解和GRPC之protobuf理解，在本文中我们不再过多介绍GRPC的基础部分，主要介绍"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/post/grpc/grpc%E8%AF%A6%E8%A7%A3/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-25T20:46:29+08:00"><meta property="article:modified_time" content="2023-05-25T20:46:29+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
+<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
+-
+<a class=app-header-menu-item href=/archives/>归档</a>
+-
+<a class=app-header-menu-item href=/tags/>标签</a>
+-
+<a class=app-header-menu-item href=/categories/>类别</a>
+-
+<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>Grpc详解</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>16 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/rpc/>Rpc</a>
+<a class=tag href=https://iceymoss.github.io/tags/grpc/>Grpc</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=文章介绍>文章介绍</h3><p>在阅读本文之前建议您先阅读<a href=https://learnku.com/articles/67348>RPC核心概念理解</a>和<a href=https://learnku.com/articles/68062>GRPC之protobuf理解</a>，在本文中我们不再过多介绍GRPC的基础部分，主要介绍：grpc的metadata机制、GRPC拦截器、通过拦截器和metadata实现GRPC的auth认证、grpc状态码、grpc的超时机制和protoc文件生成的go源码解析</p><h3 id=grpc的metadata机制>GRPC的metadata机制</h3><ul><li><h6 id=metadata的建立>metadata的建立</h6><ol><li><p>使用metadata.New()</p><p>这里需要注意：返回的metadata.New()返回的是类型：<code>type MD map[string][]string</code>，而我们的metadata.New()方法是入参是：<code>map[string]string</code>,下面我们来看看metadata.New()方法的实现:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>MD</span> <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>][]<span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>New</span>(<span style=color:#a6e22e>m</span> <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>) <span style=color:#a6e22e>MD</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>MD</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>k</span>, <span style=color:#a6e22e>val</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>m</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>key</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>ToLower</span>(<span style=color:#a6e22e>k</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>md</span>[<span style=color:#a6e22e>key</span>] = append(<span style=color:#a6e22e>md</span>[<span style=color:#a6e22e>key</span>], <span style=color:#a6e22e>val</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>md</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>示例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>New</span>(<span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;name&#34;</span>:     <span style=color:#e6db74>&#34;ice_moss&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;password&#34;</span>: <span style=color:#e6db74>&#34;ice_12345&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span></code></pre></div></li><li><p>使用metadata.Pairs()</p><p>同样我们可以来查看一下源码：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>MD</span> <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>][]<span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>Pairs</span>(<span style=color:#a6e22e>kv</span> <span style=color:#f92672>...</span><span style=color:#66d9ef>string</span>) <span style=color:#a6e22e>MD</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>kv</span>)<span style=color:#f92672>%</span><span style=color:#ae81ff>2</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>1</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Sprintf</span>(<span style=color:#e6db74>&#34;metadata: Pairs got the odd number of input pairs for metadata: %d&#34;</span>, len(<span style=color:#a6e22e>kv</span>)))
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>MD</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; len(<span style=color:#a6e22e>kv</span>); <span style=color:#a6e22e>i</span> <span style=color:#f92672>+=</span> <span style=color:#ae81ff>2</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>key</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>strings</span>.<span style=color:#a6e22e>ToLower</span>(<span style=color:#a6e22e>kv</span>[<span style=color:#a6e22e>i</span>])
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>md</span>[<span style=color:#a6e22e>key</span>] = append(<span style=color:#a6e22e>md</span>[<span style=color:#a6e22e>key</span>], <span style=color:#a6e22e>kv</span>[<span style=color:#a6e22e>i</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>])
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>md</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>仔细看metadata.Pairs()的源码可以看出我们的入参个数必须是偶数，并且每两两为键值对key-value</p><p>示例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>Pairs</span>(
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;name&#34;</span>, <span style=color:#e6db74>&#34;ice_moss&#34;</span>,
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;password&#34;</span>, <span style=color:#e6db74>&#34;ice_moss12345&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span></code></pre></div><p>即:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>name:</span> <span style=color:#960050;background-color:#1e0010>ice_moss</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>password:</span> <span style=color:#960050;background-color:#1e0010>ice_moss</span><span style=color:#ae81ff>12345</span>
+</span></span></code></pre></div></li></ol></li><li><h6 id=metadata数据的发送和接收>metadata数据的发送和接收</h6><p>在此之前我们先来定义一个proto文件，来满足我们下面的需要的metadata数据使用场景</p><p>Proto:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-protobuf data-lang=protobuf><span style=display:flex><span>syntax <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;proto3&#34;</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>option</span> go_package<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;/.;proto&#34;</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e>//引入protobuf的内置类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> <span style=color:#e6db74>&#34;google/protobuf/timestamp.proto&#34;</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e>//定义接口
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>service</span> Greeter {<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>rpc</span> SayHello (HelloRequest) <span style=color:#66d9ef>returns</span> (HelloReply);<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e>//枚举类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>enum</span> Gender{<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    MALE <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    FE_MALE <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>message</span> <span style=color:#a6e22e>HelloRequest</span> {<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>string</span> name <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>string</span> url <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    Gender gender <span style=color:#f92672>=</span> <span style=color:#ae81ff>3</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    map&lt;<span style=color:#66d9ef>string</span>, <span style=color:#66d9ef>string</span>&gt; m <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>;  <span style=color:#75715e>//proto map类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    google.protobuf.Timestamp addTime <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;  <span style=color:#75715e>//protobuf的内置类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>message</span> <span style=color:#a6e22e>HelloReply</span> {<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>string</span> id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    HelloRequest request <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div><p>以上代码有不理解的可以阅读：<a href=https://learnku.com/articles/68062>GRPC之protobuf理解</a></p><p>这里我们来模拟客服端client和服务端server进行交互，来进行metadata数据的发送和接收,这里我们需要知道的是metadata是通过go语言中的context的上下文来传输的</p><h6 id=server>server:</h6><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;context&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;net&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;rpcstudy/metadata_test/proto&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>HelloSerivce</span> <span style=color:#66d9ef>struct</span>{}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//SayHello实现对用户数据和id绑定
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>h</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloSerivce</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>c</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//通过metadata.FromIncomingContext()方法获取context的上下文
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>md</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>FromIncomingContext</span>(<span style=color:#a6e22e>c</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>ok</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#e6db74>&#34;FromIncomingContext error&#34;</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>value</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>md</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;key:%v, value:%v\n&#34;</span>, <span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>value</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Id</span>:      <span style=color:#e6db74>&#34;123456789&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Request</span>: <span style=color:#a6e22e>req</span>,
+</span></span><span style=display:flex><span>	}, <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//实例化server
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>lit</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>net</span>.<span style=color:#a6e22e>Listen</span>(<span style=color:#e6db74>&#34;tcp&#34;</span>, <span style=color:#e6db74>&#34;:9090&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Panicln</span>(<span style=color:#e6db74>&#34;监听失败&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//创建grpc服务器
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>s</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>NewServer</span>()  
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//注册处理逻辑
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>RegisterGreeterServer</span>(<span style=color:#a6e22e>s</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>HelloSerivce</span>{})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//开启服务，这里理解为将连接连入grpc服务器中，就可以完成通讯
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>s</span>.<span style=color:#a6e22e>Serve</span>(<span style=color:#a6e22e>lit</span>))
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>写完server并运行server,等待请求进入</p><h6 id=client>client:</h6><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;context&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;rpcstudy/metadata_test/proto&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc/metadata&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>timepb</span> <span style=color:#e6db74>&#34;google.golang.org/protobuf/types/known/timestamppb&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>//使用grpc.Dial()进行拨号， grpc.WithInsecure()使用不安全的方式连接
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>clientConn</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>Dial</span>(<span style=color:#e6db74>&#34;localhost:9090&#34;</span>, <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>WithInsecure</span>())
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Panicln</span>(<span style=color:#e6db74>&#34;连接失败&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>clientConn</span>.<span style=color:#a6e22e>Close</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>New</span>(<span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;name&#34;</span>:     <span style=color:#e6db74>&#34;ice_moss&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;password&#34;</span>: <span style=color:#e6db74>&#34;ice_12345&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//发送metadata
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//NewOutgoingContext创建一个新的上下文，并附加了md放入context中，并返回context
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//即：新建一个有metada的context
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>ctx</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>NewOutgoingContext</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Background</span>(), <span style=color:#a6e22e>md</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//连接grpc服务器
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>client</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>NewGreeterClient</span>(<span style=color:#a6e22e>clientConn</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//单向传送至server，将带有md的上下文ctx入参
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>:   <span style=color:#e6db74>&#34;kuangyang&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Url</span>:    <span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Gender</span>: <span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>Gender_MALE</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>M</span>: <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>			<span style=color:#e6db74>&#34;来自&#34;</span>: <span style=color:#e6db74>&#34;北京&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#e6db74>&#34;现居&#34;</span>: <span style=color:#e6db74>&#34;上海&#34;</span>,
+</span></span><span style=display:flex><span>		},
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>AddTime</span>: <span style=color:#a6e22e>timepb</span>.<span style=color:#a6e22e>New</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Now</span>()),
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;返回结果: %v&#34;</span>, <span style=color:#a6e22e>res</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>运行client,最后client返回：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>返回结果: id:<span style=color:#e6db74>&#34;123456789&#34;</span> request:<span style=color:#f92672>{</span>name:<span style=color:#e6db74>&#34;kuangyang&#34;</span> url:<span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span> m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;来自&#34;</span> value:<span style=color:#e6db74>&#34;北京&#34;</span><span style=color:#f92672>}</span> m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;现居&#34;</span> value:<span style=color:#e6db74>&#34;上海&#34;</span><span style=color:#f92672>}</span> addTime:<span style=color:#f92672>{</span>seconds:165s:929482000<span style=color:#f92672>}}</span>
+</span></span></code></pre></div><p>server输出：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>key:user-agent, value:<span style=color:#f92672>[</span>grpc-go/1.46.2<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>key:name, value:<span style=color:#f92672>[</span>ice_moss<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>key:password, value:<span style=color:#f92672>[</span>ice_12345<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>key::authority, value:<span style=color:#f92672>[</span>localhost:9090<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>key:content-type, value:<span style=color:#f92672>[</span>application/grpc<span style=color:#f92672>]</span>
+</span></span></code></pre></div><p>输出的内容中我们就可以看到客服端通过metadata请求发过来的数据，当然里面还有一些其他的数据，其实就是我们的handler，和http的handler类似</p><blockquote><h4 id=总结一下>总结一下：</h4><blockquote><p>创建metadata：</p></blockquote><blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>New</span>()
+</span></span><span style=display:flex><span><span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>Pairs</span>()
+</span></span></code></pre></div></blockquote><blockquote><p>将metadata数据放入context中：</p></blockquote><blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//NewOutgoingContext(ctx, md)
+</span></span></span></code></pre></div></blockquote><blockquote><p>//函数声明
+func NewOutgoingContext(ctx context.Context, md MD) context.Context {
+return context.WithValue(ctx, mdOutgoingKey{}, rawMD{md: md})
+}</p></blockquote><blockquote><pre tabindex=0><code></code></pre></blockquote><blockquote><pre tabindex=0><code></code></pre></blockquote><blockquote><p>将metadata数据从context中拿出:</p></blockquote><blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>FromIncomingContext</span>(<span style=color:#a6e22e>c</span>)
+</span></span></code></pre></div></blockquote><blockquote><p>//函数声明
+func FromIncomingContext(ctx context.Context) (MD, bool) {
+md, ok := ctx.Value(mdIncomingKey{}).(MD)
+if !ok {
+return nil, false
+}
+out := MD{}
+for k, v := range md {
+// We need to manually convert all keys to lower case, because MD is a
+// map, and there&rsquo;s no guarantee that the MD attached to the context is
+// created using our helper functions.
+key := strings.ToLower(k)
+s := make([]string, len(v))
+copy(s, v)
+out[key] = s
+}
+return out, true
+}</p></blockquote><blockquote><pre tabindex=0><code></code></pre></blockquote><blockquote><pre tabindex=0><code></code></pre></blockquote></blockquote></li></ul><h3 id=grpc的拦截器>GRPC的拦截器</h3><p>我们在开发的过程中验证用户身份、验证token、验证有效时间等，我们又不想将我们在验证机制加入到我们的业务逻辑的代码中，并且我们的业务逻辑不可能每一个业务都进行验证，这时就需要拦截器来解决这类问题。而grpc为我们提供了拦截器的实现，可以方便开发者更好的开发，在执行业务逻辑之前，服务端会先执行我们实现的拦截器，对客服端数据的提取和验证。</p><p>在metadata机制中，我们获取metadata数据是通过我们的业务代码SayHell()方法来实现的，这显然是影响到了我们的业务逻辑，业务代码中我们只想做业务的开发，并且不可能每一个业务都写入验证机制，下面我们直接来实现一个简单的拦截器：</p><p>我们依然使用metadata机制中的proto代码，下面我们来写server和client的代码</p><h6 id=server-1>server:</h6><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;context&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;net&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;rpcstudy/grpc_interpretor/proto&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>HelloSerivce</span> <span style=color:#66d9ef>struct</span>{}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>h</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloSerivce</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>c</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//此时我们不需要在 SayHello中写拦截器逻辑了
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//接收client发送的handle消息
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//md, ok := metadata.FromIncomingContext(c)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//if !ok {
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	fmt.Println(&#34;get metadata err&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//}
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//for key, value := range md {
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	fmt.Printf(&#34;%v: %v\n&#34;, key, value)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//}
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Id</span>:      <span style=color:#e6db74>&#34;123456789&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Request</span>: <span style=color:#a6e22e>req</span>,
+</span></span><span style=display:flex><span>	}, <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//grpc在调用业务逻辑之前会先执行inerpertor,进行数据的拦截
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//实例化server
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>lit</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>net</span>.<span style=color:#a6e22e>Listen</span>(<span style=color:#e6db74>&#34;tcp&#34;</span>, <span style=color:#e6db74>&#34;:9090&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Panicln</span>(<span style=color:#e6db74>&#34;监听失败&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//实现拦截器的处理逻辑
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>interpretor</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#66d9ef>interface</span>{}, <span style=color:#a6e22e>info</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryServerInfo</span>, <span style=color:#a6e22e>handler</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryHandler</span>) (<span style=color:#66d9ef>interface</span>{}, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>ma</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>FromIncomingContext</span>(<span style=color:#a6e22e>ctx</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>ok</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatal</span>(<span style=color:#e6db74>&#34;FromIncomingContext error&#34;</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;metadata数据: \n&#34;</span>, <span style=color:#a6e22e>ma</span>)
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;拦截到一条新消息:\n&#34;</span>, <span style=color:#a6e22e>req</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#75715e>//我们想继续做时间统计，不让直接返回
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>handler</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>req</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;该请求已经完成&#34;</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//grpc拦截器的使用，返回一个ServerOption
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>sopt</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryInterceptor</span>(<span style=color:#a6e22e>interpretor</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//注册处理逻辑
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//创建grpc服务, NewServer的参数为ServerOption类型的可选参数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//即创建服务器时使用可放入拦截器
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>s</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>NewServer</span>(<span style=color:#a6e22e>sopt</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>RegisterGreeterServer</span>(<span style=color:#a6e22e>s</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>HelloSerivce</span>{})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//开启服务
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>s</span>.<span style=color:#a6e22e>Serve</span>(<span style=color:#a6e22e>lit</span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>运行server，等待请求进入</p><h6 id=client-1>Client：</h6><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;context&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;rpcstudy/grpc_interpretor/proto&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc/metadata&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>timepb</span> <span style=color:#e6db74>&#34;google.golang.org/protobuf/types/known/timestamppb&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//client拦截器,client的拦截器和server拦截器逻辑一致，代码有点出入，具体不过多介绍，具体看这部分注释：
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//interpretor := func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	start := time.Now()
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	md := metadata.New(map[string]string{
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//		&#34;appid&#34;:  &#34;ice_moss&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//		&#34;appkey&#34;: &#34;ice_12345&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	})
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	//NewOutgoingContext创建一个新的上下文context，并附加了md放入context中，并返回这个context
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	ctx = metadata.NewOutgoingContext(context.Background(), md)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	//调用者invoker
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	err := invoker(ctx, method, req, reply, cc)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	fmt.Printf(&#34;消耗时间：%s\n&#34;, time.Since(start))
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//	return err
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//}
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//opt := grpc.WithUnaryInterceptor(interpretor)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>clientConn</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>Dial</span>(<span style=color:#e6db74>&#34;localhost:9090&#34;</span>, <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>WithInsecure</span>())
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Panicln</span>(<span style=color:#e6db74>&#34;连接失败&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>clientConn</span>.<span style=color:#a6e22e>Close</span>()
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//连接grpc服务器
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>client</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>NewGreeterClient</span>(<span style=color:#a6e22e>clientConn</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>New</span>(<span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appid&#34;</span>:  <span style=color:#e6db74>&#34;ice_moss&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appkey&#34;</span>: <span style=color:#e6db74>&#34;ice_12345&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ctx</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>NewOutgoingContext</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Background</span>(), <span style=color:#a6e22e>md</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>:   <span style=color:#e6db74>&#34;kuangyang&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Url</span>:    <span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Gender</span>: <span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>Gender_MALE</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>M</span>: <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>			<span style=color:#e6db74>&#34;来自&#34;</span>: <span style=color:#e6db74>&#34;北京&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#e6db74>&#34;现居&#34;</span>: <span style=color:#e6db74>&#34;上海&#34;</span>,
+</span></span><span style=display:flex><span>		},
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>AddTime</span>: <span style=color:#a6e22e>timepb</span>.<span style=color:#a6e22e>New</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Now</span>()),
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;返回结果: %v&#34;</span>, <span style=color:#a6e22e>res</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>这里我们只介绍server拦截器，client返回结果：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>返回结果: id:<span style=color:#e6db74>&#34;123456789&#34;</span> request:<span style=color:#f92672>{</span>name:<span style=color:#e6db74>&#34;kuangyang&#34;</span> url:<span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span> m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;来自&#34;</span> value:<span style=color:#e6db74>&#34;北京&#34;</span><span style=color:#f92672>}</span> m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;现居&#34;</span> value:<span style=color:#e6db74>&#34;上海&#34;</span><span style=color:#f92672>}</span> addTime:<span style=color:#f92672>{</span>seconds:165s:686279000<span style=color:#f92672>}}</span>
+</span></span></code></pre></div><p>server输出:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>metadata数据: 
+</span></span><span style=display:flex><span> map<span style=color:#f92672>[</span>:authority:<span style=color:#f92672>[</span>localhost:9090<span style=color:#f92672>]</span> appid:<span style=color:#f92672>[</span>ice_moss<span style=color:#f92672>]</span> appkey:<span style=color:#f92672>[</span>ice_12345<span style=color:#f92672>]</span> content-type:<span style=color:#f92672>[</span>application/grpc<span style=color:#f92672>]</span> user-agent:<span style=color:#f92672>[</span>grpc-go/1.46.2<span style=color:#f92672>]]</span>
+</span></span><span style=display:flex><span>拦截到一条新消息:
+</span></span><span style=display:flex><span> name:<span style=color:#e6db74>&#34;kuangyang&#34;</span>  url:<span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span>  m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;来自&#34;</span>  value:<span style=color:#e6db74>&#34;北京&#34;</span><span style=color:#f92672>}</span>  m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;现居&#34;</span>  value:<span style=color:#e6db74>&#34;上海&#34;</span><span style=color:#f92672>}</span>  addTime:<span style=color:#f92672>{</span>seconds:1652953608  nanos:686279000<span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>该请求已经完成
+</span></span></code></pre></div><p>仔细看我们的server不仅拿到了metadata中的数据，也拿到了client上传的信息数据,接着我们就可以将这些数据进行有效验证了</p><h3 id=拦截器和metadata实现grpc的auth认证>拦截器和metadata实现GRPC的auth认证</h3><p>学习了上面的内容，下面我们来实现对用户的身份和密码的验证这里我们叫auth认证，同样使用上面内容中的proto文件，直接上代码：</p><h6 id=server-2>server:</h6><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;context&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;net&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc/codes&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc/status&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc/metadata&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;rpcstudy/grpc_interpretor/proto&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//实现接口的实现者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>HelloSerivce</span> <span style=color:#66d9ef>struct</span>{}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//对用户数据和id进行绑定
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>h</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloSerivce</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>c</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Id</span>:      <span style=color:#e6db74>&#34;123456789&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Request</span>: <span style=color:#a6e22e>req</span>,
+</span></span><span style=display:flex><span>	}, <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//grpc在调用业务逻辑之前会先执行inerpertor,进行数据的拦截
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//实例化server
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>lit</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>net</span>.<span style=color:#a6e22e>Listen</span>(<span style=color:#e6db74>&#34;tcp&#34;</span>, <span style=color:#e6db74>&#34;:9090&#34;</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Panicln</span>(<span style=color:#e6db74>&#34;监听失败&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//拦截器处理逻辑
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>interpretor</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#66d9ef>interface</span>{}, <span style=color:#a6e22e>info</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryServerInfo</span>, <span style=color:#a6e22e>handler</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryHandler</span>) (<span style=color:#66d9ef>interface</span>{}, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#75715e>//接收client发送的handle消息
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>md</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>FromIncomingContext</span>(<span style=color:#a6e22e>ctx</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>ok</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;get metadata err&#34;</span>)
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>status</span>.<span style=color:#a6e22e>Error</span>(<span style=color:#a6e22e>codes</span>.<span style=color:#a6e22e>Unauthenticated</span>, <span style=color:#e6db74>&#34;没有token认证&#34;</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>appid</span> <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>appkey</span> <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>		
+</span></span><span style=display:flex><span>    <span style=color:#75715e>//将appid的value取出
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>value</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>md</span>[<span style=color:#e6db74>&#34;appid&#34;</span>]; <span style=color:#a6e22e>ok</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>appid</span> = <span style=color:#a6e22e>value</span>[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>     <span style=color:#75715e>//将appkey的value取出
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>value</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>md</span>[<span style=color:#e6db74>&#34;appkey&#34;</span>]; <span style=color:#a6e22e>ok</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>appkey</span> = <span style=color:#a6e22e>value</span>[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>appid</span> <span style=color:#f92672>!=</span> <span style=color:#e6db74>&#34;ice_moss&#34;</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>appkey</span> <span style=color:#f92672>!=</span> <span style=color:#e6db74>&#34;ice_12345&#34;</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;用户token未认证&#34;</span>)
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>status</span>.<span style=color:#a6e22e>Error</span>(<span style=color:#a6e22e>codes</span>.<span style=color:#a6e22e>Unauthenticated</span>, <span style=color:#e6db74>&#34;没有token认证&#34;</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;拦截到一条新消息:\n&#34;</span>, <span style=color:#a6e22e>req</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#75715e>//我们想继续做时间统计，不让直接返回
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>handler</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>req</span>)
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;该请求已经完成, 认证成功&#34;</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//grpc拦截器的使用，返回一个ServerOption
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>sopt</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryInterceptor</span>(<span style=color:#a6e22e>interpretor</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//注册处理逻辑
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//创建grpc服务, NewServer的参数为ServerOption类型的可选参数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//即创建服务器时将拦截器放入服务器中
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>s</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>NewServer</span>(<span style=color:#a6e22e>sopt</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>RegisterGreeterServer</span>(<span style=color:#a6e22e>s</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>HelloSerivce</span>{})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//开启服务
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>s</span>.<span style=color:#a6e22e>Serve</span>(<span style=color:#a6e22e>lit</span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>运行server, 等待请求进入</p><h6 id=client-2>client:</h6><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;context&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;fmt&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;log&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;rpcstudy/grpc_interpretor/proto&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;time&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc/metadata&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#e6db74>&#34;google.golang.org/grpc&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>timepb</span> <span style=color:#e6db74>&#34;google.golang.org/protobuf/types/known/timestamppb&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>clientConn</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>Dial</span>(<span style=color:#e6db74>&#34;localhost:9090&#34;</span>, <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>WithInsecure</span>())
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Panicln</span>(<span style=color:#e6db74>&#34;连接失败&#34;</span>, <span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>clientConn</span>.<span style=color:#a6e22e>Close</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//连接grpc服务器
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>client</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>NewGreeterClient</span>(<span style=color:#a6e22e>clientConn</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>New</span>(<span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appid&#34;</span>:  <span style=color:#e6db74>&#34;ice_moss&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appkey&#34;</span>: <span style=color:#e6db74>&#34;ice_12345&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ctx</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>NewOutgoingContext</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Background</span>(), <span style=color:#a6e22e>md</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>res</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>:   <span style=color:#e6db74>&#34;kuangyang&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Url</span>:    <span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Gender</span>: <span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>Gender_MALE</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>M</span>: <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>			<span style=color:#e6db74>&#34;来自&#34;</span>: <span style=color:#e6db74>&#34;北京&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#e6db74>&#34;现居&#34;</span>: <span style=color:#e6db74>&#34;上海&#34;</span>,
+</span></span><span style=display:flex><span>		},
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>AddTime</span>: <span style=color:#a6e22e>timepb</span>.<span style=color:#a6e22e>New</span>(<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Now</span>()),
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		panic(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;返回结果: %v&#34;</span>, <span style=color:#a6e22e>res</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>client返回:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>返回结果: id:<span style=color:#e6db74>&#34;123456789&#34;</span> request:<span style=color:#f92672>{</span>name:<span style=color:#e6db74>&#34;kuangyang&#34;</span> url:<span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span> m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;来自&#34;</span> value:<span style=color:#e6db74>&#34;北京&#34;</span><span style=color:#f92672>}</span> m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;现居&#34;</span> value:<span style=color:#e6db74>&#34;上海&#34;</span><span style=color:#f92672>}</span> addTime:<span style=color:#f92672>{</span>seconds:165nanos:883406000<span style=color:#f92672>}}</span>
+</span></span></code></pre></div><p>server输出:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>拦截到一条新消息:
+</span></span><span style=display:flex><span> name:<span style=color:#e6db74>&#34;kuangyang&#34;</span>  url:<span style=color:#e6db74>&#34;https://learnku.com/blog/yangkuang&#34;</span>  m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;来自&#34;</span>  value:<span style=color:#e6db74>&#34;北京&#34;</span><span style=color:#f92672>}</span>  m:<span style=color:#f92672>{</span>key:<span style=color:#e6db74>&#34;现居&#34;</span>  value:<span style=color:#e6db74>&#34;上海&#34;</span><span style=color:#f92672>}</span>  addTime:<span style=color:#f92672>{</span>seconds:1652954947  nanos:883406000<span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>该请求已经完成, 认证成功
+</span></span></code></pre></div><p>接下来我们将metadata中数据修改一下：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span>	<span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>New</span>(<span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appid&#34;</span>:  <span style=color:#e6db74>&#34;ice_moss&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appkey&#34;</span>: <span style=color:#e6db74>&#34;ice&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span></code></pre></div><p>client返回:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>panic: rpc error: code <span style=color:#f92672>=</span> Unauthenticated desc <span style=color:#f92672>=</span> 没有token认证
+</span></span></code></pre></div><p>Server输出:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>用户token未认证
+</span></span></code></pre></div><p>这就是一个简单的auth认证过程，当然这里也欢迎阅读我的微信小程序用户登录token认证: <a href=https://learnku.com/articles/67053>微信小程序登录服务后端实战</a></p><h3 id=grpc状态码>grpc状态码</h3><p>其实在上一部分内容中我们就已经接触到了grpc状态码</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>md</span>, <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>FromIncomingContext</span>(<span style=color:#a6e22e>ctx</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>ok</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;get metadata err&#34;</span>)
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>status</span>.<span style=color:#a6e22e>Error</span>(<span style=color:#a6e22e>codes</span>.<span style=color:#a6e22e>Unauthenticated</span>, <span style=color:#e6db74>&#34;没有token认证&#34;</span>)  
+</span></span><span style=display:flex><span>		}
+</span></span></code></pre></div><p><code>status.Error(codes.Unauthenticated, "没有token认证") </code>这既是一个状态码</p><p>又或者是:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>if</span> <span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>Name</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;&#34;</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>status</span>.<span style=color:#a6e22e>Errorf</span>(<span style=color:#a6e22e>codes</span>.<span style=color:#a6e22e>NotFound</span>, <span style=color:#e6db74>&#34;未找到name：%s&#34;</span>, <span style=color:#a6e22e>req</span>)
+</span></span><span style=display:flex><span>	}
+</span></span></code></pre></div><p>不做过多介绍，关于<a href=https://github.com/grpc/grpc/blob/master/doc/statuscodes.md>更多状态码</a></p><h3 id=grpc的超时机制>grpc的超时机制</h3><p>我们在使用grpc调用过程中，如果某一个请求没跟上，或者出现一些情况，导致我们的请求一直没有返回，这肯定是不行的，例如：我们请求A服务，然后A会去调用其他服务，如：A -> B -> C -> D，但是这个过程D一直没有返回，这肯定会导致我们的C回不来，就处于一直等待的状态了，这不仅占用资源，这也使得调用者体验不好，所以需要使用grpc的超时机制来防止此类问题的发送，而grpc为我们提供了这样方法，我们只需要只需要在客服端使用：<code>func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)</code></p><p>我们以auth认证代码为例，只需要在客服端调用<code>func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)</code></p><p>client:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span>	<span style=color:#75715e>//创建一个有时间限定context的上下文
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>WithTimeout</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Background</span>(), <span style=color:#ae81ff>2</span><span style=color:#f92672>*</span><span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//使用metadata机制和拦截器进行用户身份验证
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>md</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>New</span>(<span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appid&#34;</span>:  <span style=color:#e6db74>&#34;ice_moss&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;appkey&#34;</span>: <span style=color:#e6db74>&#34;12345&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//将md附加到context上下文中
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>ctx</span> = <span style=color:#a6e22e>metadata</span>.<span style=color:#a6e22e>NewOutgoingContext</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>md</span>)
+</span></span></code></pre></div><p>在server中我们我们加入:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>h</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HolleService</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>c</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>//验证超时机制
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Sleep</span>(<span style=color:#ae81ff>5</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Second</span>)
+</span></span><span style=display:flex><span>	<span style=color:#960050;background-color:#1e0010>……</span>
+</span></span><span style=display:flex><span>	<span style=color:#960050;background-color:#1e0010>……</span>
+</span></span><span style=display:flex><span>	<span style=color:#960050;background-color:#1e0010>……</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>我们给这个请求2秒的时间，但是我们执行 SayHello服务需要执行5秒时间，显然这个请求已经超时了，加入超时机制后，他不会一直等待，2秒后他就返回：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>2022/05/19 18:38:41 cannot get id <span style=color:#66d9ef>for</span> messagerpc error: code <span style=color:#f92672>=</span> DeadlineExceeded desc <span style=color:#f92672>=</span> context deadline exceeded
+</span></span></code></pre></div><h3 id=protoc文件生成的go源码解析>protoc文件生成的go源码解析</h3><p>我们以metadata机制内容中的proto文件为例:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-protobuf data-lang=protobuf><span style=display:flex><span>syntax <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;proto3&#34;</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>option</span> go_package<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;/.;proto&#34;</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e>//引入protobuf的内置类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> <span style=color:#e6db74>&#34;google/protobuf/timestamp.proto&#34;</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e>//定义接口
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>service</span> Greeter {<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>rpc</span> SayHello (HelloRequest) <span style=color:#66d9ef>returns</span> (HelloReply);<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e>//枚举类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>enum</span> Gender{<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    MALE <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    FE_MALE <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>message</span> <span style=color:#a6e22e>HelloRequest</span> {<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>string</span> name <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>string</span> url <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    Gender gender <span style=color:#f92672>=</span> <span style=color:#ae81ff>3</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    map&lt;<span style=color:#66d9ef>string</span>, <span style=color:#66d9ef>string</span>&gt; m <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>;  <span style=color:#75715e>//proto map类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    google.protobuf.Timestamp addTime <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;  <span style=color:#75715e>//protobuf的内置类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>message</span> <span style=color:#a6e22e>HelloReply</span> {<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    <span style=color:#66d9ef>string</span> id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>    HelloRequest request <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span>}<span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div><p>执行<code>protoc -I . holle.proto --go_out=plugins=grpc:. </code>后生成：hello.pb.go文件</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>// Code generated by protoc-gen-go. DO NOT EDIT.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// versions:
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 	protoc-gen-go v1.26.0
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 	protoc        v3.13.0
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// source: md.proto
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>proto</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>context</span> <span style=color:#e6db74>&#34;context&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>timestamp</span> <span style=color:#e6db74>&#34;github.com/golang/protobuf/ptypes/timestamp&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>grpc</span> <span style=color:#e6db74>&#34;google.golang.org/grpc&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>codes</span> <span style=color:#e6db74>&#34;google.golang.org/grpc/codes&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>status</span> <span style=color:#e6db74>&#34;google.golang.org/grpc/status&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>protoreflect</span> <span style=color:#e6db74>&#34;google.golang.org/protobuf/reflect/protoreflect&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>protoimpl</span> <span style=color:#e6db74>&#34;google.golang.org/protobuf/runtime/protoimpl&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>reflect</span> <span style=color:#e6db74>&#34;reflect&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sync</span> <span style=color:#e6db74>&#34;sync&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> (
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Verify that this generated code is sufficiently up-to-date.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>_</span> = <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>EnforceVersion</span>(<span style=color:#ae81ff>20</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>MinVersion</span>)
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Verify that runtime/protoimpl is sufficiently up-to-date.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>_</span> = <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>EnforceVersion</span>(<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>MaxVersion</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>20</span>)
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//枚举类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Gender</span> <span style=color:#66d9ef>int32</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> (
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Gender_MALE</span>    <span style=color:#a6e22e>Gender</span> = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Gender_FE_MALE</span> <span style=color:#a6e22e>Gender</span> = <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Enum value maps for Gender.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>var</span> (
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Gender_name</span> = <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>int32</span>]<span style=color:#66d9ef>string</span>{
+</span></span><span style=display:flex><span>		<span style=color:#ae81ff>0</span>: <span style=color:#e6db74>&#34;MALE&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#ae81ff>1</span>: <span style=color:#e6db74>&#34;FE_MALE&#34;</span>,
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Gender_value</span> = <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>int32</span>{
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;MALE&#34;</span>:    <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;FE_MALE&#34;</span>: <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#a6e22e>Gender</span>) <span style=color:#a6e22e>Enum</span>() <span style=color:#f92672>*</span><span style=color:#a6e22e>Gender</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>p</span> <span style=color:#f92672>:=</span> new(<span style=color:#a6e22e>Gender</span>)
+</span></span><span style=display:flex><span>	<span style=color:#f92672>*</span><span style=color:#a6e22e>p</span> = <span style=color:#a6e22e>x</span>
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>p</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#a6e22e>Gender</span>) <span style=color:#a6e22e>String</span>() <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>EnumStringOf</span>(<span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>Descriptor</span>(), <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>EnumNumber</span>(<span style=color:#a6e22e>x</span>))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>Gender</span>) <span style=color:#a6e22e>Descriptor</span>() <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>EnumDescriptor</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>file_md_proto_enumTypes</span>[<span style=color:#ae81ff>0</span>].<span style=color:#a6e22e>Descriptor</span>()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>Gender</span>) <span style=color:#a6e22e>Type</span>() <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>EnumType</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>file_md_proto_enumTypes</span>[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#a6e22e>Gender</span>) <span style=color:#a6e22e>Number</span>() <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>EnumNumber</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>EnumNumber</span>(<span style=color:#a6e22e>x</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Deprecated: Use Gender.Descriptor instead.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>Gender</span>) <span style=color:#a6e22e>EnumDescriptor</span>() ([]<span style=color:#66d9ef>byte</span>, []<span style=color:#66d9ef>int</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>file_md_proto_rawDescGZIP</span>(), []<span style=color:#66d9ef>int</span>{<span style=color:#ae81ff>0</span>}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>HelloRequest</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>state</span>         <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>MessageState</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sizeCache</span>     <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>SizeCache</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>unknownFields</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnknownFields</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Name</span>    <span style=color:#66d9ef>string</span>               <span style=color:#e6db74>`protobuf:&#34;bytes,1,opt,name=name,proto3&#34; json:&#34;name,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Url</span>     <span style=color:#66d9ef>string</span>               <span style=color:#e6db74>`protobuf:&#34;bytes,2,opt,name=url,proto3&#34; json:&#34;url,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Gender</span>  <span style=color:#a6e22e>Gender</span>               <span style=color:#e6db74>`protobuf:&#34;varint,3,opt,name=gender,proto3,enum=Gender&#34; json:&#34;gender,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>M</span>       <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>    <span style=color:#e6db74>`protobuf:&#34;bytes,4,rep,name=m,proto3&#34; json:&#34;m,omitempty&#34; protobuf_key:&#34;bytes,1,opt,name=key,proto3&#34; protobuf_val:&#34;bytes,2,opt,name=value,proto3&#34;`</span> <span style=color:#75715e>//proto map类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>AddTime</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>timestamp</span>.<span style=color:#a6e22e>Timestamp</span> <span style=color:#e6db74>`protobuf:&#34;bytes,5,opt,name=addTime,proto3&#34; json:&#34;addTime,omitempty&#34;`</span>                                                                             <span style=color:#75715e>//protobuf的内置类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>Reset</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#f92672>*</span><span style=color:#a6e22e>x</span> = <span style=color:#a6e22e>HelloRequest</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnsafeEnabled</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>mi</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>file_md_proto_msgTypes</span>[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ms</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>MessageStateOf</span>(<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#a6e22e>x</span>))
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ms</span>.<span style=color:#a6e22e>StoreMessageInfo</span>(<span style=color:#a6e22e>mi</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>String</span>() <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>MessageStringOf</span>(<span style=color:#a6e22e>x</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>ProtoMessage</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>ProtoReflect</span>() <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>Message</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>mi</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>file_md_proto_msgTypes</span>[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnsafeEnabled</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ms</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>MessageStateOf</span>(<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#a6e22e>x</span>))
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>ms</span>.<span style=color:#a6e22e>LoadMessageInfo</span>() <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>ms</span>.<span style=color:#a6e22e>StoreMessageInfo</span>(<span style=color:#a6e22e>mi</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>ms</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>mi</span>.<span style=color:#a6e22e>MessageOf</span>(<span style=color:#a6e22e>x</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Deprecated: Use HelloRequest.ProtoReflect.Descriptor instead.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>Descriptor</span>() ([]<span style=color:#66d9ef>byte</span>, []<span style=color:#66d9ef>int</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>file_md_proto_rawDescGZIP</span>(), []<span style=color:#66d9ef>int</span>{<span style=color:#ae81ff>0</span>}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>GetName</span>() <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>Name</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>GetUrl</span>() <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>Url</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>GetGender</span>() <span style=color:#a6e22e>Gender</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>Gender</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>Gender_MALE</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>GetM</span>() <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>M</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) <span style=color:#a6e22e>GetAddTime</span>() <span style=color:#f92672>*</span><span style=color:#a6e22e>timestamp</span>.<span style=color:#a6e22e>Timestamp</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>AddTime</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>HelloReply</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>state</span>         <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>MessageState</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sizeCache</span>     <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>SizeCache</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>unknownFields</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnknownFields</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Id</span>      <span style=color:#66d9ef>string</span>        <span style=color:#e6db74>`protobuf:&#34;bytes,1,opt,name=id,proto3&#34; json:&#34;id,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Request</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span> <span style=color:#e6db74>`protobuf:&#34;bytes,2,opt,name=request,proto3&#34; json:&#34;request,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>) <span style=color:#a6e22e>Reset</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#f92672>*</span><span style=color:#a6e22e>x</span> = <span style=color:#a6e22e>HelloReply</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnsafeEnabled</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>mi</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>file_md_proto_msgTypes</span>[<span style=color:#ae81ff>1</span>]
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ms</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>MessageStateOf</span>(<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#a6e22e>x</span>))
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ms</span>.<span style=color:#a6e22e>StoreMessageInfo</span>(<span style=color:#a6e22e>mi</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>) <span style=color:#a6e22e>String</span>() <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>MessageStringOf</span>(<span style=color:#a6e22e>x</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>) <span style=color:#a6e22e>ProtoMessage</span>() {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>) <span style=color:#a6e22e>ProtoReflect</span>() <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>Message</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>mi</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>file_md_proto_msgTypes</span>[<span style=color:#ae81ff>1</span>]
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnsafeEnabled</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ms</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>MessageStateOf</span>(<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#a6e22e>x</span>))
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>ms</span>.<span style=color:#a6e22e>LoadMessageInfo</span>() <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>ms</span>.<span style=color:#a6e22e>StoreMessageInfo</span>(<span style=color:#a6e22e>mi</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>ms</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>mi</span>.<span style=color:#a6e22e>MessageOf</span>(<span style=color:#a6e22e>x</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Deprecated: Use HelloReply.ProtoReflect.Descriptor instead.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>) <span style=color:#a6e22e>Descriptor</span>() ([]<span style=color:#66d9ef>byte</span>, []<span style=color:#66d9ef>int</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>file_md_proto_rawDescGZIP</span>(), []<span style=color:#66d9ef>int</span>{<span style=color:#ae81ff>1</span>}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>) <span style=color:#a6e22e>GetId</span>() <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>Id</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>x</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>) <span style=color:#a6e22e>GetRequest</span>() <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>x</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>x</span>.<span style=color:#a6e22e>Request</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>File_md_proto</span> <span style=color:#a6e22e>protoreflect</span>.<span style=color:#a6e22e>FileDescriptor</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>file_md_proto_rawDesc</span> = []<span style=color:#66d9ef>byte</span>{
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x08</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x1a</span>, <span style=color:#ae81ff>0x1f</span>, <span style=color:#ae81ff>0x67</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x67</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x2f</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x62</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x66</span>, <span style=color:#ae81ff>0x2f</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x69</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x65</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x73</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x22</span>, <span style=color:#ae81ff>0xe5</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x0c</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x48</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x71</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x73</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x04</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x6e</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x09</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x04</span>, <span style=color:#ae81ff>0x6e</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x65</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x10</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x03</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x02</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x09</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x03</span>, <span style=color:#ae81ff>0x75</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x1f</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x06</span>, <span style=color:#ae81ff>0x67</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6e</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x03</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x0e</span>, <span style=color:#ae81ff>0x32</span>, <span style=color:#ae81ff>0x07</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x47</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6e</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x06</span>, <span style=color:#ae81ff>0x67</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6e</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x22</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x04</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x03</span>, <span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x0b</span>, <span style=color:#ae81ff>0x32</span>, <span style=color:#ae81ff>0x14</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x48</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x71</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x73</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x4d</span>, <span style=color:#ae81ff>0x45</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x6e</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x79</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x34</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x07</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x54</span>, <span style=color:#ae81ff>0x69</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x05</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x0b</span>, <span style=color:#ae81ff>0x32</span>, <span style=color:#ae81ff>0x1a</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x67</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x67</span>, <span style=color:#ae81ff>0x6c</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x62</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x66</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x54</span>, <span style=color:#ae81ff>0x69</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x73</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x07</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x54</span>, <span style=color:#ae81ff>0x69</span>, <span style=color:#ae81ff>0x6d</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x1a</span>, <span style=color:#ae81ff>0x34</span>, <span style=color:#ae81ff>0x0a</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x06</span>, <span style=color:#ae81ff>0x4d</span>, <span style=color:#ae81ff>0x45</span>, <span style=color:#ae81ff>0x6e</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x79</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x10</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x03</span>, <span style=color:#ae81ff>0x6b</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x79</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x01</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x09</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x03</span>, <span style=color:#ae81ff>0x6b</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x79</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x14</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x05</span>, <span style=color:#ae81ff>0x76</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x6c</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x02</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x09</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x05</span>, <span style=color:#ae81ff>0x76</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x3a</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x02</span>, <span style=color:#ae81ff>0x38</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x22</span>, <span style=color:#ae81ff>0x45</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x48</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x6c</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x79</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x0e</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x02</span>, <span style=color:#ae81ff>0x69</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x09</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x02</span>, <span style=color:#ae81ff>0x69</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x27</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x07</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x71</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x73</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x18</span>, <span style=color:#ae81ff>0x02</span>, <span style=color:#ae81ff>0x20</span>, <span style=color:#ae81ff>0x01</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x28</span>, <span style=color:#ae81ff>0x0b</span>, <span style=color:#ae81ff>0x32</span>, <span style=color:#ae81ff>0x0d</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x48</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x71</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x73</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x07</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x71</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x73</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x2a</span>, <span style=color:#ae81ff>0x1f</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x06</span>, <span style=color:#ae81ff>0x47</span>, <span style=color:#ae81ff>0x65</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x6e</span>, <span style=color:#ae81ff>0x64</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x08</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x04</span>, <span style=color:#ae81ff>0x4d</span>, <span style=color:#ae81ff>0x41</span>, <span style=color:#ae81ff>0x4c</span>, <span style=color:#ae81ff>0x45</span>, <span style=color:#ae81ff>0x10</span>, <span style=color:#ae81ff>0x00</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x0b</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x07</span>, <span style=color:#ae81ff>0x46</span>, <span style=color:#ae81ff>0x45</span>, <span style=color:#ae81ff>0x5f</span>, <span style=color:#ae81ff>0x4d</span>, <span style=color:#ae81ff>0x41</span>, <span style=color:#ae81ff>0x4c</span>, <span style=color:#ae81ff>0x45</span>, <span style=color:#ae81ff>0x10</span>, <span style=color:#ae81ff>0x01</span>, <span style=color:#ae81ff>0x32</span>, <span style=color:#ae81ff>0x31</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x07</span>, <span style=color:#ae81ff>0x47</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x26</span>, <span style=color:#ae81ff>0x0a</span>, <span style=color:#ae81ff>0x08</span>, <span style=color:#ae81ff>0x53</span>, <span style=color:#ae81ff>0x61</span>, <span style=color:#ae81ff>0x79</span>, <span style=color:#ae81ff>0x48</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6c</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x12</span>, <span style=color:#ae81ff>0x0d</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x48</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x71</span>, <span style=color:#ae81ff>0x75</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x73</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x1a</span>, <span style=color:#ae81ff>0x0b</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x48</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x52</span>, <span style=color:#ae81ff>0x65</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x6c</span>, <span style=color:#ae81ff>0x79</span>, <span style=color:#ae81ff>0x42</span>, <span style=color:#ae81ff>0x0a</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x5a</span>, <span style=color:#ae81ff>0x08</span>, <span style=color:#ae81ff>0x2f</span>, <span style=color:#ae81ff>0x2e</span>, <span style=color:#ae81ff>0x3b</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x74</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x62</span>, <span style=color:#ae81ff>0x06</span>, <span style=color:#ae81ff>0x70</span>, <span style=color:#ae81ff>0x72</span>, <span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x74</span>,
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0x6f</span>, <span style=color:#ae81ff>0x33</span>,
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> (
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>file_md_proto_rawDescOnce</span> <span style=color:#a6e22e>sync</span>.<span style=color:#a6e22e>Once</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>file_md_proto_rawDescData</span> = <span style=color:#a6e22e>file_md_proto_rawDesc</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>file_md_proto_rawDescGZIP</span>() []<span style=color:#66d9ef>byte</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>file_md_proto_rawDescOnce</span>.<span style=color:#a6e22e>Do</span>(<span style=color:#66d9ef>func</span>() {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>file_md_proto_rawDescData</span> = <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>X</span>.<span style=color:#a6e22e>CompressGZIP</span>(<span style=color:#a6e22e>file_md_proto_rawDescData</span>)
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>file_md_proto_rawDescData</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>file_md_proto_enumTypes</span> = make([]<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>EnumInfo</span>, <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>file_md_proto_msgTypes</span> = make([]<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>MessageInfo</span>, <span style=color:#ae81ff>3</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>file_md_proto_goTypes</span> = []<span style=color:#66d9ef>interface</span>{}{
+</span></span><span style=display:flex><span>	(<span style=color:#a6e22e>Gender</span>)(<span style=color:#ae81ff>0</span>),                 <span style=color:#75715e>// 0: Gender
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	(<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>)(<span style=color:#66d9ef>nil</span>),        <span style=color:#75715e>// 1: HelloRequest
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	(<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>)(<span style=color:#66d9ef>nil</span>),          <span style=color:#75715e>// 2: HelloReply
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>nil</span>,                         <span style=color:#75715e>// 3: HelloRequest.MEntry
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	(<span style=color:#f92672>*</span><span style=color:#a6e22e>timestamp</span>.<span style=color:#a6e22e>Timestamp</span>)(<span style=color:#66d9ef>nil</span>), <span style=color:#75715e>// 4: google.protobuf.Timestamp
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>file_md_proto_depIdxs</span> = []<span style=color:#66d9ef>int32</span>{
+</span></span><span style=display:flex><span>	<span style=color:#ae81ff>0</span>, <span style=color:#75715e>// 0: HelloRequest.gender:type_name -&gt; Gender
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>3</span>, <span style=color:#75715e>// 1: HelloRequest.m:type_name -&gt; HelloRequest.MEntry
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>4</span>, <span style=color:#75715e>// 2: HelloRequest.addTime:type_name -&gt; google.protobuf.Timestamp
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>1</span>, <span style=color:#75715e>// 3: HelloReply.request:type_name -&gt; HelloRequest
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>1</span>, <span style=color:#75715e>// 4: Greeter.SayHello:input_type -&gt; HelloRequest
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>2</span>, <span style=color:#75715e>// 5: Greeter.SayHello:output_type -&gt; HelloReply
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>5</span>, <span style=color:#75715e>// [5:6] is the sub-list for method output_type
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>4</span>, <span style=color:#75715e>// [4:5] is the sub-list for method input_type
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>4</span>, <span style=color:#75715e>// [4:4] is the sub-list for extension type_name
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>4</span>, <span style=color:#75715e>// [4:4] is the sub-list for extension extendee
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#ae81ff>0</span>, <span style=color:#75715e>// [0:4] is the sub-list for field type_name
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>init</span>() { <span style=color:#a6e22e>file_md_proto_init</span>() }
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>file_md_proto_init</span>() {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>File_md_proto</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> !<span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnsafeEnabled</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>file_md_proto_msgTypes</span>[<span style=color:#ae81ff>0</span>].<span style=color:#a6e22e>Exporter</span> = <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>v</span> <span style=color:#66d9ef>interface</span>{}, <span style=color:#a6e22e>i</span> <span style=color:#66d9ef>int</span>) <span style=color:#66d9ef>interface</span>{} {
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>switch</span> <span style=color:#a6e22e>v</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>v</span>.(<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>); <span style=color:#a6e22e>i</span> {
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>case</span> <span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>state</span>
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>case</span> <span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>sizeCache</span>
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>case</span> <span style=color:#ae81ff>2</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>unknownFields</span>
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>default</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>			}
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>file_md_proto_msgTypes</span>[<span style=color:#ae81ff>1</span>].<span style=color:#a6e22e>Exporter</span> = <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>v</span> <span style=color:#66d9ef>interface</span>{}, <span style=color:#a6e22e>i</span> <span style=color:#66d9ef>int</span>) <span style=color:#66d9ef>interface</span>{} {
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>switch</span> <span style=color:#a6e22e>v</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>v</span>.(<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>); <span style=color:#a6e22e>i</span> {
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>case</span> <span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>state</span>
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>case</span> <span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>sizeCache</span>
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>case</span> <span style=color:#ae81ff>2</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>unknownFields</span>
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>default</span>:
+</span></span><span style=display:flex><span>				<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>			}
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>type</span> <span style=color:#a6e22e>x</span> <span style=color:#66d9ef>struct</span>{}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>out</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>TypeBuilder</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>File</span>: <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>DescBuilder</span>{
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>GoPackagePath</span>: <span style=color:#a6e22e>reflect</span>.<span style=color:#a6e22e>TypeOf</span>(<span style=color:#a6e22e>x</span>{}).<span style=color:#a6e22e>PkgPath</span>(),
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>RawDescriptor</span>: <span style=color:#a6e22e>file_md_proto_rawDesc</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>NumEnums</span>:      <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>NumMessages</span>:   <span style=color:#ae81ff>3</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>NumExtensions</span>: <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>NumServices</span>:   <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>		},
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>GoTypes</span>:           <span style=color:#a6e22e>file_md_proto_goTypes</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>DependencyIndexes</span>: <span style=color:#a6e22e>file_md_proto_depIdxs</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>EnumInfos</span>:         <span style=color:#a6e22e>file_md_proto_enumTypes</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>MessageInfos</span>:      <span style=color:#a6e22e>file_md_proto_msgTypes</span>,
+</span></span><span style=display:flex><span>	}.<span style=color:#a6e22e>Build</span>()
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>File_md_proto</span> = <span style=color:#a6e22e>out</span>.<span style=color:#a6e22e>File</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>file_md_proto_rawDesc</span> = <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>file_md_proto_goTypes</span> = <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>file_md_proto_depIdxs</span> = <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Reference imports to suppress errors if they are not otherwise used.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>_</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>_</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>ClientConnInterface</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// This is a compile-time assertion to ensure that this generated file
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// is compatible with the grpc package it is being compiled against.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>_</span> = <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>SupportPackageIsVersion6</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// GreeterClient is the client API for Greeter service.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>GreeterClient</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>in</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>, <span style=color:#a6e22e>opts</span> <span style=color:#f92672>...</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>CallOption</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>greeterClient</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>cc</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>ClientConnInterface</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>NewGreeterClient</span>(<span style=color:#a6e22e>cc</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>ClientConnInterface</span>) <span style=color:#a6e22e>GreeterClient</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>greeterClient</span>{<span style=color:#a6e22e>cc</span>}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>c</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>greeterClient</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>in</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>, <span style=color:#a6e22e>opts</span> <span style=color:#f92672>...</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>CallOption</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>out</span> <span style=color:#f92672>:=</span> new(<span style=color:#a6e22e>HelloReply</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>c</span>.<span style=color:#a6e22e>cc</span>.<span style=color:#a6e22e>Invoke</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#e6db74>&#34;/Greeter/SayHello&#34;</span>, <span style=color:#a6e22e>in</span>, <span style=color:#a6e22e>out</span>, <span style=color:#a6e22e>opts</span><span style=color:#f92672>...</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>err</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>out</span>, <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// GreeterServer is the server API for Greeter service.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>GreeterServer</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// UnimplementedGreeterServer can be embedded to have forward compatible implementations.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>UnimplementedGreeterServer</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>UnimplementedGreeterServer</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>status</span>.<span style=color:#a6e22e>Errorf</span>(<span style=color:#a6e22e>codes</span>.<span style=color:#a6e22e>Unimplemented</span>, <span style=color:#e6db74>&#34;method SayHello not implemented&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>RegisterGreeterServer</span>(<span style=color:#a6e22e>s</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>Server</span>, <span style=color:#a6e22e>srv</span> <span style=color:#a6e22e>GreeterServer</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>s</span>.<span style=color:#a6e22e>RegisterService</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_Greeter_serviceDesc</span>, <span style=color:#a6e22e>srv</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>_Greeter_SayHello_Handler</span>(<span style=color:#a6e22e>srv</span> <span style=color:#66d9ef>interface</span>{}, <span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>dec</span> <span style=color:#66d9ef>func</span>(<span style=color:#66d9ef>interface</span>{}) <span style=color:#66d9ef>error</span>, <span style=color:#a6e22e>interceptor</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryServerInterceptor</span>) (<span style=color:#66d9ef>interface</span>{}, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>in</span> <span style=color:#f92672>:=</span> new(<span style=color:#a6e22e>HelloRequest</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>dec</span>(<span style=color:#a6e22e>in</span>); <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>err</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>interceptor</span> <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>srv</span>.(<span style=color:#a6e22e>GreeterServer</span>).<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>in</span>)
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>info</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>UnaryServerInfo</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Server</span>:     <span style=color:#a6e22e>srv</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>FullMethod</span>: <span style=color:#e6db74>&#34;/Greeter/SayHello&#34;</span>,
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>handler</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>func</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#66d9ef>interface</span>{}) (<span style=color:#66d9ef>interface</span>{}, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>srv</span>.(<span style=color:#a6e22e>GreeterServer</span>).<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>req</span>.(<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>))
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>interceptor</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#a6e22e>in</span>, <span style=color:#a6e22e>info</span>, <span style=color:#a6e22e>handler</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>_Greeter_serviceDesc</span> = <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>ServiceDesc</span>{
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ServiceName</span>: <span style=color:#e6db74>&#34;Greeter&#34;</span>,
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>HandlerType</span>: (<span style=color:#f92672>*</span><span style=color:#a6e22e>GreeterServer</span>)(<span style=color:#66d9ef>nil</span>),
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Methods</span>: []<span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>MethodDesc</span>{
+</span></span><span style=display:flex><span>		{
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>MethodName</span>: <span style=color:#e6db74>&#34;SayHello&#34;</span>,
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>Handler</span>:    <span style=color:#a6e22e>_Greeter_SayHello_Handler</span>,
+</span></span><span style=display:flex><span>		},
+</span></span><span style=display:flex><span>	},
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Streams</span>:  []<span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>StreamDesc</span>{},
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Metadata</span>: <span style=color:#e6db74>&#34;md.proto&#34;</span>,
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><em><strong>message &ndash;> : 生成了对应的结构体</strong></em></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>HelloRequest</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>state</span>         <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>MessageState</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>sizeCache</span>     <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>SizeCache</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>unknownFields</span> <span style=color:#a6e22e>protoimpl</span>.<span style=color:#a6e22e>UnknownFields</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Name</span>    <span style=color:#66d9ef>string</span>               <span style=color:#e6db74>`protobuf:&#34;bytes,1,opt,name=name,proto3&#34; json:&#34;name,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Url</span>     <span style=color:#66d9ef>string</span>               <span style=color:#e6db74>`protobuf:&#34;bytes,2,opt,name=url,proto3&#34; json:&#34;url,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>Gender</span>  <span style=color:#a6e22e>Gender</span>               <span style=color:#e6db74>`protobuf:&#34;varint,3,opt,name=gender,proto3,enum=Gender&#34; json:&#34;gender,omitempty&#34;`</span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>M</span>       <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>string</span>    <span style=color:#e6db74>`protobuf:&#34;bytes,4,rep,name=m,proto3&#34; json:&#34;m,omitempty&#34; protobuf_key:&#34;bytes,1,opt,name=key,proto3&#34; protobuf_val:&#34;bytes,2,opt,name=value,proto3&#34;`</span> <span style=color:#75715e>//proto map类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>AddTime</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>timestamp</span>.<span style=color:#a6e22e>Timestamp</span> <span style=color:#e6db74>`protobuf:&#34;bytes,5,opt,name=addTime,proto3&#34; json:&#34;addTime,omitempty&#34;`</span>                                                                             <span style=color:#75715e>//protobuf的内置类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><p>我们可以看到这部分代码: 这部分为客服端调用</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//接口
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>GreeterClient</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>in</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>, <span style=color:#a6e22e>opts</span> <span style=color:#f92672>...</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>CallOption</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//接口的实现者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>greeterClient</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>cc</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>ClientConnInterface</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//构造一个greeterClient对象
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>NewGreeterClient</span>(<span style=color:#a6e22e>cc</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>ClientConnInterface</span>) <span style=color:#a6e22e>GreeterClient</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>greeterClient</span>{<span style=color:#a6e22e>cc</span>}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//实现接口的方法
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>c</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>greeterClient</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>in</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>, <span style=color:#a6e22e>opts</span> <span style=color:#f92672>...</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>CallOption</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>out</span> <span style=color:#f92672>:=</span> new(<span style=color:#a6e22e>HelloReply</span>)
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>c</span>.<span style=color:#a6e22e>cc</span>.<span style=color:#a6e22e>Invoke</span>(<span style=color:#a6e22e>ctx</span>, <span style=color:#e6db74>&#34;/Greeter/SayHello&#34;</span>, <span style=color:#a6e22e>in</span>, <span style=color:#a6e22e>out</span>, <span style=color:#a6e22e>opts</span><span style=color:#f92672>...</span>)  
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>err</span>
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>out</span>, <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>我们在client中要调用grpc我们定义的业务代码时调用了：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>NewGreeterClient</span>(<span style=color:#a6e22e>cc</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>ClientConnInterface</span>) <span style=color:#a6e22e>GreeterClient</span> {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>greeterClient</span>{<span style=color:#a6e22e>cc</span>}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>入参是: <em><strong>这个接口中的两个方法主要就是为我们做序列化和反序列化操作</strong></em>：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ClientConnInterface</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Invoke performs a unary RPC and returns after the response is received
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>// into reply.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>Invoke</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>method</span> <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>args</span> <span style=color:#66d9ef>interface</span>{}, <span style=color:#a6e22e>reply</span> <span style=color:#66d9ef>interface</span>{}, <span style=color:#a6e22e>opts</span> <span style=color:#f92672>...</span><span style=color:#a6e22e>CallOption</span>) <span style=color:#66d9ef>error</span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// NewStream begins a streaming RPC.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>NewStream</span>(<span style=color:#a6e22e>ctx</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>desc</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>StreamDesc</span>, <span style=color:#a6e22e>method</span> <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>opts</span> <span style=color:#f92672>...</span><span style=color:#a6e22e>CallOption</span>) (<span style=color:#a6e22e>ClientStream</span>, <span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>然后他返回了一个<code>greeterClient{cc}</code>的对象</p><p><em><strong>在代码中可以看到<code>err := c.cc.Invoke(ctx, "/Greeter/SayHello", in, out, opts...)d </code>其中："/Greeter/SayHello"就是SayHello方法的映射ID</strong></em></p><p>接下来看这部分代码:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>// GreeterServer is the server API for Greeter service.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>GreeterServer</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// UnimplementedGreeterServer can be embedded to have forward compatible implementations.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>UnimplementedGreeterServer</span> <span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>UnimplementedGreeterServer</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#66d9ef>nil</span>, <span style=color:#a6e22e>status</span>.<span style=color:#a6e22e>Errorf</span>(<span style=color:#a6e22e>codes</span>.<span style=color:#a6e22e>Unimplemented</span>, <span style=color:#e6db74>&#34;method SayHello not implemented&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>RegisterGreeterServer</span>(<span style=color:#a6e22e>s</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>Server</span>, <span style=color:#a6e22e>srv</span> <span style=color:#a6e22e>GreeterServer</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>s</span>.<span style=color:#a6e22e>RegisterService</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_Greeter_serviceDesc</span>, <span style=color:#a6e22e>srv</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>里面有一个接口：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>GreeterServer</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>这个接口就需要我们来实现，他就是我们用来做业务逻辑处理的，我们在server中是这样实现它的:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//接口的实现者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>HelloSerivce</span> <span style=color:#66d9ef>struct</span>{}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>//实现接口中的方法
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>h</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloSerivce</span>) <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>c</span> <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#a6e22e>req</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>HelloReply</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Id</span>:      <span style=color:#e6db74>&#34;123456789&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Request</span>: <span style=color:#a6e22e>req</span>,
+</span></span><span style=display:flex><span>	}, <span style=color:#66d9ef>nil</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>然后再来看这个方法：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>RegisterGreeterServer</span>(<span style=color:#a6e22e>s</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>Server</span>, <span style=color:#a6e22e>srv</span> <span style=color:#a6e22e>GreeterServer</span>) {
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>s</span>.<span style=color:#a6e22e>RegisterService</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>_Greeter_serviceDesc</span>, <span style=color:#a6e22e>srv</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>我们在server中是这样调用的：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//创建一个grpc服务器
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>s</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>grpc</span>.<span style=color:#a6e22e>NewServer</span>()
+</span></span><span style=display:flex><span><span style=color:#a6e22e>proto</span>.<span style=color:#a6e22e>RegisterGreeterServer</span>(<span style=color:#a6e22e>s</span>, <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>HelloSerivce</span>{})
+</span></span></code></pre></div><p>我们看这个<code>RegisterGreeterServer(s *grpc.Server, srv GreeterServer)</code>方法入参是<code>s *grpc.Server, srv</code> 和<code>GreeterServer</code>类型，而<code>GreeterServer</code>是一个接口：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>GreeterServer</span> <span style=color:#66d9ef>interface</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>SayHello</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>Context</span>, <span style=color:#f92672>*</span><span style=color:#a6e22e>HelloRequest</span>) (<span style=color:#f92672>*</span><span style=color:#a6e22e>HelloReply</span>, <span style=color:#66d9ef>error</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>为什么我们可以在调用的时候直接将<code>&amp;HelloSerivce{}</code>传入？ 答案是：<code>HelloSerivce</code>结构体实现了<code>GreeterServer</code>接口，这个<code>&amp;HelloSerivce{}</code>对象可以直接传入。 如果你对接口的知识不理解也可以阅读<a href=https://learnku.com/articles/58910>「Golang成长之路」面向接口</a></p><p>其实我们在hello.pb.go的源码中就需要理解这么多就行了。</p><p><em><strong>这里我们的GRPC的内容就介绍结束，感谢阅读！</strong></em></p></div><div class=post-footer></div></article></main></body></html>
