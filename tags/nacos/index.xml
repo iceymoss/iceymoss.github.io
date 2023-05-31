@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nacos on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/nacos/</link>
+    <description>Recent content in Nacos on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 31 May 2023 19:37:31 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/nacos/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>配置中心nacos</title>
+      <link>https://iceymoss.github.io/post/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83nacos/</link>
+      <pubDate>Wed, 31 May 2023 19:37:31 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83nacos/</guid>
+      <description>[toc] 文章介绍 本文我们将以golang的角度来了解配置中心，nacos的安装，如何用nacos做配置，读取nacos中配置文件。 什么是配置中心 用</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>消息队列之rocketMQ // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="消息队列之rocketMQ"/>
+<meta name="twitter:description" content="[TOC] 文章介绍 本文来简单介绍一下消息队列 ，这里将什么是MQ, 介绍RocketMQ的安装，RocketMQ的基本概念，消息类型，并使用go做各类消"/>
+
+    <meta property="og:title" content="消息队列之rocketMQ" />
+<meta property="og:description" content="[TOC] 文章介绍 本文来简单介绍一下消息队列 ，这里将什么是MQ, 介绍RocketMQ的安装，RocketMQ的基本概念，消息类型，并使用go做各类消" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E4%B9%8Brocketmq/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-05-31T19:32:54+08:00" />
+<meta property="article:modified_time" content="2023-05-31T19:32:54+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">消息队列之rocketMQ</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 31, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          9 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/mq/">MQ</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[TOC]</p>
+<h3 id="文章介绍">文章介绍</h3>
+<p>本文来简单介绍一下消息队列 ，这里将什么是MQ, 介绍RocketMQ的安装，RocketMQ的基本概念，消息类型，并使用go做各类消息的收发</p>
+<h3 id="什么是mq">什么是MQ</h3>
+<h4 id="1什么是mq">1.什么是mq</h4>
+<p>消息队列是一种“先进先出”的数据结构</p>
+<p><img src="https://mxshop-files.oss-cn-hangzhou.aliyuncs.com/28week/mq/1.png" alt="queue1.png"></p>
+<h4 id="2应用场景">2.应用场景</h4>
+<p>其应用场景主要包含以下3个方面</p>
+<ul>
+<li>应用解耦</li>
+</ul>
+<p>系统的耦合性越高，容错性就越低。以电商应用为例，用户创建订单后，如果耦合调用库存系统、物流系统、支付系统，任何一个子系统出了故障或者因为升级等原因暂时不可用，都会造成下单操作异常，影响用户使用体验。</p>
+<p><img src="https://mxshop-files.oss-cn-hangzhou.aliyuncs.com/28week/mq/2.png" alt="解耦1.png">
+使用消息队列解耦合，系统的耦合性就会提高了。比如物流系统发生故障，需要几分钟才能来修复，在这段时间内，物流系统要处理的数据被缓存到消息队列中，用户的下单操作正常完成。当物流系统回复后，补充处理存在消息队列中的订单消息即可，终端系统感知不到物流系统发生过几分钟故障。</p>
+<p><img src="https://mxshop-files.oss-cn-hangzhou.aliyuncs.com/28week/mq/3.png" alt="解耦2.png"></p>
+<ul>
+<li>流量削峰</li>
+</ul>
+<p><img src="https://mxshop-files.oss-cn-hangzhou.aliyuncs.com/28week/mq/4.png" alt="mq-5.png">
+应用系统如果遇到系统请求流量的瞬间猛增，有可能会将系统压垮。有了消息队列可以将大量请求缓存起来，分散到很长一段时间处理，这样可以大大提到系统的稳定性和用户体验。</p>
+<p><img src="https://mxshop-files.oss-cn-hangzhou.aliyuncs.com/28week/mq/5.png" alt="mq-6.png"></p>
+<p>一般情况，为了保证系统的稳定性，如果系统负载超过阈值，就会阻止用户请求，这会影响用户体验，而如果使用消息队列将请求缓存起来，等待系统处理完毕后通知用户下单完毕，这样总不能下单体验要好。</p>
+<p>处于经济考量目的：</p>
+<p>业务系统正常时段的QPS如果是1000，流量最高峰是10000，为了应对流量高峰配置高性能的服务器显然不划算，这时可以使用消息队列对峰值流量削峰</p>
+<ul>
+<li>数据分发</li>
+</ul>
+<p><img src="https://mxshop-files.oss-cn-hangzhou.aliyuncs.com/28week/mq/6.png" alt="mq-1.png"></p>
+<p>通过消息队列可以让数据在多个系统更加之间进行流通。数据的产生方不需要关心谁来使用数据，只需要将数据发送到消息队列，数据使用方直接在消息队列中直接获取数据即可。</p>
+<h4 id="mq的优点和缺点">MQ的优点和缺点</h4>
+<p>优点：解耦、削峰、数据分发<img src="https://mxshop-files.oss-cn-hangzhou.aliyuncs.com/28week/mq/7.png" alt="mq-2.png"></p>
+<p>缺点包含以下几点：</p>
+<ul>
+<li>系统可用性降低
+系统引入的外部依赖越多，系统稳定性越差。一旦MQ宕机，就会对业务造成影响。
+如何保证MQ的高可用？</li>
+<li>系统复杂度提高
+MQ的加入大大增加了系统的复杂度，以前系统间是同步的远程调用，现在是通过MQ进行异步调用。
+如何保证消息没有被重复消费？怎么处理消息丢失情况？那么保证消息传递的顺序性？</li>
+<li>一致性问题
+A系统处理完业务，通过MQ给B、C、D三个系统发消息数据，如果B系统、C系统处理成功，D系统处理失败。
+如何保证消息数据处理的一致性？</li>
+</ul>
+<h3 id="rocketmq的安装">RocketMQ的安装</h3>
+<p>使用docker安装</p>
+<p><a href="https://www.cnblogs.com/franson-2016/p/12714692.html">docker安装RocketMQ</a></p>
+<h3 id="rocketmq的基本概念">RocketMQ的基本概念</h3>
+<ul>
+<li>Producer：消息的发送者；例如：发信人</li>
+<li>Consumer：消息接收者；例如：收信人</li>
+<li>Broker：暂存和传输消息；例如：邮局、中转站</li>
+<li>NameServer：管理Broker；例如：各个邮局的管理机构</li>
+<li>Topic：区分消息的种类；一个发送者可以发送消息给一个或者多个Topic；一个消息的接收者可以订阅一个或者多个Topic消息</li>
+<li>Message Queue：相当于是Topic的分区；用于并行发送和接收消息</li>
+</ul>
+<h3 id="消息类型">消息类型</h3>
+<h4 id="go实战">go实战</h4>
+<p>需要拉取</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>go get github.com/apache/rocketmq-client-go/v2
+</span></span><span style="display:flex;"><span>go get github.com/apache/rocketmq-client-go/v2/primitive
+</span></span><span style="display:flex;"><span>go get github.com/apache/rocketmq-client-go/v2/producer
+</span></span></code></pre></div><p>这里我以实战的角度来介绍rocketMQ的消息类型：</p>
+<h4 id="1-普通消息">1. 普通消息</h4>
+<p>只是消息的收发，发送成功后接收者就直接可以收到消息</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/primitive&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/producer&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化生产者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">q</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rocketmq</span>.<span style="color:#a6e22e">NewProducer</span>(<span style="color:#a6e22e">producer</span>.<span style="color:#a6e22e">WithNameServer</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;101.1.12.202:9876&#34;</span>}))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;生成q生产者失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Start</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;启动q生产者失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;您好呀， 我是ice_moss&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">mq</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">NewMessage</span>(<span style="color:#e6db74">&#34;msg_test_hello&#34;</span>, <span style="color:#a6e22e">msg</span>)  <span style="color:#75715e">//msg_test_hello是为Topic
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">SendSync</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">mq</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;发送失败%s&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;消息发送成功&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">String</span>())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Shutdown</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;shutdown fail err&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这里需要注意的是如果我们需要在一个进程中启动多个<code>rocketmq.NewProducer()</code>就必须将他的第二个参数配置上：<code>producer.WithGroupName(&quot;sendMsg&quot;)</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">q</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rocketmq</span>.<span style="color:#a6e22e">NewProducer</span>(<span style="color:#a6e22e">producer</span>.<span style="color:#a6e22e">WithNameServer</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;101.1.12.202:9876&#34;</span>}), <span style="color:#a6e22e">producer</span>.<span style="color:#a6e22e">WithGroupName</span>(<span style="color:#e6db74">&#34;sendMsg&#34;</span>))
+</span></span></code></pre></div><p>不然就会报：<strong>生产者组已经被创建</strong></p>
+<p>原因：我们没有不设置<code>WithGroupName</code>在调用时，会自动为我们创建一个默认名称的<code>WithGroupName</code>，当第二次<code>rocketmq.NewProducer</code>仍然是默认名，这时整个<code>GroupName</code>就冲突了</p>
+<p>好了已经将&quot;普通消息&quot;发送到队列中了，现在我们来接收</p>
+<h4 id="2-消费消息">2. 消费消息</h4>
+<p><strong>注意：两端的Topic必须保持一直</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;os&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/consumer&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/primitive&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rocketmq</span>.<span style="color:#a6e22e">NewPushConsumer</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//接收者组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">consumer</span>.<span style="color:#a6e22e">WithGroupName</span>(<span style="color:#e6db74">&#34;msg_test&#34;</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">consumer</span>.<span style="color:#a6e22e">WithNsResolver</span>(<span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">NewPassthroughResolver</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;101.1.12.202:9876&#34;</span>})),
+</span></span><span style="display:flex;"><span>	)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//订阅消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Subscribe</span>(<span style="color:#e6db74">&#34;msg_test_hello&#34;</span>, <span style="color:#a6e22e">consumer</span>.<span style="color:#a6e22e">MessageSelector</span>{}, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">msgs</span> <span style="color:#f92672">...*</span><span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">MessageExt</span>) (<span style="color:#a6e22e">consumer</span>.<span style="color:#a6e22e">ConsumeResult</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">msgs</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;subscribe callback: %v \n&#34;</span>, <span style="color:#a6e22e">msgs</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">consumer</span>.<span style="color:#a6e22e">ConsumeSuccess</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Note: start after subscribe
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//程序运行2分钟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">120</span>)
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Shutdown</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;shutdown Consumer error: %s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>subscribe callback: <span style="color:#f92672">[</span>Message<span style="color:#f92672">=[</span>topic<span style="color:#f92672">=</span>msg_test_hello, body<span style="color:#f92672">=</span>您好呀， 我是ice_moss, Flag<span style="color:#f92672">=</span>0, properties<span style="color:#f92672">=</span>map<span style="color:#f92672">[</span>CONSUME_START_TIME:1668255347270 MAX_OFFSET:2 MIN_OFFSET:0 UNIQ_K251664A6E000000003cf040100001<span style="color:#f92672">]</span>, TransactionId<span style="color:#f92672">=]</span>, MsgId<span style="color:#f92672">=</span>0A0251664A6E000000003cf040100001, OffsetMsgId<span style="color:#f92672">=</span>010EB4CA00002A9F000000000004BC14,QueueId<span style="color:#f92672">=</span>1, StoreSize<span style="color:#f92672">=</span>174, QueueOffset<span style="color:#f92672">=</span>0, SysFlag<span style="color:#f92672">=</span>0, BornTimestamp<span style="color:#f92672">=</span>1668254378888, BornHost<span style="color:#f92672">=</span>112.21.20.248:43010, StoreTimestamp<span style="color:#f92672">=</span>1668254379066, StoreHost<span style="color:#f92672">=</span>101.1.12.202:10911, CommitLogOffset<span style="color:#f92672">=</span>310292, BodyCRC<span style="color:#f92672">=</span>1573027761, ReconsumeTimes<span style="color:#f92672">=</span>0, PreparedTransactionOffset<span style="color:#f92672">=</span>0<span style="color:#f92672">]</span> 
+</span></span></code></pre></div><h4 id="3-延时消息">3. 延时消息</h4>
+<p>延时消息，指我们将我们需要发送的发送消息延迟多少时间后接收方才能收到，其中一个应用场景就是分布式电商系统的<strong>下单——&gt;支付</strong>， 例如：12306官网买车票，当我们购买一张车票后，后台会做车票库存扣减，但是如果我们只下单，不支付这就很要命，该买票的人买不到票，该卖出去的票没有卖出去；其实仔细一点就会发现，12306购买下单后，在规定时间没有完成支付，就会取消相应的订单， 然后做库存归还。</p>
+<p>现在来看一下延迟消息怎么发送：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/primitive&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/producer&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//SendMessage 生成消息，延迟消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">SendMessage</span>(<span style="color:#a6e22e">q</span> <span style="color:#a6e22e">rocketmq</span>.<span style="color:#a6e22e">Producer</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Start</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;启动q生产者失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">NewMessage</span>(<span style="color:#e6db74">&#34;msg_test_hello&#34;</span>, []byte(<span style="color:#e6db74">&#34;这是一个延迟消息&#34;</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//延迟时间级别
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">WithDelayTimeLevel</span>(<span style="color:#ae81ff">3</span>)  <span style="color:#75715e">//10s
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">SendSync</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;发送失败%s&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Shutdown</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;shutdown Consumer error: %s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">String</span>())
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化生产者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">q</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rocketmq</span>.<span style="color:#a6e22e">NewProducer</span>(<span style="color:#a6e22e">producer</span>.<span style="color:#a6e22e">WithNameServer</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;101.1.12.202:9876&#34;</span>}))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;生成q生产者失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">SendMessage</span>(<span style="color:#a6e22e">q</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>10秒后：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>subscribe callback: <span style="color:#f92672">[</span>Message<span style="color:#f92672">=[</span>topic<span style="color:#f92672">=</span>msg_test_hello, body<span style="color:#f92672">=</span>这是一个延迟消息, Flag<span style="color:#f92672">=</span>0, properties<span style="color:#f92672">=</span>map<span style="color:#f92672">[</span>CONSUME_START_TIME:1668256662984 DELAY:3 MAX_OFFSET:5 MIN_OFFSET:0 REAREAL_TOPIC:msg_test_hello UNIQ_KEY:0A0251664BE9000000003d12f2e00001<span style="color:#f92672">]</span>………
+</span></span></code></pre></div><h4 id="4事务消息">4.事务消息</h4>
+<h5 id="什么是事务">什么是事务</h5>
+<p>事务是指是程序中一系列严密的逻辑操作，而且所有操作必须全部成功完成，否则在每个操作中所作的所有更改都会被撤消。可以通俗理解为：就是把多件事情当做一件事情来处理，好比大家同在一条船上，要活一起活，要完一起完</p>
+<p><strong>事物的四个特性（ACID）</strong></p>
+<p><strong>● 原子性</strong>（Atomicity）**：**操作这些指令时，要么全部执行成功，要么全部不执行。只要其中一个指令执行失败，所有的指令都执行失败，数据进行回滚，回到执行指令前的数据状态。</p>
+<blockquote>
+<p>**eg：**拿转账来说，假设用户A和用户B两者的钱加起来一共是20000，那么不管A和B之间如何转账，转几次账，事务结束后两个用户的钱相加起来应该还得是20000，这就是事务的一致性。</p>
+</blockquote>
+<p><strong>● 一致性</strong>（Consistency）**：**事务的执行使数据从一个状态转换为另一个状态，但是对于整个数据的完整性保持稳定。</p>
+<p><strong>● 隔离性</strong>（Isolation）**：**隔离性是当多个用户并发访问数据库时，比如操作同一张表时，数据库为每一个用户开启的事务，不能被其他事务的操作所干扰，多个并发事务之间要相互隔离，可以使用锁机制来实现隔离，其实就是将并发场景下对数据操作的部分对并发请求进行串行化。</p>
+<p><strong>● 持久性</strong>（Durability）**：**当事务正确完成后，它对于数据的改变是永久性的。</p>
+<blockquote>
+<p><strong>eg：</strong> 例如我们在使用JDBC操作数据库时，在提交事务方法后，提示用户事务操作完成，当我们程序执行完成直到看到提示后，就可以认定事务以及正确提交，即使这时候数据库出现了问题，也必须要将我们的事务完全执行完成，否则就会造成我们看到提示事务处理完毕，但是数据库因为故障而没有执行事务的重大错误。</p>
+</blockquote>
+<h5 id="mq的事务消息">MQ的事务消息</h5>
+<p>这里的事务消息实现接口：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TransactionListener</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//  When send transactional prepare(half) message succeed, this method will be invoked to execute local transaction.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ExecuteLocalTransaction</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">Message</span>) <span style="color:#a6e22e">LocalTransactionState</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// When no response to prepare(half) message. broker will send check message to check the transaction status, and this
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// method will be invoked to get local transaction status.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">CheckLocalTransaction</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">MessageExt</span>) <span style="color:#a6e22e">LocalTransactionState</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>我们的业务代码需要放在<code>ExecuteLocalTransaction(*Message) LocalTransactionState</code>方法中执行，对应返回相应的状态</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">const</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">CommitMessageState</span> <span style="color:#a6e22e">LocalTransactionState</span> = <span style="color:#66d9ef">iota</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>   <span style="color:#75715e">//返回状态：事务执行成功发现消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">RollbackMessageState</span>          												<span style="color:#75715e">//返回状态：进行事务回查
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">UnknowState</span>																						<span style="color:#75715e">//仍然会回查
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>)
+</span></span></code></pre></div><p>我们回查机制业务需要在<code>CheckLocalTransaction(*MessageExt) LocalTransactionState</code>方法中完成</p>
+<p>下面我们来实现该接口(创建订单场景下)：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;encoding/json&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;log&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/primitive&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/apache/rocketmq-client-go/v2/producer&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;google.golang.org/grpc/codes&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Order 模拟订单
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Order</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">OrderSrvID</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">UserID</span>     <span style="color:#66d9ef">int32</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">GoodsID</span>    <span style="color:#66d9ef">int32</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">TotalPrice</span> <span style="color:#66d9ef">float32</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Post</span>       <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Address</span>    <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Mobile</span>     <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//OrderLister 接口实现者，事务可以将一下配置\信息写入该结构体中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">OrderLister</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Code</span> <span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">Code</span>      <span style="color:#75715e">//返回状态码
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Ctx</span>  <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span> <span style="color:#75715e">//上下文数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ID</span>   <span style="color:#66d9ef">int32</span>           <span style="color:#75715e">//订单id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//ExecuteLocalTransaction  When send transactional prepare(half) message succeed, this method will be invoked to execute local transaction.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">o</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">OrderLister</span>) <span style="color:#a6e22e">ExecuteLocalTransaction</span>(<span style="color:#a6e22e">msg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">Message</span>) <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">LocalTransactionState</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//执行本地业务逻辑
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;开始执行本地逻辑&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">orderInfo</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Order</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Body</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">orderInfo</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">Code</span> = <span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">Unavailable</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#e6db74">&#34;解析失败:&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//调用回查逻辑
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">RollbackMessageState</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;订单信息：&#34;</span>, <span style="color:#a6e22e">orderInfo</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;本地逻辑执行成功&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//CommitMessageState 提交信息至mq
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//CommitMessageState/RollbackMessageState都不会回查
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">CommitMessageState</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//CheckLocalTransaction When no response to prepare(half) message. broker will send check message to check the transaction status, and this method will be invoked to get local transaction status.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">o</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">OrderLister</span>) <span style="color:#a6e22e">CheckLocalTransaction</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">MessageExt</span>) <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">LocalTransactionState</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//回查
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;事务未通过，开始回查&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">RollbackMessageState</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">o</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Order</span>) <span style="color:#a6e22e">CreateOrder</span>(<span style="color:#a6e22e">q</span> <span style="color:#a6e22e">rocketmq</span>.<span style="color:#a6e22e">TransactionProducer</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">order</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">o</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;marshal fail&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">primitive</span>.<span style="color:#a6e22e">NewMessage</span>(<span style="color:#e6db74">&#34;msg_test_order&#34;</span>, <span style="color:#a6e22e">order</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">SendMessageInTransaction</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;发送失败%s&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;发送成功&#34;</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">String</span>())
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Shutdown</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;shutdown fail err&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化事务对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">orderLister</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">OrderLister</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">q</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rocketmq</span>.<span style="color:#a6e22e">NewTransactionProducer</span>(<span style="color:#a6e22e">orderLister</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">producer</span>.<span style="color:#a6e22e">WithNameServer</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;1.14.180.202:9876&#34;</span>}), <span style="color:#a6e22e">producer</span>.<span style="color:#a6e22e">WithGroupName</span>(<span style="color:#e6db74">&#34;msg_test&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;生成q生产者失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Start</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;启动q生产者失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">orderInfo</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Order</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">OrderSrvID</span>: <span style="color:#e6db74">&#34;343435&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">UserID</span>:     <span style="color:#ae81ff">21</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GoodsID</span>:    <span style="color:#ae81ff">214</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">TotalPrice</span>: <span style="color:#ae81ff">150.5</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Post</span>:       <span style="color:#e6db74">&#34;请尽快发货&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Address</span>:    <span style="color:#e6db74">&#34;无锡市&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Mobile</span>:     <span style="color:#e6db74">&#34;18389202834&#34;</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">orderInfo</span>.<span style="color:#a6e22e">CreateOrder</span>(<span style="color:#a6e22e">q</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>开始执行本地逻辑
+</span></span><span style="display:flex;"><span>订单信息： <span style="color:#f92672">{</span><span style="color:#ae81ff">343435</span> <span style="color:#ae81ff">21</span> <span style="color:#ae81ff">214</span> 150.5 请尽快发货 无锡市 18389202834<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>本地逻辑执行成功
+</span></span><span style="display:flex;"><span>发送成功 SendResult <span style="color:#f92672">[</span>sendStatus<span style="color:#f92672">=</span>0, msgIds<span style="color:#f92672">=</span>0A0266DB4E24000000003da94f100001, offsetMsgId<span style="color:#f92672">=</span>010EB4CA00002A9F000000000004C28F, queueOffset<span style="color:#f92672">=</span>364, messageQueue<span style="color:#f92672">=</span>MessageQueue <span style="color:#f92672">[</span>tomsg_test_order, brokerName<span style="color:#f92672">=</span>broker-a, queueId<span style="color:#f92672">=</span>1<span style="color:#f92672">]]</span>
+</span></span></code></pre></div><p>接收者接收到：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>subscribe callback: <span style="color:#f92672">[</span>Message<span style="color:#f92672">=[</span>topic<span style="color:#f92672">=</span>msg_test_order, body<span style="color:#f92672">={</span><span style="color:#e6db74">&#34;OrderSrvID&#34;</span>:<span style="color:#e6db74">&#34;343435&#34;</span>,<span style="color:#e6db74">&#34;UserID&#34;</span>:21,<span style="color:#e6db74">&#34;GoodsID&#34;</span>:214,<span style="color:#e6db74">&#34;TotalPrice&#34;</span>:150.5,<span style="color:#e6db74">&#34;Post&#34;</span>:<span style="color:#e6db74">&#34;请尽快发货&#34;</span>,<span style="color:#e6db74">&#34;Address&#34;</span>:<span style="color:#e6db74">&#34;无锡市&#34;</span>,<span style="color:#e6db74">&#34;Mob389202834&#34;</span><span style="color:#f92672">}</span>, Flag<span style="color:#f92672">=</span>0, properties<span style="color:#f92672">=</span>map<span style="color:#f92672">[</span>CONSUME_START_TIME:1668266524665 MAX_OFFSET:1 MIN_OFFSET:0 PGROUP:msg_test REAL_QID:1 REAL_TOPIC:msg_test_order TRAN_MSG:true UNIQ_KEY:0A0266DB4E24000000003da94f100001<span style="color:#f92672">]</span>, TransactionId<span style="color:#f92672">=</span>0A0266DB4E24000000003da94f100001<span style="color:#f92672">]</span>, MsgId<span style="color:#f92672">=</span>0A0266DB4E24000000003da94f100001…………
+</span></span></code></pre></div>
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>分布式锁实现方案 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="分布式锁实现方案"/>
+<meta name="twitter:description" content="[toc] 前言 分布式锁 悲观锁与乐观锁是人们定义出来的概念，你可以理解为一种思想，是处理并发资源的常用手段。 不要把他们与mysql中提供的锁机制(表锁"/>
+
+    <meta property="og:title" content="分布式锁实现方案" />
+<meta property="og:description" content="[toc] 前言 分布式锁 悲观锁与乐观锁是人们定义出来的概念，你可以理解为一种思想，是处理并发资源的常用手段。 不要把他们与mysql中提供的锁机制(表锁" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-05-31T19:56:55+08:00" />
+<meta property="article:modified_time" content="2023-05-31T19:56:55+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">分布式锁实现方案</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 31, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          6 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/redis/">Redis</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E4%B9%90%E8%A7%82%E9%94%81/">乐观锁</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%94%81%E6%9C%BA%E5%88%B6/">锁机制</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="前言">前言</h3>
+<h4 id="分布式锁">分布式锁</h4>
+<p>悲观锁与乐观锁是人们定义出来的概念，你可以理解为一种思想，是处理并发资源的常用手段。
+不要把他们与mysql中提供的锁机制(表锁，行锁，排他锁，共享锁)混为一谈。</p>
+<h3 id="使用场景">使用场景</h3>
+<p>下面我将以真正的业务逻辑场景来介绍：</p>
+<p>现在我们有一个库存服务，用来扣减库存，代码如下：</p>
+<p>这里我们特别什么<code> DB.Begin()</code>方法，它是gorm为我们提供的事务操作，这里事务操作指库存扣减服务:必须全部扣减成功，或者全部扣减失败，不允许出现a商品扣减成功，而b商品扣减失败的情况，如果出现了扣减中途失败，那么服务就会将之前扣减成功的数量归还数据库，即：<code>tx.Rollback()</code>,当所有扣减都成功后，使用<code>tx.Commit()</code>对数据进行提交。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//Sell 扣减库存,涉及事务逻辑，执行的逻辑必须全部成功或者全部失败并且失败后数据可恢复,不能中途失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">i</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">InventoryServer</span>) <span style="color:#a6e22e">Sell</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">proto</span>.<span style="color:#a6e22e">SellInfo</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//global.DB 为已经完成初始化的数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Begin</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">goodsInfo</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">GoodsInfo</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">inventory</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>{<span style="color:#a6e22e">Goods</span>: <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">GoodsId</span>}).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>); <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">InvalidArgument</span>, <span style="color:#e6db74">&#34;库存信息不存在&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> &lt; <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">ResourceExhausted</span>, <span style="color:#e6db74">&#34;库存不足&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//扣减库存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> <span style="color:#f92672">-=</span> <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//保存修改
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Save</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//事务业务提交
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Commit</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>model.Inventory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//Inventory 库存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Inventory</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">BaseModel</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Goods</span>   <span style="color:#66d9ef">int32</span> <span style="color:#e6db74">`gorm:&#34;type:int comment &#39;商品id&#39;;index&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Stocks</span>  <span style="color:#66d9ef">int32</span> <span style="color:#e6db74">`gorm:&#34;type:int comment &#39;商品库存&#39;&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在我们来库存服务的库存扣减还有什么问题：</p>
+<ol>
+<li>
+<p>当有两个或者多个服务同时调用库存扣减服务的时候，会出现少扣  (这里以两个为例，每一个调用扣一件库存)：当q1查询数据库将数据库存100件拿出，还没完成更新库存时，这时q2也进入了服务，查询数据库此时拿到的库存仍然为100件，接着q1完成了库存扣减，过后q2也完成扣减，此时库存服务就出现了少扣，服务调用了两次，数据库应该为98件，结果却是只扣1件。</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202209/13/69310/50UqDSA1R5.png!large" alt=""></p>
+</li>
+</ol>
+<p>这个问题其实好解决，那么我们直接给服务，【查询库存】-&gt; 【更新库存】上锁，这个过程只能允许一个请求就来，我们来看看如何实现：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//给服务上锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ms</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Sell 扣减库存,涉及事务逻辑，执行的逻辑必须全部成功或者全部失败并且失败后数据可恢复,不能中途失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">i</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">InventoryServer</span>) <span style="color:#a6e22e">Sell</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">proto</span>.<span style="color:#a6e22e">SellInfo</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//获取锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">ms</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//global.DB 为已经完成初始化的数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Begin</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">goodsInfo</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">GoodsInfo</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">inventory</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>{<span style="color:#a6e22e">Goods</span>: <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">GoodsId</span>}).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>); <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">InvalidArgument</span>, <span style="color:#e6db74">&#34;库存信息不存在&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> &lt; <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">ResourceExhausted</span>, <span style="color:#e6db74">&#34;库存不足&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//扣减库存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> <span style="color:#f92672">-=</span> <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//保存修改
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Save</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>)
+</span></span><span style="display:flex;"><span>   
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//释放锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	  <span style="color:#a6e22e">ms</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//事务业务提交
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Commit</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="2">
+<li>
+<p>如果我们在多台服务器上部署了我们的库存服务，并且多个服务器访问同一个数据库，那么问题就来了</p>
+<p>我们怎么约束不同服务器之间同时访问数据库的问题呢？</p>
+</li>
+</ol>
+<h3 id="基于mysql的分布式锁">基于mysql的分布式锁</h3>
+<p>对于不同服务器共同访问同一数据库时我们可以使用分布式锁，来控制服务的行为</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202209/13/69310/guL1T0P58C.png!large" alt=""></p>
+<h4 id="1-分布式悲观锁">1. 分布式悲观锁</h4>
+<p>悲观锁，顾名思义，就是对于数据的处理持悲观态度，总认为会发生并发冲突，获取和修改数据时，别人会修改数据。所以在整个数据处理过程中，需要将数据锁定。
+悲观锁的实现，通常依靠数据库提供的锁机制实现，比如mysql的排他锁，select … for update来实现悲观锁。</p>
+<h5 id="分布式悲观锁原理">分布式悲观锁原理：</h5>
+<h4 id="在使用基于mysql分布式悲观锁时之前您需要先了解">在使用基于mysql分布式悲观锁时之前您需要先了解：</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//TODO
+</span></span></span></code></pre></div><h5 id="悲观锁在库存服务中的应用">悲观锁在库存服务中的应用：</h5>
+<p>在这个过程中我们是使用gorm来完成mysql的分布式悲观锁的</p>
+<p>核心的代码在这里，该方法就能完成悲观锁了</p>
+<p><a href="https://gorm.io/zh_CN/docs/advanced_query.html#Locking-FOR-UPDATE">更多关于gorm的学习</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Clauses</span>(<span style="color:#a6e22e">clause</span>.<span style="color:#a6e22e">Locking</span>{<span style="color:#a6e22e">Strength</span>: <span style="color:#e6db74">&#34;UPDATE&#34;</span>})
+</span></span></code></pre></div><p>完整代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//Sell 扣减库存,涉及事务逻辑，执行的逻辑必须全部成功或者全部失败并且失败后数据可恢复,不能中途失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">i</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">InventoryServer</span>) <span style="color:#a6e22e">Sell</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">proto</span>.<span style="color:#a6e22e">SellInfo</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//并发情况下可能会出现超买，需要使用锁来将并发串行化
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//事务开始
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Begin</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//悲观锁 对数据库进行上锁，会降低一定性能
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">inventory</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Clauses</span>(<span style="color:#a6e22e">clause</span>.<span style="color:#a6e22e">Locking</span>{<span style="color:#a6e22e">Strength</span>: <span style="color:#e6db74">&#34;UPDATE&#34;</span>}).<span style="color:#a6e22e">Where</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>{<span style="color:#a6e22e">Goods</span>: <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">GoodsId</span>}).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>); <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>	 <span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">InvalidArgument</span>, <span style="color:#e6db74">&#34;库存信息不存在&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> &lt; <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">ResourceExhausted</span>, <span style="color:#e6db74">&#34;库存不足&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> <span style="color:#f92672">-=</span> <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Save</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//提交事务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Commit</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="2-分布式乐观锁">2. 分布式乐观锁：</h4>
+<h5 id="原理">原理：</h5>
+<p><img src="https://cdn.learnku.com/uploads/images/202209/13/69310/M34OOVeblt.png!large" alt="截屏2022-09-13 下午8.50.42"></p>
+<h5 id="乐观锁的应用">乐观锁的应用</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">i</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">InventoryServer</span>) <span style="color:#a6e22e">Sell</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">proto</span>.<span style="color:#a6e22e">SellInfo</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//并发情况下可能会出现超买，需要使用锁来将并发串行化
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//事务开始
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Begin</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">goodsInfo</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">GoodsInfo</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//分布式乐观锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">inventory</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>{<span style="color:#a6e22e">Goods</span>: <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">GoodsId</span>}).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>); <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">InvalidArgument</span>, <span style="color:#e6db74">&#34;库存信息不存在&#34;</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> &lt; <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">ResourceExhausted</span>, <span style="color:#e6db74">&#34;库存不足&#34;</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> <span style="color:#f92672">-=</span> <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//注意这里gorm在处理零值时，他会自动忽略零值的更新，这里需要使用select强制更新某些字段
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Model</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>{}).<span style="color:#a6e22e">Select</span>(<span style="color:#e6db74">&#34;Stocks&#34;</span>, <span style="color:#e6db74">&#34;Version&#34;</span>).<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;goods = ? and version = ?&#34;</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">GoodsId</span>, <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Version</span>).<span style="color:#a6e22e">Updates</span>(<span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>{<span style="color:#a6e22e">Stocks</span>: <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span>, <span style="color:#a6e22e">Version</span>: <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Version</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>}); <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;库存扣减失败&#34;</span>)
+</span></span><span style="display:flex;"><span>			} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Commit</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="基于redis的分布式锁">基于redis的分布式锁</h3>
+<h4 id="原理-1">原理</h4>
+<p><img src="https://cdn.learnku.com/uploads/images/202209/13/69310/34iDklcKt8.png!large" alt="截屏2022-09-13 下午9.16.47"></p>
+<h5 id="setnx命令">setnx命令</h5>
+<p>Redis Setnx（<strong>SET</strong> if <strong>N</strong>ot e<strong>X</strong>ists） 命令在指定的 key 不存在时，为 key 设置指定的值。</p>
+<p><strong>语法</strong></p>
+<p>redis Setnx 命令基本语法如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>redis 127.0.0.1:6379&gt; SETNX KEY_NAME VALUE
+</span></span></code></pre></div><h5 id="返回值">返回值</h5>
+<p>设置成功，返回 1 。 设置失败，返回 0 。</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202209/13/69310/sXUdRhvuzl.png!large" alt="截屏2022-09-13 下午9.24.06"></p>
+<p>这样我们使用setnx就可以完成原子操作了</p>
+<p>下面来看看如何使用redisync</p>
+<h5 id="redisync">redisync</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;sync&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">goredislib</span> <span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/go-redsync/redsync/v4&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/go-redsync/redsync/v4/redis/goredis/v8&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create a pool with go-redis (or redigo) which is the pool redisync will
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// use while communicating with Redis. This can also be any pool that
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// implements the `redis.Pool` interface.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">goredislib</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">goredislib</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Addr</span>: <span style="color:#e6db74">&#34;localhost:6379&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">pool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">goredis</span>.<span style="color:#a6e22e">NewPool</span>(<span style="color:#a6e22e">client</span>) <span style="color:#75715e">// or, pool := redigo.NewPool(...)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create an instance of redisync to be used to obtain a mutual exclusion
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// lock.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rs</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">pool</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">3</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">mutexname</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;mytest_%s&#34;</span>, <span style="color:#a6e22e">i</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">mutexname</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;获取锁成功\n&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;执行结束\n&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Unlock</span>(); !<span style="color:#a6e22e">ok</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				panic(<span style="color:#e6db74">&#34;unlock failed&#34;</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;释放锁成功\n&#34;</span>)
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h5 id="在库存服务中的应用">在库存服务中的应用:</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//Sell 扣减库存,涉及事务逻辑，执行的逻辑必须全部成功或者全部失败并且失败后数据可恢复,不能中途失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">i</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">InventoryServer</span>) <span style="color:#a6e22e">Sell</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">proto</span>.<span style="color:#a6e22e">SellInfo</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//并发情况下可能会出现超买，需要使用锁来将并发串行化
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//将数据库作为事务性
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Begin</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">mutexs</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">Mutex</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">goodsInfo</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">GoodsInfo</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">inventory</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">Rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;goods_%d&#34;</span>, <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">GoodsId</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">Internal</span>, <span style="color:#e6db74">&#34;获取redis分布式锁异常&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Inventory</span>{<span style="color:#a6e22e">Goods</span>: <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">GoodsId</span>}).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>); <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">InvalidArgument</span>, <span style="color:#e6db74">&#34;库存信息不存在&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> &lt; <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//失败进行事务回滚
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">ResourceExhausted</span>, <span style="color:#e6db74">&#34;库存不足&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">inventory</span>.<span style="color:#a6e22e">Stocks</span> <span style="color:#f92672">-=</span> <span style="color:#a6e22e">goodsInfo</span>.<span style="color:#a6e22e">Num</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Save</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">inventory</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">mutexs</span> = append(<span style="color:#a6e22e">mutexs</span>, <span style="color:#a6e22e">mutex</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//if ok, err := mutex.Unlock(); !ok || err != nil {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	return nil, status.Errorf(codes.Internal, &#34;释放redis分布式锁异常&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Commit</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">mutexs</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Unlock</span>(); !<span style="color:#a6e22e">ok</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">Internal</span>, <span style="color:#e6db74">&#34;释放redis分布式锁异常&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">empty</span>.<span style="color:#a6e22e">Empty</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

@@ -1,1 +1,38 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Grpc on iceymoss - 刻意练习，卷无止境</title><link>https://iceymoss.github.io/tags/grpc/</link><description>Recent content in Grpc on iceymoss - 刻意练习，卷无止境</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Thu, 25 May 2023 20:46:29 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/grpc/index.xml" rel="self" type="application/rss+xml"/><item><title>Grpc详解</title><link>https://iceymoss.github.io/post/grpc/grpc%E8%AF%A6%E8%A7%A3/</link><pubDate>Thu, 25 May 2023 20:46:29 +0800</pubDate><guid>https://iceymoss.github.io/post/grpc/grpc%E8%AF%A6%E8%A7%A3/</guid><description>[toc] 文章介绍 在阅读本文之前建议您先阅读RPC核心概念理解和GRPC之protobuf理解，在本文中我们不再过多介绍GRPC的基础部分，主要介绍</description></item><item><title>GRPC之protobuf详解</title><link>https://iceymoss.github.io/post/grpc/grpc%E4%B9%8Bprotobuf%E8%AF%A6%E8%A7%A3/</link><pubDate>Thu, 25 May 2023 20:45:41 +0800</pubDate><guid>https://iceymoss.github.io/post/grpc/grpc%E4%B9%8Bprotobuf%E8%AF%A6%E8%A7%A3/</guid><description>[toc] 文章介绍 本文主要介绍我学习 protobuf 的理解和总结、主要介绍 protobuf 的基本类型、option 的作用、proto 文件中导入其他 proto 文件、嵌套 message、e</description></item><item><title>Rpc详解</title><link>https://iceymoss.github.io/post/grpc/rpc%E8%AF%A6%E8%A7%A3/</link><pubDate>Thu, 25 May 2023 20:44:59 +0800</pubDate><guid>https://iceymoss.github.io/post/grpc/rpc%E8%AF%A6%E8%A7%A3/</guid><description>[toc] 文章介绍 本文主要介绍 RPC 是什么， 为什么要使用 RPC，使用 RPC 需要解决问题及 RPC 使用实例 RPC 是什么 RPC Rpc（Remote Procedure Call）远程过程调用协议</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Grpc on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/grpc/</link>
+    <description>Recent content in Grpc on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 25 May 2023 20:46:29 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/grpc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Grpc详解</title>
+      <link>https://iceymoss.github.io/post/grpc/grpc%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Thu, 25 May 2023 20:46:29 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/grpc/grpc%E8%AF%A6%E8%A7%A3/</guid>
+      <description>[toc] 文章介绍 在阅读本文之前建议您先阅读RPC核心概念理解和GRPC之protobuf理解，在本文中我们不再过多介绍GRPC的基础部分，主要介绍</description>
+    </item>
+    
+    <item>
+      <title>GRPC之protobuf详解</title>
+      <link>https://iceymoss.github.io/post/grpc/grpc%E4%B9%8Bprotobuf%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Thu, 25 May 2023 20:45:41 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/grpc/grpc%E4%B9%8Bprotobuf%E8%AF%A6%E8%A7%A3/</guid>
+      <description>[toc] 文章介绍 本文主要介绍我学习 protobuf 的理解和总结、主要介绍 protobuf 的基本类型、option 的作用、proto 文件中导入其他 proto 文件、嵌套 message、e</description>
+    </item>
+    
+    <item>
+      <title>Rpc详解</title>
+      <link>https://iceymoss.github.io/post/grpc/rpc%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Thu, 25 May 2023 20:44:59 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/grpc/rpc%E8%AF%A6%E8%A7%A3/</guid>
+      <description>[toc] 文章介绍 本文主要介绍 RPC 是什么， 为什么要使用 RPC，使用 RPC 需要解决问题及 RPC 使用实例 RPC 是什么 RPC Rpc（Remote Procedure Call）远程过程调用协议</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,1 +1,47 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>web on iceymoss - 刻意练习，卷无止境</title><link>https://iceymoss.github.io/tags/web/</link><description>Recent content in web on iceymoss - 刻意练习，卷无止境</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Thu, 04 May 2023 21:24:43 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/web/index.xml" rel="self" type="application/rss+xml"/><item><title>GinWeb框架Gin学习总结</title><link>https://iceymoss.github.io/golang/ginweb%E6%A1%86%E6%9E%B6gin%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/</link><pubDate>Thu, 04 May 2023 21:24:43 +0800</pubDate><guid>https://iceymoss.github.io/golang/ginweb%E6%A1%86%E6%9E%B6gin%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/</guid><description>[toc] 文章介绍 本文我们将从零开始介绍Gin的安装，Gin的简单入门，基于Gin框架的登录/注册表单验证实例，Gin中间件的原理分析，Gin返回h</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>web on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/web/</link>
+    <description>Recent content in web on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 31 May 2023 20:14:39 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/web/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>「从0到1搭建一个IM项目」用户模块开发之gin的集成和暴露对外api</title>
+      <link>https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8Bgin%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9A%B4%E9%9C%B2%E5%AF%B9%E5%A4%96api/</link>
+      <pubDate>Wed, 31 May 2023 20:14:39 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8Bgin%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9A%B4%E9%9C%B2%E5%AF%B9%E5%A4%96api/</guid>
+      <description>[toc] 概况 在上一篇中完成了用户数据库表设计及dao层的开发，完成了底层基础功能；在本篇中将Gin框架集成到项目中， 以及对外实现api的开发， 目前</description>
+    </item>
+    
+    <item>
+      <title>「从0到1搭建一个IM项目」用户模块开发之表设计和基本crud</title>
+      <link>https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8B%E8%A1%A8%E8%AE%BE%E8%AE%A1%E5%92%8C%E5%9F%BA%E6%9C%ACcrud/</link>
+      <pubDate>Wed, 31 May 2023 20:12:47 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8B%E8%A1%A8%E8%AE%BE%E8%AE%A1%E5%92%8C%E5%9F%BA%E6%9C%ACcrud/</guid>
+      <description>[toc] 概况 在上一篇我们完成了项目的初始化以及一些基本的配置，目录如下： HiChat ├── common //放置公共文件 │ ├── config //做配置文件 │ ├── dao //数据库cr</description>
+    </item>
+    
+    <item>
+      <title>「从0到1搭建一个IM项目」项目初始化</title>
+      <link>https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E9%A1%B9%E7%9B%AE%E5%88%9D%E5%A7%8B%E5%8C%96/</link>
+      <pubDate>Wed, 31 May 2023 20:05:56 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E9%A1%B9%E7%9B%AE%E5%88%9D%E5%A7%8B%E5%8C%96/</guid>
+      <description>[toc] 概况(HiChat) 介绍 在学习完go的基础后，现在从0到1来搭建一个简单的即时聊天项目(IM)的api，项目名称为HiChat。 主要功能 登</description>
+    </item>
+    
+    <item>
+      <title>GinWeb框架Gin学习总结</title>
+      <link>https://iceymoss.github.io/golang/ginweb%E6%A1%86%E6%9E%B6gin%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/</link>
+      <pubDate>Thu, 04 May 2023 21:24:43 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/golang/ginweb%E6%A1%86%E6%9E%B6gin%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/</guid>
+      <description>[toc] 文章介绍 本文我们将从零开始介绍Gin的安装，Gin的简单入门，基于Gin框架的登录/注册表单验证实例，Gin中间件的原理分析，Gin返回h</description>
+    </item>
+    
+  </channel>
+</rss>

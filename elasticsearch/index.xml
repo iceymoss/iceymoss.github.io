@@ -1,1 +1,20 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Elasticsearches on iceymoss - 刻意练习，卷无止境</title><link>https://iceymoss.github.io/elasticsearch/</link><description>Recent content in Elasticsearches on iceymoss - 刻意练习，卷无止境</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 26 May 2023 18:27:15 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/elasticsearch/index.xml" rel="self" type="application/rss+xml"/><item><title>Elasticsearch学习</title><link>https://iceymoss.github.io/elasticsearch/elasticsearch%E5%AD%A6%E4%B9%A0/</link><pubDate>Fri, 26 May 2023 18:27:15 +0800</pubDate><guid>https://iceymoss.github.io/elasticsearch/elasticsearch%E5%AD%A6%E4%B9%A0/</guid><description>[toc] 什么是Elasticsearch 在了解Elasticsearch之前我们需要了解： 1. mysql搜索面临的问题 性能低下 没有相关性排名 - 刚需 无</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Elasticsearches on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/elasticsearch/</link>
+    <description>Recent content in Elasticsearches on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 26 May 2023 18:27:15 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/elasticsearch/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Elasticsearch学习</title>
+      <link>https://iceymoss.github.io/elasticsearch/elasticsearch%E5%AD%A6%E4%B9%A0/</link>
+      <pubDate>Fri, 26 May 2023 18:27:15 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/elasticsearch/elasticsearch%E5%AD%A6%E4%B9%A0/</guid>
+      <description>[toc] 什么是Elasticsearch 在了解Elasticsearch之前我们需要了解： 1. mysql搜索面临的问题 性能低下 没有相关性排名 - 刚需 无</description>
+    </item>
+    
+  </channel>
+</rss>

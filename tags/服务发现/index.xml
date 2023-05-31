@@ -1,1 +1,29 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>服务发现 on iceymoss - 刻意练习，卷无止境</title><link>https://iceymoss.github.io/tags/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/</link><description>Recent content in 服务发现 on iceymoss - 刻意练习，卷无止境</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 26 May 2023 18:42:13 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/index.xml" rel="self" type="application/rss+xml"/><item><title>注册中心consul</title><link>https://iceymoss.github.io/categories/dev/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83consul/</link><pubDate>Fri, 26 May 2023 18:42:13 +0800</pubDate><guid>https://iceymoss.github.io/categories/dev/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83consul/</guid><description>文章介绍 本文我们将介绍什么是consul，为什么需要consul， consul的安装， 服务注册， 健康检查， 服务发现 什么是consul 官方介绍</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>服务发现 on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/</link>
+    <description>Recent content in 服务发现 on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 31 May 2023 19:37:31 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>配置中心nacos</title>
+      <link>https://iceymoss.github.io/post/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83nacos/</link>
+      <pubDate>Wed, 31 May 2023 19:37:31 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83nacos/</guid>
+      <description>[toc] 文章介绍 本文我们将以golang的角度来了解配置中心，nacos的安装，如何用nacos做配置，读取nacos中配置文件。 什么是配置中心 用</description>
+    </item>
+    
+    <item>
+      <title>注册中心consul</title>
+      <link>https://iceymoss.github.io/categories/dev/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83consul/</link>
+      <pubDate>Fri, 26 May 2023 18:42:13 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/categories/dev/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83consul/</guid>
+      <description>文章介绍 本文我们将介绍什么是consul，为什么需要consul， consul的安装， 服务注册， 健康检查， 服务发现 什么是consul 官方介绍</description>
+    </item>
+    
+  </channel>
+</rss>

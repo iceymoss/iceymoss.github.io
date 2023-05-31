@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>基于mysql分布式悲观锁原理 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="基于mysql分布式悲观锁原理"/>
+<meta name="twitter:description" content="[toc] MySQL分布式悲观锁原理： 条件 FOR UPDATE 仅适用于InnoDB存储引擎，且必须在事务区块(BEGIN/COMMIT)中才能生效。 mysql默认情"/>
+
+    <meta property="og:title" content="基于mysql分布式悲观锁原理" />
+<meta property="og:description" content="[toc] MySQL分布式悲观锁原理： 条件 FOR UPDATE 仅适用于InnoDB存储引擎，且必须在事务区块(BEGIN/COMMIT)中才能生效。 mysql默认情" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Emysql%E5%88%86%E5%B8%83%E5%BC%8F%E6%82%B2%E8%A7%82%E9%94%81%E5%8E%9F%E7%90%86/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-05-31T19:40:53+08:00" />
+<meta property="article:modified_time" content="2023-05-31T19:40:53+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">基于mysql分布式悲观锁原理</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 31, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          7 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E6%82%B2%E8%A7%82%E9%94%81/">悲观锁</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%94%81%E6%9C%BA%E5%88%B6/">锁机制</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="mysql分布式悲观锁原理">MySQL分布式悲观锁原理：</h3>
+<h4 id="条件">条件</h4>
+<blockquote>
+<p>FOR UPDATE 仅适用于InnoDB存储引擎，且必须在事务区块(BEGIN/COMMIT)中才能生效。</p>
+</blockquote>
+<p>mysql默认情况下每个sql都是单独的一个事务，并且是自动提交事务。</p>
+<p>测试之前需要设置成非自动提交事务，不然无法模拟并发访问:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">@@</span>autocommit;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">--------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> <span style="color:#f92672">@@</span>autocommit <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">--------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span>            <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">--------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">row</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">set</span> autocommit <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">rows</span> affected (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">@@</span>autocommit;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">--------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> <span style="color:#f92672">@@</span>autocommit <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">--------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span>            <span style="color:#ae81ff">0</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">--------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">row</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><p>此修改只针对当前窗口有效，重新打开的新窗口依然是自动提交事务的
+所以要就需要两个窗口，窗口a：非自动提交事务，用于for update操作；
+窗口b：用于普通update操作。</p>
+<h6 id="测试">测试</h6>
+<p>我们有一数据库 test1，有一张表testa ，有自增主键ID，name，id_card</p>
+<p>表中有两条数据</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> testa;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+-------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id <span style="color:#f92672">|</span> name  <span style="color:#f92672">|</span> id_card            <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+-------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> wangb <span style="color:#f92672">|</span> <span style="color:#ae81ff">322343256564545754</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>  <span style="color:#ae81ff">2</span> <span style="color:#f92672">|</span> shuna <span style="color:#f92672">|</span> <span style="color:#ae81ff">320990348823998792</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+-------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span> rows <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">desc</span> testa;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+---------+-------------+------+-----+---------+----------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> Field   <span style="color:#f92672">|</span> Type        <span style="color:#f92672">|</span> <span style="color:#66d9ef">Null</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">Key</span> <span style="color:#f92672">|</span> <span style="color:#66d9ef">Default</span> <span style="color:#f92672">|</span> Extra          <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+---------+-------------+------+-----+---------+----------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id      <span style="color:#f92672">|</span> <span style="color:#66d9ef">int</span>(<span style="color:#ae81ff">11</span>)     <span style="color:#f92672">|</span> NO   <span style="color:#f92672">|</span> PRI <span style="color:#f92672">|</span> <span style="color:#66d9ef">NULL</span>    <span style="color:#f92672">|</span> <span style="color:#66d9ef">auto_increment</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> name    <span style="color:#f92672">|</span> <span style="color:#66d9ef">varchar</span>(<span style="color:#ae81ff">10</span>) <span style="color:#f92672">|</span> NO   <span style="color:#f92672">|</span>     <span style="color:#f92672">|</span> <span style="color:#66d9ef">NULL</span>    <span style="color:#f92672">|</span>                <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id_card <span style="color:#f92672">|</span> <span style="color:#66d9ef">varchar</span>(<span style="color:#ae81ff">18</span>) <span style="color:#f92672">|</span> YES  <span style="color:#f92672">|</span> UNI <span style="color:#f92672">|</span> <span style="color:#66d9ef">NULL</span>    <span style="color:#f92672">|</span>                <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+---------+-------------+------+-----+---------+----------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3</span> rows <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><h4 id="1只明确主键">1.只明确主键</h4>
+<ul>
+<li>有数据</li>
+</ul>
+<p>在a窗口进行开启事务，对id为1的数据进行 for update，此时并没有commit；</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> begin;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> rows <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> testa <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">update</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id <span style="color:#f92672">|</span> name <span style="color:#f92672">|</span> id_card            <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> wang <span style="color:#f92672">|</span> <span style="color:#ae81ff">322343256564545754</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>在b窗口对id=1的数据进行update name操作，发现失败：等待锁释放超时</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;wangwang&#34;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+</span></span></code></pre></div><p>再对id=2的数据进行update name操作，发现成功</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;shunshun&#34;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>Rows matched: <span style="color:#ae81ff">1</span>  Changed: <span style="color:#ae81ff">1</span>  Warnings: <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>a窗口commit；之后，b窗口update操作都显示正常</p>
+<ul>
+<li>无数据</li>
+</ul>
+<p>a窗口 select for update 无数据</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> begin;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> rows <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> testa <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">-&gt;</span> ;
+</span></span><span style="display:flex;"><span>Empty <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>b窗口，对两条数据update操作都是成功</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;wanga&#34;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">01</span> sec)
+</span></span><span style="display:flex;"><span>Rows matched: <span style="color:#ae81ff">1</span>  Changed: <span style="color:#ae81ff">1</span>  Warnings: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;shun&#34;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>Rows matched: <span style="color:#ae81ff">1</span>  Changed: <span style="color:#ae81ff">1</span>  Warnings: <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p><strong>得出结论</strong></p>
+<blockquote>
+<p>明确主键并且有数据的情况下:mysql -&gt; row lock；</p>
+</blockquote>
+<blockquote>
+<p>明确主键无数据的情况下:mysql -&gt; no lock；</p>
+</blockquote>
+<h4 id="2明确主键和一个普通字段">2.明确主键和一个普通字段</h4>
+<ul>
+<li>有数据</li>
+</ul>
+<p>将数据还原之后，</p>
+<p>在a窗口进行开启事务，对id=1,name=&lsquo;wang’的数据进行 for update，此时并没有commit；</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> begin;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> rows <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> testa <span style="color:#66d9ef">where</span> id<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">and</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;wang&#39;</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">update</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">-&gt;</span> ;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id <span style="color:#f92672">|</span> name <span style="color:#f92672">|</span> id_card            <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> wang <span style="color:#f92672">|</span> <span style="color:#ae81ff">322343256564545754</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">03</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>b窗口，对进行for update的那条数据的update操作无效（等待锁释放超时），其他的行的update操作正常</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;wanga&#34;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;shunshun&#34;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">01</span> sec)
+</span></span><span style="display:flex;"><span>Rows matched: <span style="color:#ae81ff">1</span>  Changed: <span style="color:#ae81ff">1</span>  Warnings: <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>a窗口commit；之后，b窗口update操作都显示成功</p>
+<ul>
+<li>无数据</li>
+</ul>
+<p>同第一种情况的无数据测试
+<strong>得出结论</strong></p>
+<blockquote>
+<p>明确主键和一个普通字段有数据的情况下:mysql -&gt; row lock；</p>
+</blockquote>
+<blockquote>
+<p>明确主键和一个普通字段无数据的情况下:mysql -&gt; no lock；</p>
+</blockquote>
+<h4 id="3明确一个普通字段">3.明确一个普通字段</h4>
+<ul>
+<li>有数据
+将数据还原之后，</li>
+</ul>
+<p>在a窗口进行开启事务，对name=&lsquo;wang’的数据进行 for update，此时并没有commit；</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> begin;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> rows <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> testa <span style="color:#66d9ef">where</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;wang&#39;</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">update</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id <span style="color:#f92672">|</span> name <span style="color:#f92672">|</span> id_card            <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> wang <span style="color:#f92672">|</span> <span style="color:#ae81ff">322343256564545754</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+--------------------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>b窗口，对进行for update的那条数据的update操作失败（等待锁释放超时），其他的行的update操作也显示失败（等待锁释放超时）</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> id_card <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;222&#39;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> id_card <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;333&#39;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+</span></span></code></pre></div><p>a窗口commit；之后，b窗口update操作都显示成功</p>
+<ul>
+<li>无数据</li>
+</ul>
+<p>同第一种情况的无数据测试
+<strong>得出结论</strong></p>
+<blockquote>
+<p>只明确一个普通字段有数据的情况下:mysql -&gt; table lock；</p>
+</blockquote>
+<blockquote>
+<p>只明确一个普通字段无数据的情况下:mysql -&gt; no lock；</p>
+</blockquote>
+<h4 id="4明确一个unique字段">4.明确一个unique字段</h4>
+<ul>
+<li>有数据</li>
+</ul>
+<p>将数据还原之后，</p>
+<p>在a窗口进行开启事务，对id_card=&lsquo;111’的数据进行 for update，此时并没有commit；</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> begin;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> rows <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> testa <span style="color:#66d9ef">where</span> id_card<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;111&#39;</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">update</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+---------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id <span style="color:#f92672">|</span> name <span style="color:#f92672">|</span> id_card <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+---------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> wang <span style="color:#f92672">|</span> <span style="color:#ae81ff">111</span>     <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+---------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>b窗口，对进行for update的那条数据的update操作失败（等待锁释放超时），其他的行的update操作显示正常！！</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> id_card <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;222&#39;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> id_card <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;333&#39;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><ul>
+<li>无数据</li>
+</ul>
+<p>同第一种情况的无数据测试
+<strong>得出结论</strong></p>
+<blockquote>
+<p>只明确一个unique字段有数据的情况下:mysql -&gt; row lock；</p>
+</blockquote>
+<blockquote>
+<p>只明确一个unique字段无数据的情况下:mysql -&gt; no lock；</p>
+</blockquote>
+<h6 id="思考"><strong>思考</strong></h6>
+<p>为什么对主键和unique字段进行for update操作的时候，mysql进行的是row lock；而对普通字段for update操作的时候进行的是table lock，是根据什么判断呢？</p>
+<p>primary key和unique的共同特点是mysql会自动为其创建索引，他们都有索引，那把name字段创建索引，是不是就进行row lock呢？
+查看表中的索引：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> <span style="color:#66d9ef">keys</span> <span style="color:#66d9ef">from</span> testa<span style="color:#960050;background-color:#1e0010">\</span>G;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">***************************</span> <span style="color:#ae81ff">1</span>. row <span style="color:#f92672">***************************</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">Table</span>: testa
+</span></span><span style="display:flex;"><span>   Non_unique: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>     Key_name: <span style="color:#66d9ef">PRIMARY</span>
+</span></span><span style="display:flex;"><span> Seq_in_index: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  Column_name: id
+</span></span><span style="display:flex;"><span>    Collation: A
+</span></span><span style="display:flex;"><span>  Cardinality: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>     Sub_part: <span style="color:#66d9ef">NULL</span>
+</span></span><span style="display:flex;"><span>       Packed: <span style="color:#66d9ef">NULL</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">Null</span>:
+</span></span><span style="display:flex;"><span>   Index_type: BTREE
+</span></span><span style="display:flex;"><span>      Comment:
+</span></span><span style="display:flex;"><span>Index_comment:
+</span></span><span style="display:flex;"><span><span style="color:#f92672">***************************</span> <span style="color:#ae81ff">2</span>. row <span style="color:#f92672">***************************</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">Table</span>: testa
+</span></span><span style="display:flex;"><span>   Non_unique: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>     Key_name: id_card
+</span></span><span style="display:flex;"><span> Seq_in_index: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  Column_name: id_card
+</span></span><span style="display:flex;"><span>    Collation: A
+</span></span><span style="display:flex;"><span>  Cardinality: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>     Sub_part: <span style="color:#66d9ef">NULL</span>
+</span></span><span style="display:flex;"><span>       Packed: <span style="color:#66d9ef">NULL</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">Null</span>: YES
+</span></span><span style="display:flex;"><span>   Index_type: BTREE
+</span></span><span style="display:flex;"><span>      Comment:
+</span></span><span style="display:flex;"><span>Index_comment:
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span> rows <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>ERROR:
+</span></span><span style="display:flex;"><span>No query specified
+</span></span></code></pre></div><p>发现testa表中的索引只包含了id，id_card
+添加name字段的索引</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">alter</span> <span style="color:#66d9ef">table</span> testa <span style="color:#66d9ef">add</span> <span style="color:#66d9ef">index</span> <span style="color:#a6e22e">index_name</span> (name);
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> rows <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">03</span> sec)
+</span></span><span style="display:flex;"><span>Records: <span style="color:#ae81ff">0</span>  Duplicates: <span style="color:#ae81ff">0</span>  Warnings: <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>查看建表语句：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> <span style="color:#66d9ef">create</span> <span style="color:#66d9ef">table</span> testa <span style="color:#960050;background-color:#1e0010">\</span>G;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">***************************</span> <span style="color:#ae81ff">1</span>. row <span style="color:#f92672">***************************</span>
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">Table</span>: testa
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">Create</span> <span style="color:#66d9ef">Table</span>: <span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>testa<span style="color:#f92672">`</span> (
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>id<span style="color:#f92672">`</span> <span style="color:#66d9ef">int</span>(<span style="color:#ae81ff">11</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span> <span style="color:#66d9ef">AUTO_INCREMENT</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>name<span style="color:#f92672">`</span> <span style="color:#66d9ef">varchar</span>(<span style="color:#ae81ff">10</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>id_card<span style="color:#f92672">`</span> <span style="color:#66d9ef">varchar</span>(<span style="color:#ae81ff">18</span>) <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span> (<span style="color:#f92672">`</span>id<span style="color:#f92672">`</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">UNIQUE</span> <span style="color:#66d9ef">KEY</span> <span style="color:#f92672">`</span>id_card<span style="color:#f92672">`</span> (<span style="color:#f92672">`</span>id_card<span style="color:#f92672">`</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">KEY</span> <span style="color:#f92672">`</span>index_name<span style="color:#f92672">`</span> (<span style="color:#f92672">`</span>name<span style="color:#f92672">`</span>)
+</span></span><span style="display:flex;"><span>) <span style="color:#66d9ef">ENGINE</span><span style="color:#f92672">=</span>InnoDB <span style="color:#66d9ef">AUTO_INCREMENT</span><span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">CHARSET</span><span style="color:#f92672">=</span>utf8
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>ERROR:
+</span></span><span style="display:flex;"><span>No query specified
+</span></span></code></pre></div><p>发现name字段已经创建了普通索引index_name
+在a窗口,对name字段再进行一次for update测试,不commit</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> begin;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">0</span> rows <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> testa <span style="color:#66d9ef">where</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;wang&#39;</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">update</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+---------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> id <span style="color:#f92672">|</span> name <span style="color:#f92672">|</span> id_card <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+---------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>  <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span> wang <span style="color:#f92672">|</span> <span style="color:#ae81ff">222</span>     <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+----+------+---------+</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> row <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">01</span> sec)
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>在b窗口 对进行for update的数据进行update操作失败（锁释放等待超时）</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> id_card <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;111&#39;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>ERROR <span style="color:#ae81ff">1205</span> (HY000): <span style="color:#66d9ef">Lock</span> wait timeout exceeded; try restarting transaction
+</span></span></code></pre></div><p>在b窗口 对其他行数据进行update操作,成功！！！</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">update</span> testa <span style="color:#66d9ef">set</span> id_card <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;4353&#39;</span> <span style="color:#66d9ef">where</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#ae81ff">1</span> row <span style="color:#a6e22e">affected</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">02</span> sec)
+</span></span><span style="display:flex;"><span>Rows matched: <span style="color:#ae81ff">1</span>  Changed: <span style="color:#ae81ff">1</span>  Warnings: <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>a窗口commit之后，在b敞口操作正常</p>
+<h4 id="总结">总结</h4>
+<p>select … for update; 操作</p>
+<blockquote>
+<p>未获取到数据的时候，mysql不进行锁 （no lock）
+获取到数据的时候，进行对约束字段进行判断，存在有索引的字段则进行row lock
+否则进行 table lock</p>
+</blockquote>
+<p><strong>注意</strong>
+当使用 ‘&lt;&gt;’,‘like’等关键字时，进行for update操作时，mysql进行的是table lock</p>
+<p>网上其他博客说是因为主键不明确造成的，其实并非如此；</p>
+<p>mysql进行row lock还是table lock只取决于是否能使用索引，而 使用’&lt;&gt;’,&rsquo;like’等操作时，索引会失效，自然进行的是table lock；
+什么情况索引会失效:
+<strong>1.负向条件查询不能使用索引</strong></p>
+<p>负向条件有：!=、&lt;&gt;、not in、not exists、not like 等。
+<strong>2.索引列不允许为null</strong></p>
+<p>单列索引不存null值，复合索引不存全为null的值，如果列允许为 null，可能会得到不符合预期的结果集。
+<strong>3.避免使用or来连接条件</strong></p>
+<p>应该尽量避免在 where 子句中使用 or 来连接条件，因为这会导致索引失效而进行全表扫描，虽然新版的MySQL能够命中索引，但查询优化耗费的 CPU比in多。
+<strong>4.模糊查询</strong></p>
+<p>前导模糊查询不能使用索引，非前导查询可以。
+以上情况索引都会失效，所以进行for update的时候，会进行table lock
+参考：https://juejin.im/post/5b14e0fd6fb9a01e8c5fc663</p>
+<h4 id="再思考">再思考</h4>
+<p>为什么存在索引，mysql进行row lock，不存在索引，mysql进行table lock？</p>
+<p>这是存储引擎InnoDB特性决定的：</p>
+<p>InnoDB这种行锁实现特点意味者：只有通过索引条件检索数据，InnoDB才会使用行级锁，否则，InnoDB将使用表锁！</p>
+<h4 id="再总结">再总结</h4>
+<p>在上述例子中 ，我们使用给name字段加索引的方法，使表锁降级为行锁，不幸的是这种方法只针对 <em>属性值重复率低</em> 的情况。当属性值重复率很高的时候，索引就变得低效，MySQL 也具有自动优化 SQL 的功能。低效的索引将被忽略。就会使用表锁了。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

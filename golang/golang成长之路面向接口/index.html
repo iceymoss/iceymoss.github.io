@@ -1,217 +1,344 @@
-<!doctype html><html lang=zh-cn><head><title>「Golang成长之路」面向接口 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「Golang成长之路」面向接口"><meta name=twitter:description content="[toc] 文章介绍 本文来聊聊go接口(interface) 的概念、如何定义接口、接口的使用场景、接口的组合和空接口(interface{})。 接口的"><meta property="og:title" content="「Golang成长之路」面向接口"><meta property="og:description" content="[toc] 文章介绍 本文来聊聊go接口(interface) 的概念、如何定义接口、接口的使用场景、接口的组合和空接口(interface{})。 接口的"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E9%9D%A2%E5%90%91%E6%8E%A5%E5%8F%A3/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-25T19:51:43+08:00"><meta property="article:modified_time" content="2023-05-25T19:51:43+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
-<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
--
-<a class=app-header-menu-item href=/archives/>归档</a>
--
-<a class=app-header-menu-item href=/tags/>标签</a>
--
-<a class=app-header-menu-item href=/categories/>类别</a>
--
-<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「Golang成长之路」面向接口</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>4 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=文章介绍>文章介绍</h3><p>本文来聊聊go接口(interface) 的概念、如何定义接口、接口的使用场景、接口的组合和空接口(interface{})。</p><h3 id=接口的概念>接口的概念</h3><ul><li>接口是一种抽象类型，是对其他类型行为的概括与抽象，从语法角度来看，接口是一组方法定义的集合。</li><li>很多面向对象的语言都有接口这个概念，但 Go 语言接口的独特之处在于它是隐式实现。</li><li>对于一个具体的类型，无须声明它实现了哪些接口，只要提供接口所必需的方法即可。</li><li>这种设计让编程人员无须改变已有类型的实现就可以为这些类型创建新的接口 —— 对于那些不能修改包的类型，这一点特别有用。</li></ul><h3 id=定义接口及实现>定义接口及实现</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#960050;background-color:#1e0010>接口名</span> <span style=color:#66d9ef>interface</span> {
-</span></span><span style=display:flex><span>   <span style=color:#960050;background-color:#1e0010>方法</span><span style=color:#ae81ff>1</span>
-</span></span><span style=display:flex><span>   <span style=color:#960050;background-color:#1e0010>方法</span><span style=color:#ae81ff>2</span>
-</span></span><span style=display:flex><span>   <span style=color:#960050;background-color:#1e0010>……</span>
-</span></span><span style=display:flex><span>}
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「Golang成长之路」面向接口 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「Golang成长之路」面向接口"/>
+<meta name="twitter:description" content="[toc] 文章介绍 本文来聊聊go接口(interface) 的概念、如何定义接口、接口的使用场景、接口的组合和空接口(interface{})。 接口的"/>
+
+    <meta property="og:title" content="「Golang成长之路」面向接口" />
+<meta property="og:description" content="[toc] 文章介绍 本文来聊聊go接口(interface) 的概念、如何定义接口、接口的使用场景、接口的组合和空接口(interface{})。 接口的" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/golang%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF%E9%9D%A2%E5%90%91%E6%8E%A5%E5%8F%A3/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-05-25T19:51:43+08:00" />
+<meta property="article:modified_time" content="2023-05-25T19:51:43+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「Golang成长之路」面向接口</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 25, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          4 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="文章介绍">文章介绍</h3>
+<p>本文来聊聊go接口(interface) 的概念、如何定义接口、接口的使用场景、接口的组合和空接口(interface{})。</p>
+<h3 id="接口的概念">接口的概念</h3>
+<ul>
+<li>接口是一种抽象类型，是对其他类型行为的概括与抽象，从语法角度来看，接口是一组方法定义的集合。</li>
+<li>很多面向对象的语言都有接口这个概念，但 Go 语言接口的独特之处在于它是隐式实现。</li>
+<li>对于一个具体的类型，无须声明它实现了哪些接口，只要提供接口所必需的方法即可。</li>
+<li>这种设计让编程人员无须改变已有类型的实现就可以为这些类型创建新的接口 —— 对于那些不能修改包的类型，这一点特别有用。</li>
+</ul>
+<h3 id="定义接口及实现">定义接口及实现</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#960050;background-color:#1e0010">接口名</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>   <span style="color:#960050;background-color:#1e0010">方法</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#960050;background-color:#1e0010">方法</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>这个就是接口的定义
-接口是由使用者定义，由实现者实现。</p><p>来看一个小例子：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Tester</span> <span style=color:#66d9ef>interface</span> {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Eat</span>()
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Sleep</span>()
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>Wake</span>()
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>接口定义好了，下面来实现它：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Cat</span> <span style=color:#66d9ef>struct</span> {
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span> <span style=color:#66d9ef>string</span> 
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>age</span> <span style=color:#66d9ef>int</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>c</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Cat</span>) <span style=color:#a6e22e>Eat</span>(){
-</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>……</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>c</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Cat</span>) <span style=color:#a6e22e>Sleep</span>(){
-</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>……</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>c</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Cat</span>) <span style=color:#a6e22e>Wake</span>(){
-</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>……</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>这样Cat就实现了Tester接口，go语言中的接口很神奇，不需要我们导入任何路径，go自动会隐式的将二者关联起来。</p><h3 id=接口的使用场景接口完成多态>接口的使用场景(接口完成多态)</h3><p>假如现在有一个任务：将 <a href=https://www.imooc.com/>www.imooc.com</a> 的首页下载下来 (假如是一个很大的工程），我们需要先进行测试，然后再产品上线。</p><p>先定义一个接口：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Retriever</span> <span style=color:#66d9ef>interface</span>{
-</span></span><span style=display:flex><span>     <span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>cur</span> <span style=color:#66d9ef>string</span>)<span style=color:#66d9ef>string</span>
-</span></span><span style=display:flex><span>}
+接口是由使用者定义，由实现者实现。</p>
+<p>来看一个小例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Tester</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Eat</span>()
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Sleep</span>()
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">Wake</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>接口定义好了，下面来实现它：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Cat</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Cat</span>) <span style="color:#a6e22e">Eat</span>(){
+</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Cat</span>) <span style="color:#a6e22e">Sleep</span>(){
+</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Cat</span>) <span style="color:#a6e22e">Wake</span>(){
+</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这样Cat就实现了Tester接口，go语言中的接口很神奇，不需要我们导入任何路径，go自动会隐式的将二者关联起来。</p>
+<h3 id="接口的使用场景接口完成多态">接口的使用场景(接口完成多态)</h3>
+<p>假如现在有一个任务：将 <a href="https://www.imooc.com/">www.imooc.com</a> 的首页下载下来 (假如是一个很大的工程），我们需要先进行测试，然后再产品上线。</p>
+<p>先定义一个接口：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Retriever</span> <span style="color:#66d9ef">interface</span>{
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">cur</span> <span style="color:#66d9ef">string</span>)<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>下面来看看接口是如何实现的：
-我们在另一个目录中实现 Get () 方法 (接口的实现)</p><ol><li><p>实现测试部分：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>mock</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//定义一个结构体
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Retrievers</span> <span style=color:#66d9ef>struct</span>{
-</span></span><span style=display:flex><span>   <span style=color:#a6e22e>Context</span> <span style=color:#66d9ef>string</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//实现接口
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>r</span> <span style=color:#a6e22e>Retrievers</span>)<span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>cur</span> <span style=color:#66d9ef>string</span>)<span style=color:#66d9ef>string</span>{
-</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>Context</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div></li><li><p>产品上线部分：
-然后我们再去目录下对 Get () 方法的实现</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>real</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
-</span></span><span style=display:flex><span>   <span style=color:#e6db74>&#34;net/http&#34;</span>
-</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;net/http/httputil&#34;</span> <span style=color:#e6db74>&#34;time&#34;</span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//定义一个结构体
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Retrievers</span> <span style=color:#66d9ef>struct</span>{
-</span></span><span style=display:flex><span>   <span style=color:#a6e22e>UserAgent</span> <span style=color:#66d9ef>string</span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>TimeOut</span> <span style=color:#a6e22e>time</span>.<span style=color:#a6e22e>Duration</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//Get接口的实现
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>r</span> <span style=color:#a6e22e>Retrievers</span>)<span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>cur</span> <span style=color:#66d9ef>string</span>)<span style=color:#66d9ef>string</span>{
-</span></span><span style=display:flex><span>   <span style=color:#a6e22e>re</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>cur</span>)
-</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
-</span></span><span style=display:flex><span>      panic(<span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>   }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>   <span style=color:#a6e22e>result</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span><span style=color:#a6e22e>httputil</span>.<span style=color:#a6e22e>DumpResponse</span>(<span style=color:#a6e22e>re</span>, <span style=color:#66d9ef>true</span>)
-</span></span><span style=display:flex><span>   <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span>{
-</span></span><span style=display:flex><span>      panic(<span style=color:#a6e22e>err</span>)
-</span></span><span style=display:flex><span>   }
-</span></span><span style=display:flex><span>   <span style=color:#66d9ef>return</span> string(<span style=color:#a6e22e>result</span>)
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>开发流程：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#f92672>package</span> <span style=color:#a6e22e>main</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>import</span> (
-</span></span><span style=display:flex><span>   <span style=color:#e6db74>&#34;fmt&#34;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;interfacetest/retriever/mock&#34;</span> 
-</span></span><span style=display:flex><span> <span style=color:#e6db74>&#34;interfacetest/retriever/real&#34;</span>
-</span></span><span style=display:flex><span>)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//接口由使用者定义,接口的实现其实就是对象函数(方法)的实现
-</span></span></span><span style=display:flex><span><span style=color:#75715e>//golang中duck type
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Retriever</span> <span style=color:#66d9ef>interface</span> {
-</span></span><span style=display:flex><span>   <span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>cur</span> <span style=color:#66d9ef>string</span>) <span style=color:#66d9ef>string</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>download</span>(<span style=color:#a6e22e>r</span> <span style=color:#a6e22e>Retriever</span>) <span style=color:#66d9ef>string</span>{
-</span></span><span style=display:flex><span>   <span style=color:#75715e>//下载https://www.imooc.com网页
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>Get</span>(<span style=color:#e6db74>&#34;https://www.imooc.com&#34;</span>)
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//主函数
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
-</span></span><span style=display:flex><span>  <span style=color:#75715e>//测试部分
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//mock.Retrievers{}表示来自于我们实现的mock包
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>q</span> = <span style=color:#a6e22e>mock</span>.<span style=color:#a6e22e>Retrievers</span>{<span style=color:#e6db74>&#34;my name&#34;</span>}
-</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>downloda</span>(<span style=color:#a6e22e>q</span>))   <span style=color:#75715e>//此时输出的是my name
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>//开发部分
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//当测试部分通过过后就可以产品上线了
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//real.Retrievers{}表示来自于我们实现的real包
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>UserAgent</span> <span style=color:#f92672>:=</span> <span style=color:#e6db74>&#34;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36&#34;</span>
-</span></span><span style=display:flex><span>   <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>r</span> <span style=color:#a6e22e>Retriever</span>= <span style=color:#a6e22e>real</span>.<span style=color:#a6e22e>Retrievers</span>{<span style=color:#a6e22e>UserAgent</span>, <span style=color:#a6e22e>TimeOut</span>: <span style=color:#ae81ff>3</span>}
-</span></span><span style=display:flex><span>   <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>download</span>(<span style=color:#a6e22e>r</span>))  <span style=color:#75715e>//这时就可以获取https://www.imooc.com的首页内容
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
-</span></span></code></pre></div></li></ol><p>上述实例就是描述了go接口的实际场景运用，并且这个过程就实现了多态，实例中为两种状态，即：测试态，上线态。</p><p>更详细的接口实战应用可阅读：<a href=https://learnku.com/articles/67053>微信小程序登录服务后端实战</a></p><h3 id=接口断言>接口断言</h3><p>接口断言的类型有三种方法：</p><h4 id=fmtprintft-vn-x-x>fmt.Printf("%T, %v\n", x, x)</h4><p>例如：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
-</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>q</span> = <span style=color:#a6e22e>mock</span>.<span style=color:#a6e22e>Retrievers</span>{<span style=color:#e6db74>&#34;my name&#34;</span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>r</span> <span style=color:#a6e22e>Retriever</span>= <span style=color:#a6e22e>real</span>.<span style=color:#a6e22e>Retrievers</span>{<span style=color:#a6e22e>UserAgent</span>: <span style=color:#e6db74>&#34;hhh&#34;</span>, <span style=color:#a6e22e>TimeOut</span>: <span style=color:#ae81ff>3</span>}
-</span></span><span style=display:flex><span><span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;%T, %v\n&#34;</span>, <span style=color:#a6e22e>r</span>, <span style=color:#a6e22e>r</span>)
-</span></span><span style=display:flex><span><span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;%T, %v\n&#34;</span>, <span style=color:#a6e22e>q</span>, <span style=color:#a6e22e>q</span>)
-</span></span></code></pre></div><p>输出：</p><pre tabindex=0><code>real.Retrievers, {hhh 3ns}
+我们在另一个目录中实现 Get () 方法 (接口的实现)</p>
+<ol>
+<li>
+<p>实现测试部分：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">mock</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//定义一个结构体
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Retrievers</span> <span style="color:#66d9ef">struct</span>{
+</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">Context</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//实现接口
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#a6e22e">Retrievers</span>)<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">cur</span> <span style="color:#66d9ef">string</span>)<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></li>
+<li>
+<p>产品上线部分：
+然后我们再去目录下对 Get () 方法的实现</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">real</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>   <span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;net/http/httputil&#34;</span> <span style="color:#e6db74">&#34;time&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//定义一个结构体
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Retrievers</span> <span style="color:#66d9ef">struct</span>{
+</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">UserAgent</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">TimeOut</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Get接口的实现
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#a6e22e">Retrievers</span>)<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">cur</span> <span style="color:#66d9ef">string</span>)<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">re</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">cur</span>)
+</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
+</span></span><span style="display:flex;"><span>      panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>   }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span><span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">DumpResponse</span>(<span style="color:#a6e22e">re</span>, <span style="color:#66d9ef">true</span>)
+</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span>{
+</span></span><span style="display:flex;"><span>      panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>   }
+</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">return</span> string(<span style="color:#a6e22e">result</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>开发流程：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>   <span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;interfacetest/retriever/mock&#34;</span> 
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;interfacetest/retriever/real&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//接口由使用者定义,接口的实现其实就是对象函数(方法)的实现
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//golang中duck type
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Retriever</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">cur</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">download</span>(<span style="color:#a6e22e">r</span> <span style="color:#a6e22e">Retriever</span>) <span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//下载https://www.imooc.com网页
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;https://www.imooc.com&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//主函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//测试部分
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//mock.Retrievers{}表示来自于我们实现的mock包
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">q</span> = <span style="color:#a6e22e">mock</span>.<span style="color:#a6e22e">Retrievers</span>{<span style="color:#e6db74">&#34;my name&#34;</span>}
+</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">downloda</span>(<span style="color:#a6e22e">q</span>))   <span style="color:#75715e">//此时输出的是my name
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//开发部分
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//当测试部分通过过后就可以产品上线了
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//real.Retrievers{}表示来自于我们实现的real包
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">UserAgent</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36&#34;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">r</span> <span style="color:#a6e22e">Retriever</span>= <span style="color:#a6e22e">real</span>.<span style="color:#a6e22e">Retrievers</span>{<span style="color:#a6e22e">UserAgent</span>, <span style="color:#a6e22e">TimeOut</span>: <span style="color:#ae81ff">3</span>}
+</span></span><span style="display:flex;"><span>   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">download</span>(<span style="color:#a6e22e">r</span>))  <span style="color:#75715e">//这时就可以获取https://www.imooc.com的首页内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div></li>
+</ol>
+<p>上述实例就是描述了go接口的实际场景运用，并且这个过程就实现了多态，实例中为两种状态，即：测试态，上线态。</p>
+<p>更详细的接口实战应用可阅读：<a href="https://learnku.com/articles/67053">微信小程序登录服务后端实战</a></p>
+<h3 id="接口断言">接口断言</h3>
+<p>接口断言的类型有三种方法：</p>
+<h4 id="fmtprintft-vn-x-x">fmt.Printf(&quot;%T, %v\n&quot;, x, x)</h4>
+<p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">q</span> = <span style="color:#a6e22e">mock</span>.<span style="color:#a6e22e">Retrievers</span>{<span style="color:#e6db74">&#34;my name&#34;</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">r</span> <span style="color:#a6e22e">Retriever</span>= <span style="color:#a6e22e">real</span>.<span style="color:#a6e22e">Retrievers</span>{<span style="color:#a6e22e">UserAgent</span>: <span style="color:#e6db74">&#34;hhh&#34;</span>, <span style="color:#a6e22e">TimeOut</span>: <span style="color:#ae81ff">3</span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%T, %v\n&#34;</span>, <span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%T, %v\n&#34;</span>, <span style="color:#a6e22e">q</span>, <span style="color:#a6e22e">q</span>)
+</span></span></code></pre></div><p>输出：</p>
+<pre tabindex="0"><code>real.Retrievers, {hhh 3ns}
 mock.Retrievers, {my name}
-</code></pre><p>由此可以判断出，两种类型分别属于什么类型</p><h4 id=switch>switch</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>inspect</span>(<span style=color:#a6e22e>r</span> <span style=color:#a6e22e>Retriever</span>){
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Printf</span>(<span style=color:#e6db74>&#34;%T, %v\n&#34;</span>, <span style=color:#a6e22e>r</span>, <span style=color:#a6e22e>r</span>)
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>switch</span> <span style=color:#a6e22e>v</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>r</span>.(<span style=color:#66d9ef>type</span>){
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> <span style=color:#a6e22e>mock</span>.<span style=color:#a6e22e>Retrievers</span>:
-</span></span><span style=display:flex><span>       <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;mock.Retrievers:&#34;</span>,<span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Context</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> <span style=color:#a6e22e>real</span>.<span style=color:#a6e22e>Retrievers</span>:
-</span></span><span style=display:flex><span>       <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;real.Retrievers:&#34;</span>, <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>UserAgent</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>case</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>mock</span>.<span style=color:#a6e22e>Retrievers</span>:
-</span></span><span style=display:flex><span>       <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;*mock.Retrievers&#34;</span>, <span style=color:#a6e22e>v</span>.<span style=color:#a6e22e>Context</span>)
-</span></span><span style=display:flex><span>   }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h4 id=assertionttype>assertion(T.(type))</h4><p>例如：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//使用assertion断言类型
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span> <span style=color:#a6e22e>note</span> , <span style=color:#a6e22e>ok</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>r</span>.(<span style=color:#a6e22e>real</span>.<span style=color:#a6e22e>Retrievers</span>);<span style=color:#a6e22e>ok</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>note</span>.<span style=color:#a6e22e>UserAgent</span>)
-</span></span><span style=display:flex><span>} <span style=color:#66d9ef>else</span>{
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;this not real Retrieers&#34;</span>)
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>接口也可以是指针类型</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>r</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>Retrievers</span>)<span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>cur</span> <span style=color:#66d9ef>string</span>)<span style=color:#66d9ef>string</span>{
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>Context</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
-</span></span><span style=display:flex><span><span style=color:#75715e>//&amp;取地址
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>var</span> <span style=color:#a6e22e>q</span> = <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>mock</span>.<span style=color:#a6e22e>Retrievers</span>{<span style=color:#e6db74>&#34;my name&#34;</span>}
-</span></span></code></pre></div><h3 id=接口组合>接口组合</h3><p>在 Go 语言中，可以在接口 A 中组合其它的一个或多个接口（如接口 B、C），这种方式等价于在接口 A 中添加接口 B、C 中声明的方法。</p><p>例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//接口中可以组合其它接口，这种方式等效于在接口中添加其它接口的方法  
-</span></span></span><span style=display:flex><span><span style=color:#75715e>//读接口
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Reader</span> <span style=color:#66d9ef>interface</span> {  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>read</span>()  
-</span></span><span style=display:flex><span>}  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//写接口
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Writer</span> <span style=color:#66d9ef>interface</span> {  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>write</span>()  
-</span></span><span style=display:flex><span>}  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//定义上述两个接口的实现类  
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>MyReadWrite</span> <span style=color:#66d9ef>struct</span>{}  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//read接口的实现
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>mrw</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>MyReadWrite</span>) <span style=color:#a6e22e>read</span>() {  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;MyReadWrite...read&#34;</span>)  
-</span></span><span style=display:flex><span>}  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//write接口的实现
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>mrw</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>MyReadWrite</span>) <span style=color:#a6e22e>write</span>() {  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;MyReadWrite...write&#34;</span>)  
-</span></span><span style=display:flex><span>}  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//定义一个接口，组合了上述两个接口  
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ReadWriter</span> <span style=color:#66d9ef>interface</span> {  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Reader</span>  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Writer</span>  
-</span></span><span style=display:flex><span>}  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//上述接口等价于：  
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>ReadWriterV2</span> <span style=color:#66d9ef>interface</span> {  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>read</span>()  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>write</span>()  
-</span></span><span style=display:flex><span>}  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//ReadWriter和ReadWriterV2两个接口是等效的，因此可以相互赋值  
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>interfaceTest</span>() {  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>mrw</span> <span style=color:#f92672>:=</span> <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>MyReadWrite</span>{}  
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//mrw对象实现了read()方法和write()方法，因此可以赋值给ReadWriter和ReadWriterV2  
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>rw1</span> <span style=color:#a6e22e>ReadWriter</span> = <span style=color:#a6e22e>mrw</span>  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rw1</span>.<span style=color:#a6e22e>read</span>()  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rw1</span>.<span style=color:#a6e22e>write</span>()  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#e6db74>&#34;------&#34;</span>)  
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> <span style=color:#a6e22e>rw2</span> <span style=color:#a6e22e>ReadWriterV2</span> = <span style=color:#a6e22e>mrw</span>  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rw2</span>.<span style=color:#a6e22e>read</span>()  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rw2</span>.<span style=color:#a6e22e>write</span>()  
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//同时，ReadWriter和ReadWriterV2两个接口对象可以相互赋值  
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>rw1</span> = <span style=color:#a6e22e>rw2</span>  
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rw2</span> = <span style=color:#a6e22e>rw1</span>  
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h3 id=空接口interface>空接口(interface{})</h3><ul><li>可能出现在函数声明的参数列表中，表示可以传入任意类型参数</li><li>空接口可以被赋予任意类型的值</li><li>实际的例子就是fmt.Println函数，通过使用空接口和类型查询，可以实现接受任意对象实例并进行处理</li></ul><p>实例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#a6e22e>OrderList</span> <span style=color:#f92672>:=</span> make([]<span style=color:#66d9ef>interface</span>{}, <span style=color:#ae81ff>0</span>)   <span style=color:#75715e>//make关于可以存放任何类型的切片
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>Item</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>range</span> <span style=color:#a6e22e>Rsp</span>.<span style=color:#a6e22e>Data</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span> <span style=color:#f92672>:=</span> <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>]<span style=color:#66d9ef>interface</span>{}{}    <span style=color:#75715e>//使用interface{}存放多任何类型的值
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;id&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>Id</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;name&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>Name</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;total&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>Total</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;userId&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>UserId</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;status&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>Status</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;orderSn&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>OrderSn</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;address&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>Address</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;mobile&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>Mobile</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;post&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>Post</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;pay_type&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>PayType</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>ItemMap</span>[<span style=color:#e6db74>&#34;add_time&#34;</span>] = <span style=color:#a6e22e>Item</span>.<span style=color:#a6e22e>AddTime</span>
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>OrderList</span> = append(<span style=color:#a6e22e>OrderList</span>, <span style=color:#a6e22e>Item</span>)
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>ReMap</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>gin</span>.<span style=color:#a6e22e>H</span>{
-</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;total&#34;</span>: <span style=color:#a6e22e>Rsp</span>.<span style=color:#a6e22e>Total</span>,
-</span></span><span style=display:flex><span>		<span style=color:#e6db74>&#34;data&#34;</span>:  <span style=color:#a6e22e>OrderList</span>,
-</span></span><span style=display:flex><span>	}
-</span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>
+</code></pre><p>由此可以判断出，两种类型分别属于什么类型</p>
+<h4 id="switch">switch</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">inspect</span>(<span style="color:#a6e22e">r</span> <span style="color:#a6e22e">Retriever</span>){
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%T, %v\n&#34;</span>, <span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.(<span style="color:#66d9ef">type</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">mock</span>.<span style="color:#a6e22e">Retrievers</span>:
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;mock.Retrievers:&#34;</span>,<span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Context</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">real</span>.<span style="color:#a6e22e">Retrievers</span>:
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;real.Retrievers:&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">UserAgent</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mock</span>.<span style="color:#a6e22e">Retrievers</span>:
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;*mock.Retrievers&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Context</span>)
+</span></span><span style="display:flex;"><span>   }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="assertionttype">assertion(T.(type))</h4>
+<p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//使用assertion断言类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">note</span> , <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.(<span style="color:#a6e22e">real</span>.<span style="color:#a6e22e">Retrievers</span>);<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">note</span>.<span style="color:#a6e22e">UserAgent</span>)
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;this not real Retrieers&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>接口也可以是指针类型</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Retrievers</span>)<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">cur</span> <span style="color:#66d9ef">string</span>)<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//&amp;取地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">q</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">mock</span>.<span style="color:#a6e22e">Retrievers</span>{<span style="color:#e6db74">&#34;my name&#34;</span>}
+</span></span></code></pre></div><h3 id="接口组合">接口组合</h3>
+<p>在 Go 语言中，可以在接口 A 中组合其它的一个或多个接口（如接口 B、C），这种方式等价于在接口 A 中添加接口 B、C 中声明的方法。</p>
+<p>例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//接口中可以组合其它接口，这种方式等效于在接口中添加其它接口的方法  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//读接口
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reader</span> <span style="color:#66d9ef">interface</span> {  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">read</span>()  
+</span></span><span style="display:flex;"><span>}  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//写接口
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Writer</span> <span style="color:#66d9ef">interface</span> {  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">write</span>()  
+</span></span><span style="display:flex;"><span>}  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//定义上述两个接口的实现类  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyReadWrite</span> <span style="color:#66d9ef">struct</span>{}  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//read接口的实现
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">mrw</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReadWrite</span>) <span style="color:#a6e22e">read</span>() {  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;MyReadWrite...read&#34;</span>)  
+</span></span><span style="display:flex;"><span>}  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//write接口的实现
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">mrw</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReadWrite</span>) <span style="color:#a6e22e">write</span>() {  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;MyReadWrite...write&#34;</span>)  
+</span></span><span style="display:flex;"><span>}  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//定义一个接口，组合了上述两个接口  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReadWriter</span> <span style="color:#66d9ef">interface</span> {  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Reader</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Writer</span>  
+</span></span><span style="display:flex;"><span>}  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//上述接口等价于：  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReadWriterV2</span> <span style="color:#66d9ef">interface</span> {  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">read</span>()  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">write</span>()  
+</span></span><span style="display:flex;"><span>}  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//ReadWriter和ReadWriterV2两个接口是等效的，因此可以相互赋值  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">interfaceTest</span>() {  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mrw</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyReadWrite</span>{}  
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//mrw对象实现了read()方法和write()方法，因此可以赋值给ReadWriter和ReadWriterV2  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rw1</span> <span style="color:#a6e22e">ReadWriter</span> = <span style="color:#a6e22e">mrw</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rw1</span>.<span style="color:#a6e22e">read</span>()  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rw1</span>.<span style="color:#a6e22e">write</span>()  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;------&#34;</span>)  
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rw2</span> <span style="color:#a6e22e">ReadWriterV2</span> = <span style="color:#a6e22e">mrw</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rw2</span>.<span style="color:#a6e22e">read</span>()  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rw2</span>.<span style="color:#a6e22e">write</span>()  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//同时，ReadWriter和ReadWriterV2两个接口对象可以相互赋值  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">rw1</span> = <span style="color:#a6e22e">rw2</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rw2</span> = <span style="color:#a6e22e">rw1</span>  
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="空接口interface">空接口(interface{})</h3>
+<ul>
+<li>可能出现在函数声明的参数列表中，表示可以传入任意类型参数</li>
+<li>空接口可以被赋予任意类型的值</li>
+<li>实际的例子就是fmt.Println函数，通过使用空接口和类型查询，可以实现接受任意对象实例并进行处理</li>
+</ul>
+<p>实例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">OrderList</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">interface</span>{}, <span style="color:#ae81ff">0</span>)   <span style="color:#75715e">//make关于可以存放任何类型的切片
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">Item</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">Rsp</span>.<span style="color:#a6e22e">Data</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{}    <span style="color:#75715e">//使用interface{}存放多任何类型的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;id&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">Id</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;name&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">Name</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;total&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">Total</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;userId&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">UserId</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;status&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">Status</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;orderSn&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">OrderSn</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;address&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">Address</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;mobile&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">Mobile</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;post&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">Post</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;pay_type&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">PayType</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ItemMap</span>[<span style="color:#e6db74">&#34;add_time&#34;</span>] = <span style="color:#a6e22e">Item</span>.<span style="color:#a6e22e">AddTime</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">OrderList</span> = append(<span style="color:#a6e22e">OrderList</span>, <span style="color:#a6e22e">Item</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ReMap</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;total&#34;</span>: <span style="color:#a6e22e">Rsp</span>.<span style="color:#a6e22e">Total</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;data&#34;</span>:  <span style="color:#a6e22e">OrderList</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div>
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

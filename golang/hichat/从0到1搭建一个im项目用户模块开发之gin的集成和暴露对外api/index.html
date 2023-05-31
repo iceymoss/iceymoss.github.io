@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「从0到1搭建一个IM项目」用户模块开发之gin的集成和暴露对外api // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「从0到1搭建一个IM项目」用户模块开发之gin的集成和暴露对外api"/>
+<meta name="twitter:description" content="[toc] 概况 在上一篇中完成了用户数据库表设计及dao层的开发，完成了底层基础功能；在本篇中将Gin框架集成到项目中， 以及对外实现api的开发， 目前"/>
+
+    <meta property="og:title" content="「从0到1搭建一个IM项目」用户模块开发之gin的集成和暴露对外api" />
+<meta property="og:description" content="[toc] 概况 在上一篇中完成了用户数据库表设计及dao层的开发，完成了底层基础功能；在本篇中将Gin框架集成到项目中， 以及对外实现api的开发， 目前" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8Bgin%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9A%B4%E9%9C%B2%E5%AF%B9%E5%A4%96api/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-05-31T20:14:39+08:00" />
+<meta property="article:modified_time" content="2023-05-31T20:14:39+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「从0到1搭建一个IM项目」用户模块开发之gin的集成和暴露对外api</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 31, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          6 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gin/">Gin</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web/">web</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>在上一篇中完成了用户数据库表设计及dao层的开发，完成了底层基础功能；在本篇中将Gin框架集成到项目中， 以及对外实现api的开发， 目前项目目录结构：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>HiChat   
+</span></span><span style="display:flex;"><span>    ├── common    //放置公共文件
+</span></span><span style="display:flex;"><span>    │  
+</span></span><span style="display:flex;"><span>    ├── config    //做配置文件
+</span></span><span style="display:flex;"><span>    │  
+</span></span><span style="display:flex;"><span>    ├── dao//数据库crud
+</span></span><span style="display:flex;"><span>    │     |——user.go
+</span></span><span style="display:flex;"><span>    |
+</span></span><span style="display:flex;"><span>    ├── global    //放置各种连接池，配置等
+</span></span><span style="display:flex;"><span>    │   		|——global.go
+</span></span><span style="display:flex;"><span>    |
+</span></span><span style="display:flex;"><span>    ├── initialize  //项目初始化文件
+</span></span><span style="display:flex;"><span>    │  			|——db.go
+</span></span><span style="display:flex;"><span>    |				|——logger.go
+</span></span><span style="display:flex;"><span>    |
+</span></span><span style="display:flex;"><span>    ├── middlewear  //放置web中间件
+</span></span><span style="display:flex;"><span>    │ 
+</span></span><span style="display:flex;"><span>    ├── models      //数据库表设计
+</span></span><span style="display:flex;"><span>    │   		|——user_basic.go
+</span></span><span style="display:flex;"><span>    |
+</span></span><span style="display:flex;"><span>    ├── router   		//路由
+</span></span><span style="display:flex;"><span>    │   
+</span></span><span style="display:flex;"><span>    ├── service     //对外api
+</span></span><span style="display:flex;"><span>    │   
+</span></span><span style="display:flex;"><span>    ├── test        //测试文件
+</span></span><span style="display:flex;"><span>    │  
+</span></span><span style="display:flex;"><span>    ├── main.go     //项目入口
+</span></span><span style="display:flex;"><span>    ├── go.mod			//项目依赖管理
+</span></span><span style="display:flex;"><span>    ├── go.sum			//项目依赖管理
+</span></span></code></pre></div><h3 id="集成gin框架">集成Gin框架</h3>
+<h4 id="安装gin">安装Gin</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gin</span><span style="color:#f92672">-</span><span style="color:#a6e22e">gonic</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gin</span>
+</span></span></code></pre></div><h4 id="快速入门">快速入门</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//handle方法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Pong</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;name&#34;</span>:   <span style="color:#e6db74">&#34;ice_moss&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;age&#34;</span>:    <span style="color:#ae81ff">18</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;school&#34;</span>: <span style="color:#e6db74">&#34;家里蹲大学&#34;</span>,
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//初始化一个gin的server对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//Default实例化对象具有日志和返回状态功能
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//注册路由，并编写处理方法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/ping&#34;</span>, <span style="color:#a6e22e">Pong</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//监听端口：默认端口listen and serve on 0.0.0.0:8080
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;:8083&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>接下来我们在浏览器中访问：<a href="http://localhost:8083/ping">localhost:8083/ping</a></p>
+<p>可以访问到：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#e6db74">&#34;name&#34;</span><span style="color:#960050;background-color:#1e0010">:</span>   <span style="color:#e6db74">&#34;ice_moss&#34;</span><span style="color:#960050;background-color:#1e0010">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;age&#34;</span><span style="color:#960050;background-color:#1e0010">:</span>    <span style="color:#ae81ff">18</span><span style="color:#960050;background-color:#1e0010">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;school&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#e6db74">&#34;家里蹲大学&#34;</span><span style="color:#960050;background-color:#1e0010">,</span>
+</span></span></code></pre></div><p>您可能需要学习更多的gin知识：<a href="https://learnku.com/articles/69259">GoWeb框架Gin学习总结</a></p>
+<h4 id="gin的集成">gin的集成</h4>
+<p>在router目录下新建文件router.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/middlewear&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/service&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Router</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Engine</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化路由
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//v1版本
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">v1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;v1&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用户模块，后续有个用户的api就放置其中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/list&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">List</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后在main.go中调用该方法， 并启动gin服务</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/initialize&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/router&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化日志
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">initialize</span>.<span style="color:#a6e22e">InitLogger</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化配置
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">initialize</span>.<span style="color:#a6e22e">InitConfig</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">initialize</span>.<span style="color:#a6e22e">InitDB</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Router</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;:8000&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这样gin成功集成进项目中了。</p>
+<h3 id="用户模块api的开发">用户模块api的开发</h3>
+<p>现在开始正式编写完整的api了，首先我们在service目录下新建user.go文件</p>
+<p>现在需要思考元一下项目中需要哪些用户模块的api</p>
+<ol>
+<li>用户列表</li>
+<li>密码登录</li>
+<li>注册用户</li>
+<li>更新用户信息</li>
+<li>账号注销</li>
+</ol>
+<p>要下面我们来一一实现</p>
+<h4 id="用户列表">用户列表</h4>
+<p>这是一个get方法， 可以提供管理员，目前还没有进行管理员认证鉴权，所以此时所有用户都可以调用这个api</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">list</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">GetUserList</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//0 表示成功， -1 表示失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;获取用户列表失败&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">list</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这里将用户所有的信息都无脑返回了，其实是不符合我们接口设计的，有兴趣的小伙伴可以将不该返回的数据屏蔽。</p>
+<h4 id="密码登录">密码登录</h4>
+<p>这里就应该是一个post方法了，用户提交用户名和密码，然后需要对密码和用户名进行核验。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">LoginByNameAndPassWord</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">name</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;name&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">password</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;password&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">FindUserByName</span>(<span style="color:#a6e22e">name</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//0 表示成功， -1 表示失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;登录失败&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">Name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;用户名不存在&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//由于数据库密码保存是使用md5密文的， 所以验证密码时，是将密码再次加密，然后进行对比，后期会讲解md:common.CheckPassWord
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">CheckPassWord</span>(<span style="color:#a6e22e">password</span>, <span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">Salt</span>, <span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">PassWord</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;密码错误&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Rsp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">FindUserByNameAndPwd</span>(<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">PassWord</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;登录失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//这里使用jwt做权限认证，后面将会介绍
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">GenerateToken</span>(<span style="color:#a6e22e">Rsp</span>.<span style="color:#a6e22e">ID</span>, <span style="color:#e6db74">&#34;yk&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;生成token失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;登录成功&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;tokens&#34;</span>:  <span style="color:#a6e22e">token</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;userId&#34;</span>:  <span style="color:#a6e22e">Rsp</span>.<span style="color:#a6e22e">ID</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="注册用户">注册用户</h4>
+<p>使用post方法， 用户输入注册用户名、两次输入密码</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewUser</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">UserBasic</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Name</span> = <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;name&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">password</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;password&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">repassword</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;Identity&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">password</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">repassword</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;用户名或密码不能为空！&#34;</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;data&#34;</span>:    <span style="color:#a6e22e">user</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//查询用户是否存在
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">FindUser</span>(<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Name</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;该用户已注册&#34;</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;data&#34;</span>:    <span style="color:#a6e22e">user</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">password</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">repassword</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;两次密码不一致！&#34;</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;data&#34;</span>:    <span style="color:#a6e22e">user</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//生成盐值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">salt</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%d&#34;</span>, <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Int31</span>())
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//加密密码
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">PassWord</span> = <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">SaltPassWord</span>(<span style="color:#a6e22e">password</span>, <span style="color:#a6e22e">salt</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Salt</span> = <span style="color:#a6e22e">salt</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">LoginTime</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">t</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">LoginOutTime</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">t</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">HeartBeatTime</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">t</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">CreateUser</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;新增用户成功！&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;data&#34;</span>:    <span style="color:#a6e22e">user</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="更新用户信息">更新用户信息</h4>
+<p>可以使用post方法或者put方法，这里我们依然使用post方法吧</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">UpdataUser</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">UserBasic</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">id</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;id&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;注销账号失败&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">ID</span> = uint(<span style="color:#a6e22e">id</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Name</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;name&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">PassWord</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;password&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Email</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;email&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Phone</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;phone&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">avatar</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;icon&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">gender</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;gender&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">Name</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Name</span> = <span style="color:#a6e22e">Name</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">PassWord</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">salt</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%d&#34;</span>, <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Int31</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Salt</span> = <span style="color:#a6e22e">salt</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">PassWord</span> = <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">SaltPassWord</span>(<span style="color:#a6e22e">PassWord</span>, <span style="color:#a6e22e">salt</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">Email</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Email</span> = <span style="color:#a6e22e">Email</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">Phone</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Phone</span> = <span style="color:#a6e22e">Phone</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">avatar</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Avatar</span> = <span style="color:#a6e22e">avatar</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">gender</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Gender</span> = <span style="color:#a6e22e">gender</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">govalidator</span>.<span style="color:#a6e22e">ValidateStruct</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;参数不匹配&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusBadRequest</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;参数不匹配&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Rsp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">UpdateUser</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;更新用户失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;修改信息失败&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;修改成功&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;data&#34;</span>:    <span style="color:#a6e22e">Rsp</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="账号注销">账号注销</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">DeleteUser</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">UserBasic</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">id</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;id&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;注销账号失败&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">ID</span> = uint(<span style="color:#a6e22e">id</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">DeleteUser</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;注销用户失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;注销账号失败&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;注销账号成功&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="配置路由">配置路由</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/middlewear&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/service&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Router</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Engine</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化路由
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//v1版本
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">v1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;v1&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用户模块，后续有个用户的api就放置其中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/list&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">List</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/login_pw&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">LoginByNameAndPassWord</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/new&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">NewUser</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/delete&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">DeleteUser</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/updata&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">UpdataUser</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这样整个api就完成了：</p>
+<h3 id="测试api">测试api</h3>
+<h4 id="启动服务">启动服务</h4>
+<pre tabindex="0"><code>go run main.go
+</code></pre><p>可以看到：</p>
+<pre tabindex="0"><code>[GIN-debug] GET    /v1/user/list             --&gt; HiChat/service.List (4 handlers)
+[GIN-debug] POST   /v1/user/login_pw         --&gt; HiChat/service.LoginByNameAndPassWord (3 handlers)
+[GIN-debug] POST   /v1/user/new              --&gt; HiChat/service.NewUser (4 handlers)
+[GIN-debug] DELETE /v1/user/delete           --&gt; HiChat/service.DeleteUser (4 handlers)
+[GIN-debug] POST   /v1/user/updata           --&gt; HiChat/service.UpdataUser (4 handlers)
+</code></pre><h4 id="测试">测试</h4>
+<h5 id="v1userlist">/v1/user/list</h5>
+<p>这里需要您之前写入一些数据，用slq或者到层的CreatUser()方法</p>
+<p>当我们访问：http://127.0.0.1:8000/v1/user/list</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>[ 
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ID&#34;</span>: <span style="color:#ae81ff">8</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;CreatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:17:16.365+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;UpdatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:17:16.365+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeletedAt&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;ice_moss&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;PassWord&#34;</span>: <span style="color:#e6db74">&#34;d41d8cd98f00b204e9800998ecf8427e$1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Avatar&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Gender&#34;</span>: <span style="color:#e6db74">&#34;male&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Phone&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Email&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Identity&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientIp&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientPort&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Salt&#34;</span>: <span style="color:#e6db74">&#34;1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:17:16.363+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;HeartBeatTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:17:16.363+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginOutTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:17:16.363+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;IsLoginOut&#34;</span>: <span style="color:#66d9ef">false</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeviceInfo&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ID&#34;</span>: <span style="color:#ae81ff">9</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;CreatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:30:34.893+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;UpdatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:30:34.893+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeletedAt&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;ice_moss1&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;PassWord&#34;</span>: <span style="color:#e6db74">&#34;d41d8cd98f00b204e9800998ecf8427e$1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Avatar&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Gender&#34;</span>: <span style="color:#e6db74">&#34;male&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Phone&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Email&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Identity&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientIp&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientPort&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Salt&#34;</span>: <span style="color:#e6db74">&#34;1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:30:34.892+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;HeartBeatTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:30:34.892+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginOutTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:30:34.892+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;IsLoginOut&#34;</span>: <span style="color:#66d9ef">false</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeviceInfo&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ID&#34;</span>: <span style="color:#ae81ff">10</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;CreatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:37:19.508+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;UpdatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-24T16:38:56.717+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeletedAt&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;ice_moss2&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;PassWord&#34;</span>: <span style="color:#e6db74">&#34;0192023a7bbd73250516f069df18b500$1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Avatar&#34;</span>: <span style="color:#e6db74">&#34;https://mxshopfiles.oss-cn-shanghai.aliyuncs.com/work/103800kbdgbv2zdv1vnnrd.jpeg&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Gender&#34;</span>: <span style="color:#e6db74">&#34;male&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Phone&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Email&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Identity&#34;</span>: <span style="color:#e6db74">&#34;9fce97499eea554562d27d086da558e3&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientIp&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientPort&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Salt&#34;</span>: <span style="color:#e6db74">&#34;1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:37:19.507+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;HeartBeatTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:37:19.507+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginOutTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-22T19:37:19.507+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;IsLoginOut&#34;</span>: <span style="color:#66d9ef">false</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeviceInfo&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ID&#34;</span>: <span style="color:#ae81ff">11</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;CreatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-24T16:51:53.418+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;UpdatedAt&#34;</span>: <span style="color:#e6db74">&#34;2022-12-24T18:26:06.611+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeletedAt&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Name&#34;</span>: <span style="color:#e6db74">&#34;ice_moss4&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;PassWord&#34;</span>: <span style="color:#e6db74">&#34;0192023a7bbd73250516f069df18b500$1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Avatar&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Gender&#34;</span>: <span style="color:#e6db74">&#34;male&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Phone&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Email&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Identity&#34;</span>: <span style="color:#e6db74">&#34;5993bcfc7b16b8a84e22aefc6b42a528&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientIp&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ClientPort&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Salt&#34;</span>: <span style="color:#e6db74">&#34;1298498081&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-24T16:51:53.417+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;HeartBeatTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-24T16:51:53.417+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;LoginOutTime&#34;</span>: <span style="color:#e6db74">&#34;2022-12-24T16:51:53.417+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;IsLoginOut&#34;</span>: <span style="color:#66d9ef">false</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;DeviceInfo&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span> ]
+</span></span></code></pre></div><h5 id="v1userlogin_pw">/v1/user/login_pw</h5>
+<p>post方法我们不能直接使用浏览器，这里推荐使用postman</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2022-12-28%20%E4%B8%8B%E5%8D%885.55.10.png" alt=""></p>
+<p>其他api的测试方法都一样， 这里就不重复了。</p>
+<h3 id="总结">总结</h3>
+<p>到这里，我们用户模块的功能api就开发完成了，其实也很简单，就是获取到请求参数，然后进行判断，最后调用dao层的方法，但是依然不完整，例如我们的获取用户列表，更新，删除等功能，我们直接调用api就可以完成，那岂不是每一个人都能操作我们是数据库了，所以接下来，需要做的就是限制用户请求，只能需要修改他当前用户下的数据，称为鉴权，在测试登录用户时，返回了一个字段tokens,我们便是是token来实现，鉴权的，当然还需要介绍一下密码的加密功能。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

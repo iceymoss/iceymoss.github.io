@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>悲观锁 on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/%E6%82%B2%E8%A7%82%E9%94%81/</link>
+    <description>Recent content in 悲观锁 on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 31 May 2023 19:40:53 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/%E6%82%B2%E8%A7%82%E9%94%81/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于mysql分布式悲观锁原理</title>
+      <link>https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Emysql%E5%88%86%E5%B8%83%E5%BC%8F%E6%82%B2%E8%A7%82%E9%94%81%E5%8E%9F%E7%90%86/</link>
+      <pubDate>Wed, 31 May 2023 19:40:53 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Emysql%E5%88%86%E5%B8%83%E5%BC%8F%E6%82%B2%E8%A7%82%E9%94%81%E5%8E%9F%E7%90%86/</guid>
+      <description>[toc] MySQL分布式悲观锁原理： 条件 FOR UPDATE 仅适用于InnoDB存储引擎，且必须在事务区块(BEGIN/COMMIT)中才能生效。 mysql默认情</description>
+    </item>
+    
+  </channel>
+</rss>

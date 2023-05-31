@@ -1,276 +1,404 @@
-<!doctype html><html lang=zh-cn><head><title>数据结构之堆及堆排序 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="数据结构之堆及堆排序"><meta name=twitter:description content="[toc] 堆的定义 ***堆（heap）***是计算机科学中一类特殊的数据结构的统称。堆通常是一个可以被看做一棵树的数组对象。堆总是满足下列性质： 堆中"><meta property="og:title" content="数据结构之堆及堆排序"><meta property="og:description" content="[toc] 堆的定义 ***堆（heap）***是计算机科学中一类特殊的数据结构的统称。堆通常是一个可以被看做一棵树的数组对象。堆总是满足下列性质： 堆中"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-25T20:10:08+08:00"><meta property="article:modified_time" content="2023-05-25T20:10:08+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
-<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
--
-<a class=app-header-menu-item href=/archives/>归档</a>
--
-<a class=app-header-menu-item href=/tags/>标签</a>
--
-<a class=app-header-menu-item href=/categories/>类别</a>
--
-<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>数据结构之堆及堆排序</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</div></div></header><div class=post-content><p>[toc]</p><h2 id=堆的定义>堆的定义</h2><p>***堆（heap）***是计算机科学中一类特殊的数据结构的统称。堆通常是一个可以被看做一棵树的数组对象。堆总是满足下列性质：</p><ul><li>堆中某个结点的值总是不大于或不小于其父结点的值；</li><li>堆总是一棵<em><strong>完全二叉树</strong></em>。</li></ul><p>将根结点最大的堆叫做最大堆或大根堆，根结点最小的堆叫做最小堆或小根堆。常见的堆有二叉堆、[斐波那契堆]等。</p><p>堆是非线性数据结构，相当于一维数组，有两个直接后继。</p><h2 id=逻辑>逻辑</h2><p>堆的定义如下：n个元素的序列{k1,k2,ki,…,kn}当且仅当满足下关系时，称之为堆。有如下事实：
-Ki >= K(2i)，Ki >= K(i+1)或者Ki &lt;= K(2i)，Ki &lt;= K(i+1)</p><p>若将和此次序列对应的一维数组（即以一维数组作此序列的存储结构）看成是一个完全二叉树，则堆的含义表明，完全二叉树中所有非终端结点的值均不大于（或不小于）其左、右孩子结点的值。由此，若序列{k1,k2,…,kn}是堆，则堆顶元素（或完全二叉树的根）必为序列中n个元素的最小值（或最大值）。
-这里我们以最大堆为例进行讲解，如下图：</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/2wkDyNytXU.png!large alt></p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/kocT4Dh8vG.png!large alt></p><p>下图用将堆的索引标记出：</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/f5RlJvSYkd.png!large alt></p><h2 id=实现>实现</h2><p>如何实现堆呢？</p><h3 id=第一步堆的构建>第一步：堆的构建</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;algorithm&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;ctime&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;cmath&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;cassert&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>using</span> <span style=color:#66d9ef>namespace</span> std;
-</span></span><span style=display:flex><span><span style=color:#75715e>//使用模板函数
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> Item<span style=color:#f92672>&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MaxHeap</span>{
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>    Item <span style=color:#f92672>*</span>data; <span style=color:#75715e>//作为数组的指针
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> count; <span style=color:#75715e>//表示为数组的索引
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> capacity; <span style=color:#75715e>//表示堆的容量
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   
-</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//构造函数
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//构造一个空堆
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    MaxHeap(<span style=color:#66d9ef>int</span> capacity) {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>//动态的开辟一片空间，并将data指向该空间
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        data <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Item[capacity <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>];
-</span></span><span style=display:flex><span>        count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span><span style=color:#f92672>-&gt;</span>capacity <span style=color:#f92672>=</span> capacity;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>   <span style=color:#75715e>//析构函数，将new的空间释放掉
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>~</span>MaxHeap(){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>delete</span> []data;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//返回堆的大小
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>size</span>(){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> count ;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//判断是否为空堆
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>bool</span> <span style=color:#a6e22e>is_empty</span>(){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> count <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>};
-</span></span></code></pre></div><p>现在我们就将堆构造完成了，现在我们构建的堆好像没有什么用，我们还需要对进行数据的插入(Shift Up)和取出(Shift Down)操作，下面分别来实现。</p><h3 id=第二步shift-up和shift-down>第二步：Shift Up和Shift Down</h3><h4 id=1-shift-up>1. Shift Up</h4><p>首先我们需要了解什么是Shift Up：</p><pre><code>就是将堆中插入元素的操作，其逻辑为：从堆后一个节点插入元素，如下图：
-</code></pre><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/SXWQDWm9QI.png!large alt></p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/yrWInZfoey.png!large alt></p><p>插入元素后必须维护堆的定义，所以需要将新插入的元素做比较，其方法是：</p><p>将新元素跟它所在节点的上一个节点 (新元素的父节点) 的数比较，如下图中：</p><p>53 > 16 需要将两元素位置互换</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/1J1bUS0Mn1.png!large alt>
-互换位置后就变成了下图：</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/FR3U43r1Jx.png!large alt></p><p>然后仍然需要维护堆的定义所以需要将52和它的父节点的元素做比较：</p><p>52 > 41,所以将两元素位置互换</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/nu14t3G8Cn.png!large alt></p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/uf5bpFaAAl.png!large alt></p><p>就得到下图，但仍然需要维护堆的定义，所以继续比较</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/I3olKBFO5T.png!large alt></p><p>最后就变成了下图</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/51J0v6sHIv.png!large alt></p><p>这就是整个ShiftUp操作</p><p><em><strong>下面上代码</strong></em>：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>//向堆中插入元素
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>insert</span>(Item item){
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//我们这里的对的根节点从索引为1开始，所以需要capacity+1的空间
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//assert用于判断是否满足capacity+1 &gt; capacity
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    assert(capacity<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&gt;</span> capacity);
-</span></span><span style=display:flex><span>    data[count<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>] <span style=color:#f92672>=</span> item; 
-</span></span><span style=display:flex><span>    count<span style=color:#f92672>++</span>;
-</span></span><span style=display:flex><span>    ShiftUp(count);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>这里我将构造函数ShiftUp()写在private中，用户不需要看到我们背后的逻辑</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#66d9ef>private</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>    Item <span style=color:#f92672>*</span>data; <span style=color:#75715e>//作为数组的指针
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> count; <span style=color:#75715e>//表示为数组的索引
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> capacity; <span style=color:#75715e>//表示堆的容量
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//构造shiftUp
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>ShiftUp</span>(<span style=color:#66d9ef>int</span> k){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>while</span>(k<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&amp;&amp;</span> data[k<span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>] <span style=color:#f92672>&gt;</span> data[k]){
-</span></span><span style=display:flex><span>            swap(data[k<span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>], data[k]);
-</span></span><span style=display:flex><span>            k<span style=color:#f92672>/=</span><span style=color:#ae81ff>2</span>;
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span></code></pre></div><p>完成了Shift Up,下面我们来完成Shift Down</p><h4 id=2-shift-down>2. Shift Down</h4><p>Shift Down是指从堆中将元素取出，其取出操作是：</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/FWwj4QzoB6.png!large alt></p><p>将堆中的第一个元素取出</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/j21XLloYJJ.png!large alt></p><p>然后将堆最后一个元素放到原来取出元素的位置</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/y2qp4A5vLK.png!large alt></p><p>然后将该元素的左右孩子节点的元素进行比较 （如下图将52和30比较），然后将该元素和左右孩子节点中值大的元素进行位置互换</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/07pXoTnCSq.png!large alt></p><p>如下图：
-<img src=https://cdn.learnku.com/uploads/images/202103/27/69310/tcTvTuUj6u.png!large alt></p><p>然后在将该元素现在所在的节点的左右孩子节点的元素进行比较</p><p><img src=https://cdn.learnku.com/uploads/images/202103/27/69310/0YJtskGPmj.png!large alt></p><p>得到如下图：
-<img src=https://cdn.learnku.com/uploads/images/202103/27/69310/mwgdpymsyX.png!large alt></p><p>此时还会判断16 和15两元素的大小</p><p>此时ShiftDown就完成了</p><p><em><strong>下面上代码</strong></em>：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>Item <span style=color:#a6e22e>extractMax</span>(){
-</span></span><span style=display:flex><span>    assert(count<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>0</span>);
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//将第一个元素取出
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    Item ret <span style=color:#f92672>=</span> data[<span style=color:#ae81ff>1</span>];
-</span></span><span style=display:flex><span>   <span style=color:#75715e>//将最后一个元素放置第一个位置
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    swap(data[<span style=color:#ae81ff>1</span>], data[count]);
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//将多余的位置消去
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    count<span style=color:#f92672>--</span>;
-</span></span><span style=display:flex><span>    ShiftDown(<span style=color:#ae81ff>1</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> ret;
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>仍然将ShiftDown放在private中</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#66d9ef>private</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>    Item <span style=color:#f92672>*</span>data; <span style=color:#75715e>//作为数组的指针
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> count; <span style=color:#75715e>//表示为数组的索引
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> capacity; <span style=color:#75715e>//表示堆的容量
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//构造shiftUp
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>shiftUp</span>(<span style=color:#66d9ef>int</span> k){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>while</span>(k<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&amp;&amp;</span> data[k<span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>] <span style=color:#f92672>&gt;</span> data[k]){
-</span></span><span style=display:flex><span>            swap(data[k<span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>], data[k]);
-</span></span><span style=display:flex><span>            k<span style=color:#f92672>/=</span><span style=color:#ae81ff>2</span>;
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>ShiftDown</span>(<span style=color:#66d9ef>int</span> k){
-</span></span><span style=display:flex><span>        <span style=color:#75715e>//判断是否存在左孩子
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>while</span>(<span style=color:#ae81ff>2</span><span style=color:#f92672>*</span>k <span style=color:#f92672>&lt;</span> count){
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>int</span> j <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span><span style=color:#f92672>*</span>k;
-</span></span><span style=display:flex><span>            <span style=color:#75715e>//是否存在右孩子
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>if</span>(j<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;</span> count <span style=color:#f92672>&amp;&amp;</span> data[j<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>] <span style=color:#f92672>&gt;</span> data[j])
-</span></span><span style=display:flex><span>                j<span style=color:#f92672>++</span>;
-</span></span><span style=display:flex><span>           <span style=color:#75715e>//data[j]是data[2*k],data[2*k+1]中的最大值
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>if</span>(data[k] <span style=color:#f92672>&gt;</span> data[j])
-</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
-</span></span><span style=display:flex><span>            swap(data[k]), data[j];
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span></code></pre></div><h2 id=源码>源码</h2><p>这样堆就完成了，下面我们将整个源码给出：</p><h3 id=c实现>C++实现：</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;algorithm&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;string&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;ctime&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;cmath&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;cassert&gt;</span><span style=color:#75715e>
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>using</span> <span style=color:#66d9ef>namespace</span> std;
-</span></span><span style=display:flex><span><span style=color:#75715e>//使用模板函数
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> Item<span style=color:#f92672>&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MaxHeap</span>{
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>    Item <span style=color:#f92672>*</span>data; <span style=color:#75715e>//作为数组的指针
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> count; <span style=color:#75715e>//表示为数组的索引
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> capacity; <span style=color:#75715e>//表示堆的容量
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//构造shiftUp
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>shiftUp</span>(<span style=color:#66d9ef>int</span> k){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>while</span>(k<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&amp;&amp;</span> data[k<span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>] <span style=color:#f92672>&gt;</span> data[k]){
-</span></span><span style=display:flex><span>            swap(data[k<span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>], data[k]);
-</span></span><span style=display:flex><span>            k<span style=color:#f92672>/=</span><span style=color:#ae81ff>2</span>;
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>ShiftDown</span>(<span style=color:#66d9ef>int</span> k){
-</span></span><span style=display:flex><span>        <span style=color:#75715e>//判断是否存在左孩子
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>while</span>(<span style=color:#ae81ff>2</span><span style=color:#f92672>*</span>k <span style=color:#f92672>&lt;</span> count){
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>int</span> j <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span><span style=color:#f92672>*</span>k;
-</span></span><span style=display:flex><span>            <span style=color:#75715e>//是否存在右孩子
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>if</span>(j<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;</span> count <span style=color:#f92672>&amp;&amp;</span> data[j<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>] <span style=color:#f92672>&gt;</span> data[j])
-</span></span><span style=display:flex><span>                j<span style=color:#f92672>++</span>;
-</span></span><span style=display:flex><span>           <span style=color:#75715e>//data[j]是data[2*k],data[2*k+1]中的最大值
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>if</span>(data[k] <span style=color:#f92672>&gt;</span> data[j])
-</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
-</span></span><span style=display:flex><span>            swap(data[k]), data[j];
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//构造函数
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//构造一个空堆
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    MaxHeap(<span style=color:#66d9ef>int</span> capacity) {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>//动态的开辟一片空间，并将data指向该空间
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        data <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Item[capacity <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>];
-</span></span><span style=display:flex><span>        count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span><span style=color:#f92672>-&gt;</span>capacity <span style=color:#f92672>=</span> capacity;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>   <span style=color:#75715e>//析构函数，将new的空间释放掉
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>~</span>MaxHeap(){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>delete</span> []data;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//返回堆的大小
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>size</span>(){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> count ;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#75715e>//判断是否为空堆
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>bool</span> <span style=color:#a6e22e>is_empty</span>(){
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> count <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>insert</span>(Item item){
-</span></span><span style=display:flex><span>        <span style=color:#75715e>//我们这里的对的根节点从索引为1开始，所以需要capacity+1的空间
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#75715e>//assert用于判断是否满足capacity+1 &gt; capacity
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        assert(capacity<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&gt;</span> capacity);
-</span></span><span style=display:flex><span>        data[count<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>] <span style=color:#f92672>=</span> item; <span style=color:#75715e>//向对插入元素
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        count<span style=color:#f92672>++</span>;
-</span></span><span style=display:flex><span>        shiftUp(count);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    Item <span style=color:#a6e22e>extractMax</span>(){
-</span></span><span style=display:flex><span>        assert(count<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>0</span>);
-</span></span><span style=display:flex><span>        <span style=color:#75715e>//将第一个元素取出
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        Item ret <span style=color:#f92672>=</span> data[<span style=color:#ae81ff>1</span>];
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        swap(data[<span style=color:#ae81ff>1</span>], data[count]);
-</span></span><span style=display:flex><span>        count<span style=color:#f92672>--</span>;
-</span></span><span style=display:flex><span>        ShiftDown(<span style=color:#ae81ff>1</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> ret;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>};
-</span></span></code></pre></div><h3 id=golang实现>Golang实现:</h3><h4 id=数组索引0为堆顶>数组索引0为堆顶</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#75715e>//最小堆
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>heap</span> <span style=color:#66d9ef>struct</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>data</span> []<span style=color:#66d9ef>int</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>heap</span>)<span style=color:#a6e22e>Insert</span>(<span style=color:#a6e22e>x</span> <span style=color:#66d9ef>int</span>){
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span> = append(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>, <span style=color:#a6e22e>x</span>)
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>shiftUp</span>(len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>heap</span>)<span style=color:#a6e22e>Delete</span>() <span style=color:#66d9ef>int</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>oldtop</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#ae81ff>0</span>]
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#ae81ff>0</span>] = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span> = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[:len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>shiftDown</span>(<span style=color:#ae81ff>1</span>)
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>oldtop</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//上浮
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>heap</span>)<span style=color:#a6e22e>shiftUp</span>(<span style=color:#a6e22e>i</span> <span style=color:#66d9ef>int</span>){
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>) &gt; <span style=color:#ae81ff>1</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>] &gt; <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span>] {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span>] = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>]
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>i</span> <span style=color:#f92672>/=</span> <span style=color:#ae81ff>2</span>
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>//下沉
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>heap</span>)<span style=color:#a6e22e>shiftDown</span>(<span style=color:#a6e22e>k</span> <span style=color:#66d9ef>int</span>){
-</span></span><span style=display:flex><span>	<span style=color:#75715e>//k用于判断父亲和孩子节点的关系：当前节点为k时，父亲父亲节点为k/2， 左右孩子节点分别为：k*2, k*2+1;
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>//这里k为1表示第一个节点，对应数组索引为0， this.data[k-1]
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>	<span style=color:#75715e>//判断是否有左孩子
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>k</span><span style=color:#f92672>*</span><span style=color:#ae81ff>2</span> <span style=color:#f92672>&lt;=</span> len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>) {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>j</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>k</span><span style=color:#f92672>*</span><span style=color:#ae81ff>2</span>
-</span></span><span style=display:flex><span>		<span style=color:#75715e>//有右孩子的情况下：比较左右孩子大小
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>j</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;=</span> len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>) <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>j</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>] &gt; <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>j</span>]  {
-</span></span><span style=display:flex><span>			<span style=color:#a6e22e>j</span><span style=color:#f92672>++</span>
-</span></span><span style=display:flex><span>		}
-</span></span><span style=display:flex><span>		<span style=color:#75715e>//当父亲节点小于相应孩子节点时，直接退出循环
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>k</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>] &lt; <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>j</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]{
-</span></span><span style=display:flex><span>			<span style=color:#66d9ef>break</span>
-</span></span><span style=display:flex><span>		}
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>k</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>j</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>] = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>j</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>k</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]
-</span></span><span style=display:flex><span>		<span style=color:#75715e>//将更新后的节点作为遍历节点
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>k</span> = <span style=color:#a6e22e>j</span>
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>heap</span>)<span style=color:#a6e22e>GetTop</span>() <span style=color:#66d9ef>int</span> {
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>[<span style=color:#ae81ff>0</span>]
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>heap</span>)<span style=color:#a6e22e>Len</span>()<span style=color:#66d9ef>int</span> {
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>)
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>heap</span>)<span style=color:#a6e22e>IsEmpty</span>() <span style=color:#66d9ef>bool</span> {
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>data</span>) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>测试一下：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>	<span style=color:#75715e>//堆排序
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>arr</span> <span style=color:#f92672>:=</span> []<span style=color:#66d9ef>int</span>{<span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>17</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>10</span>,<span style=color:#ae81ff>23</span>,<span style=color:#ae81ff>21</span>,<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>6</span>,<span style=color:#ae81ff>7</span>,<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>44</span>}
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>minheap</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>heap</span>{}
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; len(<span style=color:#a6e22e>arr</span>); <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>minheap</span>.<span style=color:#a6e22e>insert</span>(<span style=color:#a6e22e>arr</span>[<span style=color:#a6e22e>i</span>])
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>minheap</span>.<span style=color:#a6e22e>data</span>, <span style=color:#a6e22e>minheap</span>.<span style=color:#a6e22e>Len</span>())
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> &lt; <span style=color:#a6e22e>minheap</span>.<span style=color:#a6e22e>Len</span>(); <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span> {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>minheap</span>.delete())
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>打印输出：</p><pre tabindex=0><code>[1 2 4 5 5 7 23 21 17 6 10 8 44] 13
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>数据结构之堆及堆排序 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="数据结构之堆及堆排序"/>
+<meta name="twitter:description" content="[toc] 堆的定义 ***堆（heap）***是计算机科学中一类特殊的数据结构的统称。堆通常是一个可以被看做一棵树的数组对象。堆总是满足下列性质： 堆中"/>
+
+    <meta property="og:title" content="数据结构之堆及堆排序" />
+<meta property="og:description" content="[toc] 堆的定义 ***堆（heap）***是计算机科学中一类特殊的数据结构的统称。堆通常是一个可以被看做一棵树的数组对象。堆总是满足下列性质： 堆中" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8B%E5%A0%86%E5%8F%8A%E5%A0%86%E6%8E%92%E5%BA%8F/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-05-25T20:10:08+08:00" />
+<meta property="article:modified_time" content="2023-05-25T20:10:08+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">数据结构之堆及堆排序</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 25, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          6 min read
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h2 id="堆的定义">堆的定义</h2>
+<p>***堆（heap）***是计算机科学中一类特殊的数据结构的统称。堆通常是一个可以被看做一棵树的数组对象。堆总是满足下列性质：</p>
+<ul>
+<li>堆中某个结点的值总是不大于或不小于其父结点的值；</li>
+<li>堆总是一棵<em><strong>完全二叉树</strong></em>。</li>
+</ul>
+<p>将根结点最大的堆叫做最大堆或大根堆，根结点最小的堆叫做最小堆或小根堆。常见的堆有二叉堆、[斐波那契堆]等。</p>
+<p>堆是非线性数据结构，相当于一维数组，有两个直接后继。</p>
+<h2 id="逻辑">逻辑</h2>
+<p>堆的定义如下：n个元素的序列{k1,k2,ki,…,kn}当且仅当满足下关系时，称之为堆。有如下事实：
+Ki &gt;= K(2i)，Ki &gt;= K(i+1)或者Ki &lt;= K(2i)，Ki &lt;= K(i+1)</p>
+<p>若将和此次序列对应的一维数组（即以一维数组作此序列的存储结构）看成是一个完全二叉树，则堆的含义表明，完全二叉树中所有非终端结点的值均不大于（或不小于）其左、右孩子结点的值。由此，若序列{k1,k2,…,kn}是堆，则堆顶元素（或完全二叉树的根）必为序列中n个元素的最小值（或最大值）。
+这里我们以最大堆为例进行讲解，如下图：</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/2wkDyNytXU.png!large" alt=""></p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/kocT4Dh8vG.png!large" alt=""></p>
+<p>下图用将堆的索引标记出：</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/f5RlJvSYkd.png!large" alt=""></p>
+<h2 id="实现">实现</h2>
+<p>如何实现堆呢？</p>
+<h3 id="第一步堆的构建">第一步：堆的构建</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;iostream&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;algorithm&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;ctime&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;cmath&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;cassert&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">using</span> <span style="color:#66d9ef">namespace</span> std;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//使用模板函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">template</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">typename</span> Item<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MaxHeap</span>{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    Item <span style="color:#f92672">*</span>data; <span style="color:#75715e">//作为数组的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> count; <span style="color:#75715e">//表示为数组的索引
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> capacity; <span style="color:#75715e">//表示堆的容量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>   
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//构造函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//构造一个空堆
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    MaxHeap(<span style="color:#66d9ef">int</span> capacity) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//动态的开辟一片空间，并将data指向该空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        data <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Item[capacity <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>];
+</span></span><span style="display:flex;"><span>        count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span><span style="color:#f92672">-&gt;</span>capacity <span style="color:#f92672">=</span> capacity;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//析构函数，将new的空间释放掉
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">~</span>MaxHeap(){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">delete</span> []data;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//返回堆的大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">size</span>(){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> count ;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//判断是否为空堆
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">is_empty</span>(){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> count <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>现在我们就将堆构造完成了，现在我们构建的堆好像没有什么用，我们还需要对进行数据的插入(Shift Up)和取出(Shift Down)操作，下面分别来实现。</p>
+<h3 id="第二步shift-up和shift-down">第二步：Shift Up和Shift Down</h3>
+<h4 id="1-shift-up">1. Shift Up</h4>
+<p>首先我们需要了解什么是Shift Up：</p>
+<pre><code>就是将堆中插入元素的操作，其逻辑为：从堆后一个节点插入元素，如下图：
+</code></pre>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/SXWQDWm9QI.png!large" alt=""></p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/yrWInZfoey.png!large" alt=""></p>
+<p>插入元素后必须维护堆的定义，所以需要将新插入的元素做比较，其方法是：</p>
+<p>将新元素跟它所在节点的上一个节点 (新元素的父节点) 的数比较，如下图中：</p>
+<p>53 &gt; 16 需要将两元素位置互换</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/1J1bUS0Mn1.png!large" alt="">
+互换位置后就变成了下图：</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/FR3U43r1Jx.png!large" alt=""></p>
+<p>然后仍然需要维护堆的定义所以需要将52和它的父节点的元素做比较：</p>
+<p>52  &gt;  41,所以将两元素位置互换</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/nu14t3G8Cn.png!large" alt=""></p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/uf5bpFaAAl.png!large" alt=""></p>
+<p>就得到下图，但仍然需要维护堆的定义，所以继续比较</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/I3olKBFO5T.png!large" alt=""></p>
+<p>最后就变成了下图</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/51J0v6sHIv.png!large" alt=""></p>
+<p>这就是整个ShiftUp操作</p>
+<p><em><strong>下面上代码</strong></em>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">//向堆中插入元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">insert</span>(Item item){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//我们这里的对的根节点从索引为1开始，所以需要capacity+1的空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//assert用于判断是否满足capacity+1 &gt; capacity
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    assert(capacity<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&gt;</span> capacity);
+</span></span><span style="display:flex;"><span>    data[count<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> item; 
+</span></span><span style="display:flex;"><span>    count<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    ShiftUp(count);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这里我将构造函数ShiftUp()写在private中，用户不需要看到我们背后的逻辑</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    Item <span style="color:#f92672">*</span>data; <span style="color:#75715e">//作为数组的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> count; <span style="color:#75715e">//表示为数组的索引
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> capacity; <span style="color:#75715e">//表示堆的容量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//构造shiftUp
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">ShiftUp</span>(<span style="color:#66d9ef">int</span> k){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(k<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&amp;&amp;</span> data[k<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>] <span style="color:#f92672">&gt;</span> data[k]){
+</span></span><span style="display:flex;"><span>            swap(data[k<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>], data[k]);
+</span></span><span style="display:flex;"><span>            k<span style="color:#f92672">/=</span><span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>完成了Shift Up,下面我们来完成Shift Down</p>
+<h4 id="2-shift-down">2. Shift Down</h4>
+<p>Shift Down是指从堆中将元素取出，其取出操作是：</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/FWwj4QzoB6.png!large" alt=""></p>
+<p>将堆中的第一个元素取出</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/j21XLloYJJ.png!large" alt=""></p>
+<p>然后将堆最后一个元素放到原来取出元素的位置</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/y2qp4A5vLK.png!large" alt=""></p>
+<p>然后将该元素的左右孩子节点的元素进行比较 （如下图将52和30比较），然后将该元素和左右孩子节点中值大的元素进行位置互换</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/07pXoTnCSq.png!large" alt=""></p>
+<p>如下图：
+<img src="https://cdn.learnku.com/uploads/images/202103/27/69310/tcTvTuUj6u.png!large" alt=""></p>
+<p>然后在将该元素现在所在的节点的左右孩子节点的元素进行比较</p>
+<p><img src="https://cdn.learnku.com/uploads/images/202103/27/69310/0YJtskGPmj.png!large" alt=""></p>
+<p>得到如下图：
+<img src="https://cdn.learnku.com/uploads/images/202103/27/69310/mwgdpymsyX.png!large" alt=""></p>
+<p>此时还会判断16 和15两元素的大小</p>
+<p>此时ShiftDown就完成了</p>
+<p><em><strong>下面上代码</strong></em>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>Item <span style="color:#a6e22e">extractMax</span>(){
+</span></span><span style="display:flex;"><span>    assert(count<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//将第一个元素取出
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    Item ret <span style="color:#f92672">=</span> data[<span style="color:#ae81ff">1</span>];
+</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//将最后一个元素放置第一个位置
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    swap(data[<span style="color:#ae81ff">1</span>], data[count]);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//将多余的位置消去
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    count<span style="color:#f92672">--</span>;
+</span></span><span style="display:flex;"><span>    ShiftDown(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ret;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>仍然将ShiftDown放在private中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    Item <span style="color:#f92672">*</span>data; <span style="color:#75715e">//作为数组的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> count; <span style="color:#75715e">//表示为数组的索引
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> capacity; <span style="color:#75715e">//表示堆的容量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//构造shiftUp
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">shiftUp</span>(<span style="color:#66d9ef">int</span> k){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(k<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&amp;&amp;</span> data[k<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>] <span style="color:#f92672">&gt;</span> data[k]){
+</span></span><span style="display:flex;"><span>            swap(data[k<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>], data[k]);
+</span></span><span style="display:flex;"><span>            k<span style="color:#f92672">/=</span><span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">ShiftDown</span>(<span style="color:#66d9ef">int</span> k){
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//判断是否存在左孩子
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>k <span style="color:#f92672">&lt;</span> count){
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>k;
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">//是否存在右孩子
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span>(j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;</span> count <span style="color:#f92672">&amp;&amp;</span> data[j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">&gt;</span> data[j])
+</span></span><span style="display:flex;"><span>                j<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>           <span style="color:#75715e">//data[j]是data[2*k],data[2*k+1]中的最大值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span>(data[k] <span style="color:#f92672">&gt;</span> data[j])
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>            swap(data[k]), data[j];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h2 id="源码">源码</h2>
+<p>这样堆就完成了，下面我们将整个源码给出：</p>
+<h3 id="c实现">C++实现：</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;iostream&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;algorithm&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;ctime&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;cmath&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;cassert&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">using</span> <span style="color:#66d9ef">namespace</span> std;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//使用模板函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">template</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">typename</span> Item<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MaxHeap</span>{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">private</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    Item <span style="color:#f92672">*</span>data; <span style="color:#75715e">//作为数组的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> count; <span style="color:#75715e">//表示为数组的索引
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> capacity; <span style="color:#75715e">//表示堆的容量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//构造shiftUp
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">shiftUp</span>(<span style="color:#66d9ef">int</span> k){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(k<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&amp;&amp;</span> data[k<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>] <span style="color:#f92672">&gt;</span> data[k]){
+</span></span><span style="display:flex;"><span>            swap(data[k<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>], data[k]);
+</span></span><span style="display:flex;"><span>            k<span style="color:#f92672">/=</span><span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">ShiftDown</span>(<span style="color:#66d9ef">int</span> k){
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//判断是否存在左孩子
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>k <span style="color:#f92672">&lt;</span> count){
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>k;
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">//是否存在右孩子
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span>(j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;</span> count <span style="color:#f92672">&amp;&amp;</span> data[j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">&gt;</span> data[j])
+</span></span><span style="display:flex;"><span>                j<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>           <span style="color:#75715e">//data[j]是data[2*k],data[2*k+1]中的最大值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span>(data[k] <span style="color:#f92672">&gt;</span> data[j])
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>            swap(data[k]), data[j];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//构造函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//构造一个空堆
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    MaxHeap(<span style="color:#66d9ef">int</span> capacity) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//动态的开辟一片空间，并将data指向该空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        data <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Item[capacity <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>];
+</span></span><span style="display:flex;"><span>        count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span><span style="color:#f92672">-&gt;</span>capacity <span style="color:#f92672">=</span> capacity;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>   <span style="color:#75715e">//析构函数，将new的空间释放掉
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">~</span>MaxHeap(){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">delete</span> []data;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//返回堆的大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">size</span>(){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> count ;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//判断是否为空堆
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">is_empty</span>(){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> count <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">insert</span>(Item item){
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//我们这里的对的根节点从索引为1开始，所以需要capacity+1的空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">//assert用于判断是否满足capacity+1 &gt; capacity
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        assert(capacity<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&gt;</span> capacity);
+</span></span><span style="display:flex;"><span>        data[count<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> item; <span style="color:#75715e">//向对插入元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        count<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>        shiftUp(count);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Item <span style="color:#a6e22e">extractMax</span>(){
+</span></span><span style="display:flex;"><span>        assert(count<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//将第一个元素取出
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        Item ret <span style="color:#f92672">=</span> data[<span style="color:#ae81ff">1</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        swap(data[<span style="color:#ae81ff">1</span>], data[count]);
+</span></span><span style="display:flex;"><span>        count<span style="color:#f92672">--</span>;
+</span></span><span style="display:flex;"><span>        ShiftDown(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><h3 id="golang实现">Golang实现:</h3>
+<h4 id="数组索引0为堆顶">数组索引0为堆顶</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//最小堆
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">heap</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">heap</span>)<span style="color:#a6e22e">Insert</span>(<span style="color:#a6e22e">x</span> <span style="color:#66d9ef">int</span>){
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span> = append(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">x</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">shiftUp</span>(len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">heap</span>)<span style="color:#a6e22e">Delete</span>() <span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">oldtop</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#ae81ff">0</span>] = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[:len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">shiftDown</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">oldtop</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//上浮
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">heap</span>)<span style="color:#a6e22e">shiftUp</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span>){
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>) &gt; <span style="color:#ae81ff">1</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>] &gt; <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">i</span>] {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">i</span>] = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">i</span> <span style="color:#f92672">/=</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//下沉
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">heap</span>)<span style="color:#a6e22e">shiftDown</span>(<span style="color:#a6e22e">k</span> <span style="color:#66d9ef">int</span>){
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//k用于判断父亲和孩子节点的关系：当前节点为k时，父亲父亲节点为k/2， 左右孩子节点分别为：k*2, k*2+1;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//这里k为1表示第一个节点，对应数组索引为0， this.data[k-1]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//判断是否有左孩子
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span><span style="color:#f92672">*</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">&lt;=</span> len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">k</span><span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//有右孩子的情况下：比较左右孩子大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">j</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;=</span> len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] &gt; <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">j</span>]  {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">j</span><span style="color:#f92672">++</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//当父亲节点小于相应孩子节点时，直接退出循环
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">k</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] &lt; <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]{
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">k</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">k</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//将更新后的节点作为遍历节点
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">k</span> = <span style="color:#a6e22e">j</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">heap</span>)<span style="color:#a6e22e">GetTop</span>() <span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">heap</span>)<span style="color:#a6e22e">Len</span>()<span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">heap</span>)<span style="color:#a6e22e">IsEmpty</span>() <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">data</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>测试一下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//堆排序
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">arr</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">int</span>{<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">17</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">10</span>,<span style="color:#ae81ff">23</span>,<span style="color:#ae81ff">21</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">6</span>,<span style="color:#ae81ff">7</span>,<span style="color:#ae81ff">8</span>,<span style="color:#ae81ff">44</span>}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">minheap</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">heap</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">arr</span>); <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">minheap</span>.<span style="color:#a6e22e">insert</span>(<span style="color:#a6e22e">arr</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">minheap</span>.<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">minheap</span>.<span style="color:#a6e22e">Len</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">minheap</span>.<span style="color:#a6e22e">Len</span>(); <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">minheap</span>.delete())
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>打印输出：</p>
+<pre tabindex="0"><code>[1 2 4 5 5 7 23 21 17 6 10 8 44] 13
 1
 2
 4
@@ -278,54 +406,65 @@ Ki >= K(2i)，Ki >= K(i+1)或者Ki &lt;= K(2i)，Ki &lt;= K(i+1)</p><p>若将和
 5
 6
 7
-</code></pre><h4 id=数组索引1为堆顶>数组索引1为堆顶</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>minHeap</span> <span style=color:#66d9ef>struct</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>heap</span> []<span style=color:#66d9ef>int</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>minHeap</span>)<span style=color:#a6e22e>shiftUP</span>(<span style=color:#a6e22e>i</span> <span style=color:#66d9ef>int</span> ){
-</span></span><span style=display:flex><span>	<span style=color:#75715e>//上浮
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>for</span> <span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span> &gt; <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span>] &lt; <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>] {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>] = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span>]
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>i</span> = <span style=color:#a6e22e>i</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>minHeap</span>)<span style=color:#a6e22e>shiftDown</span>(<span style=color:#a6e22e>i</span> <span style=color:#66d9ef>int</span> ){
-</span></span><span style=display:flex><span>	<span style=color:#75715e>//左孩子为前提
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>for</span> <span style=color:#ae81ff>2</span><span style=color:#f92672>*</span><span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;=</span> len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>) {
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>j</span> <span style=color:#f92672>:=</span> <span style=color:#ae81ff>2</span><span style=color:#f92672>*</span><span style=color:#a6e22e>i</span>
-</span></span><span style=display:flex><span>		<span style=color:#75715e>//右孩子
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>j</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;=</span> len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>) <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>j</span>] &gt; <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>j</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>] {
-</span></span><span style=display:flex><span>			<span style=color:#a6e22e>j</span><span style=color:#f92672>++</span>
-</span></span><span style=display:flex><span>		}
-</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span>] &lt; <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>j</span>] {
-</span></span><span style=display:flex><span>			<span style=color:#66d9ef>break</span>
-</span></span><span style=display:flex><span>		}
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>j</span>] = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>j</span>], <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#a6e22e>i</span>]
-</span></span><span style=display:flex><span>		<span style=color:#a6e22e>i</span> = <span style=color:#a6e22e>j</span>
-</span></span><span style=display:flex><span>	}
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>minHeap</span>)<span style=color:#a6e22e>insert</span>(<span style=color:#a6e22e>val</span> <span style=color:#66d9ef>int</span> ){
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span> = append(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>, <span style=color:#a6e22e>val</span>)
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>shiftUP</span>(len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>minHeap</span>)delete()<span style=color:#66d9ef>int</span> {
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>top</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#ae81ff>1</span>]
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#ae81ff>1</span>] = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span> = <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[:len(<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]
-</span></span><span style=display:flex><span>	<span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>shiftDown</span>(<span style=color:#ae81ff>1</span>)
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>top</span>
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>this</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>minHeap</span>)<span style=color:#a6e22e>top</span>()<span style=color:#66d9ef>int</span>{
-</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>this</span>.<span style=color:#a6e22e>heap</span>[<span style=color:#ae81ff>1</span>]
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>createMinHeap</span>() <span style=color:#a6e22e>minHeap</span>{
-</span></span><span style=display:flex><span>	<span style=color:#75715e>//索引从1开始
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>minHeap</span>{make([]<span style=color:#66d9ef>int</span>, <span style=color:#ae81ff>1</span>)}
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><strong>(图片来源：慕课网bobo老师)</strong></p></div><div class=post-footer></div></article></main></body></html>
+</code></pre><h4 id="数组索引1为堆顶">数组索引1为堆顶</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">minHeap</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">heap</span> []<span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">minHeap</span>)<span style="color:#a6e22e">shiftUP</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span> ){
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//上浮
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span> &gt; <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span>] &lt; <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>] {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>] = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">i</span> = <span style="color:#a6e22e">i</span><span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">minHeap</span>)<span style="color:#a6e22e">shiftDown</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span> ){
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//左孩子为前提
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span><span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span><span style="color:#a6e22e">i</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//右孩子
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">j</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;=</span> len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">j</span>] &gt; <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">j</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">j</span><span style="color:#f92672">++</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span>] &lt; <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">j</span>] {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">j</span>] = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">j</span>], <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">i</span> = <span style="color:#a6e22e">j</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">minHeap</span>)<span style="color:#a6e22e">insert</span>(<span style="color:#a6e22e">val</span> <span style="color:#66d9ef">int</span> ){
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span> = append(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>, <span style="color:#a6e22e">val</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">shiftUP</span>(len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">minHeap</span>)delete()<span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">top</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#ae81ff">1</span>] = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[:len(<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">shiftDown</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">top</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">minHeap</span>)<span style="color:#a6e22e">top</span>()<span style="color:#66d9ef">int</span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">heap</span>[<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">createMinHeap</span>() <span style="color:#a6e22e">minHeap</span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//索引从1开始
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">minHeap</span>{make([]<span style="color:#66d9ef">int</span>, <span style="color:#ae81ff">1</span>)}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>(图片来源：慕课网bobo老师)</strong></p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

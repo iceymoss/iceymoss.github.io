@@ -1,1 +1,29 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Redis on iceymoss - 刻意练习，卷无止境</title><link>https://iceymoss.github.io/tags/redis/</link><description>Recent content in Redis on iceymoss - 刻意练习，卷无止境</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Wed, 10 May 2023 23:41:45 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/redis/index.xml" rel="self" type="application/rss+xml"/><item><title>Redis知识总结</title><link>https://iceymoss.github.io/golang/redis%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</link><pubDate>Wed, 10 May 2023 23:41:45 +0800</pubDate><guid>https://iceymoss.github.io/golang/redis%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</guid><description>[toc] Redis入门 概述 Redis是什么 Redis（Remote Dictionary Serve），即远程字典服务 Redis能干嘛？ 1、内存存储，持久化，内存中是断</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Redis on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/redis/</link>
+    <description>Recent content in Redis on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 31 May 2023 19:56:55 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/redis/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分布式锁实现方案</title>
+      <link>https://iceymoss.github.io/post/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88/</link>
+      <pubDate>Wed, 31 May 2023 19:56:55 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88/</guid>
+      <description>[toc] 前言 分布式锁 悲观锁与乐观锁是人们定义出来的概念，你可以理解为一种思想，是处理并发资源的常用手段。 不要把他们与mysql中提供的锁机制(表锁</description>
+    </item>
+    
+    <item>
+      <title>Redis知识总结</title>
+      <link>https://iceymoss.github.io/golang/redis%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</link>
+      <pubDate>Wed, 10 May 2023 23:41:45 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/golang/redis%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/</guid>
+      <description>[toc] Redis入门 概述 Redis是什么 Redis（Remote Dictionary Serve），即远程字典服务 Redis能干嘛？ 1、内存存储，持久化，内存中是断</description>
+    </item>
+    
+  </channel>
+</rss>

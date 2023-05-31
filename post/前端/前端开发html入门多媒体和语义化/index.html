@@ -1,246 +1,364 @@
-<!doctype html><html lang=zh-cn><head><title>「前端开发」html入门多媒体和语义化 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="「前端开发」html入门多媒体和语义化"><meta name=twitter:description content="[toc] 概况 下面我们来介绍一下多媒体和语义化标签的使用 音频audio autoplay属性 autoplay会自动播放音频，但是有点浏览器可能会不允许"><meta property="og:title" content="「前端开发」html入门多媒体和语义化"><meta property="og:description" content="[toc] 概况 下面我们来介绍一下多媒体和语义化标签的使用 音频audio autoplay属性 autoplay会自动播放音频，但是有点浏览器可能会不允许"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E5%92%8C%E8%AF%AD%E4%B9%89%E5%8C%96/"><meta property="article:section" content="post"><meta property="article:published_time" content="2023-05-25T20:18:48+08:00"><meta property="article:modified_time" content="2023-05-25T20:18:48+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
-<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
--
-<a class=app-header-menu-item href=/archives/>归档</a>
--
-<a class=app-header-menu-item href=/tags/>标签</a>
--
-<a class=app-header-menu-item href=/categories/>类别</a>
--
-<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>「前端开发」html入门多媒体和语义化</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 25, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</div></div></header><div class=post-content><p>[toc]</p><h3 id=概况>概况</h3><p>下面我们来介绍一下多媒体和语义化标签的使用</p><h3 id=音频audio>音频audio</h3><h4 id=autoplay属性>autoplay属性</h4><p><code>autoplay</code>会自动播放音频，但是有点浏览器可能会不允许这种行为(防止打扰用户)</p><h4 id=loop属性>loop属性</h4><p><code>loop</code> 循环播放，在属性栏加上即可</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>  
-</span></span><span style=display:flex><span>    <span style=color:#75715e>&lt;!--../file/-主角-1.mp3文件相对路径， controls为播放器控件， 如果不写将不会显示播放控件，如果浏览器不支持播放的话，就会显示：抱歉，您的浏览器不支持音频播放--&gt;</span>
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>audio</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/-主角-1.mp3&#34;</span> <span style=color:#a6e22e>controls</span> <span style=color:#a6e22e>autoplay</span> <span style=color:#a6e22e>loop</span>&gt;
-</span></span><span style=display:flex><span>        抱歉，您的浏览器不支持音频播放
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>audio</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=视频video>视频video</h3><h4 id=autoplay属性-1>autoplay属性</h4><p><code>autoplay</code>会自动播放视频，但是有点浏览器可能会不允许这种行为(防止打扰用户)</p><h4 id=loop属性-1>loop属性</h4><p><code>loop</code> 循环播放，在属性栏加上即可</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>video</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/meidusha.mp4&#34;</span> <span style=color:#a6e22e>controls</span> <span style=color:#a6e22e>autoplay</span> <span style=color:#a6e22e>loop</span>&gt;&lt;/<span style=color:#f92672>video</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=图片img>图片img</h3><h4 id=alt属性>alt属性</h4><p>当图片显示不出来时，将会将alt的内容作为备用，显示在图片处</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>img</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/meidusha.jpeg&#34;</span> <span style=color:#a6e22e>alt</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;美杜莎女王&#34;</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=超级链接a>超级链接a</h3><p>跳转到其他网页或网站， 例如现在有两个文件：a.html 、b.html</p><h4 id=titel文本悬停>titel文本悬停</h4><p>将鼠标放置超链接位置就出现相应的文本</p><h4 id=target新窗口>target新窗口</h4><p><code>target="blank"</code>时，点击超链接，浏览器会打开一个新窗口来显示跳转后的网页。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../b.html&#34;</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;是不是很帅！&#34;</span> <span style=color:#a6e22e>target</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;blank&#34;</span>&gt;点击跳转&lt;/<span style=color:#f92672>a</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=网页锚点>网页锚点</h3><p>当一个网页很长，需要用向下滚动鼠标时，就可以直接使用锚点到达指定位置。</p><p>例如我们在:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>h2</span> <span style=color:#a6e22e>id</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;meidusha&#34;</span>&gt;美杜莎女王3&lt;/<span style=color:#f92672>h2</span>&gt;
-</span></span></code></pre></div><p>添加了<code>id="meidusha"</code></p><p>当我们在浏览器搜索：</p><pre tabindex=0><code>http://127.0.0.1/dome/test.html#meidusha
-</code></pre><p>网页就会跳转到锚点位置：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span>&lt;<span style=color:#f92672>h2</span> <span style=color:#a6e22e>id</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;meidusha&#34;</span>&gt;美杜莎女王3&lt;/<span style=color:#f92672>h2</span>&gt;
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>h2</span>&gt;美杜莎女王0&lt;/<span style=color:#f92672>h2</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>img</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/meidusha.jpeg&#34;</span> <span style=color:#a6e22e>alt</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;美杜莎女王&#34;</span>&gt;
-</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>h2</span>&gt;美杜莎女王1&lt;/<span style=color:#f92672>h2</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>img</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/meidusha.jpeg&#34;</span> <span style=color:#a6e22e>alt</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;美杜莎女王&#34;</span>&gt;
-</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>h2</span>&gt;美杜莎女王2&lt;/<span style=color:#f92672>h2</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>img</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/meidusha.jpeg&#34;</span> <span style=color:#a6e22e>alt</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;美杜莎女王&#34;</span>&gt;
-</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>h2</span> <span style=color:#a6e22e>id</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;meidusha&#34;</span>&gt;美杜莎女王3&lt;/<span style=color:#f92672>h2</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>img</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/meidusha.jpeg&#34;</span> <span style=color:#a6e22e>alt</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;美杜莎女王&#34;</span>&gt;
-</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=更多功能链接>更多功能链接</h3><h4 id=下载链接>下载链接</h4><p>标签a支持exe、zip、rar等文件的下载</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/test.zip&#34;</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;是不是很帅！&#34;</span> <span style=color:#a6e22e>target</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;blank&#34;</span>&gt;点击下载&lt;/<span style=color:#f92672>a</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h4 id=邮件链接>邮件链接</h4><p>点击链接后，系统会打开你的邮件，并指向示例中的邮件地址</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;mailto:yourEmail.com&#34;</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;是不是很帅！&#34;</span> <span style=color:#a6e22e>target</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;blank&#34;</span>&gt;给小编发邮件&lt;/<span style=color:#f92672>a</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h4 id=电话链接>电话链接</h4><p>用手机打开，点击链接后，系统会调用手机拨号功能，并会显示示例中的电话号码</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;tel:12306&#34;</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;是不是很帅！&#34;</span> <span style=color:#a6e22e>target</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;blank&#34;</span>&gt;打电话购票&lt;/<span style=color:#f92672>a</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=更多标签>更多标签</h3><p>在上一篇文章中介绍了div标签，但是整个网页的div标签太多，导致代码可读性不高，所以我们现在来试一试其他标签</p><p>下面来看看实例</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>&lt;!-- 网页头部 --&gt;</span>
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>header</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#75715e>&lt;!-- logo --&gt;</span>
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>div</span> <span style=color:#a6e22e>class</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;logo&#34;</span>&gt;&lt;/<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#75715e>&lt;!-- 导航条 --&gt;</span>
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>nav</span>&gt;导航条&lt;/<span style=color:#f92672>nav</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>header</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>&lt;!-- 网页核心 --&gt;</span>
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>main</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#75715e>&lt;!-- 广告 --&gt;</span>
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>aside</span>&gt;我是广告&lt;/<span style=color:#f92672>aside</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#75715e>&lt;!-- 文章 --&gt;</span>
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>article</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>h1</span>&gt;文章标题&lt;/<span style=color:#f92672>h1</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>section</span>&gt;部分1&lt;/<span style=color:#f92672>section</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>section</span>&gt;部分2&lt;/<span style=color:#f92672>section</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>section</span>&gt;部分3&lt;/<span style=color:#f92672>section</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>section</span>&gt;部分4&lt;/<span style=color:#f92672>section</span>&gt;
-</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>article</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>main</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>&lt;!-- 页脚 --&gt;</span>
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>footer</span>&gt;页脚&lt;/<span style=color:#f92672>footer</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=span标签>span标签</h3><p>span要结合css来使用，将需要添加样式的内容用<code>&lt;span>需要的内容&lt;/span></code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>        <span style=color:#f92672>span</span> {
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>color</span>: rgb(<span style=color:#ae81ff>248</span>, <span style=color:#ae81ff>6</span>, <span style=color:#ae81ff>6</span>);
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>p</span>&gt;&lt;<span style=color:#f92672>span</span>&gt;北京&lt;/<span style=color:#f92672>span</span>&gt;在区号是&lt;<span style=color:#f92672>span</span>&gt;010&lt;/<span style=color:#f92672>span</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>p</span>&gt;&lt;<span style=color:#f92672>span</span>&gt;上海&lt;/<span style=color:#f92672>span</span>&gt;在区号是&lt;<span style=color:#f92672>span</span>&gt;021&lt;/<span style=color:#f92672>span</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>div</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=bbuuii标签><code>&lt;b>&lt;/b>、&lt;u>&lt;\u>、&lt;i>&lt;\i></code>标签</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>u</span>&gt;前端学习&lt;/<span style=color:#f92672>u</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>m</span>&gt;前端学习&lt;/<span style=color:#f92672>m</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>i</span>&gt;前端学习&lt;/<span style=color:#f92672>i</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=strongemmark标签>strong、em、mark标签</h3><p>需要表示强调的内容</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>strong</span>&gt;加油&lt;/<span style=color:#f92672>strong</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>em</span>&gt;加油&lt;/<span style=color:#f92672>em</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>mark</span>&gt;加油&lt;/<span style=color:#f92672>mark</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=figurefigcaption标签>figure、figcaption标签</h3><p>两个标签混合使用</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span> <span style=color:#a6e22e>lang</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en&#34;</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>charset</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;UTF-8&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>http-equiv</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;X-UA-Compatible&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;IE=edge&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>meta</span> <span style=color:#a6e22e>name</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;viewport&#34;</span> <span style=color:#a6e22e>content</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>title</span>&gt;Document&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>p</span>&gt;美杜莎女王是《斗破苍穹》小说中被塑造得非常好的人物&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>    &lt;<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>        &lt;<span style=color:#f92672>figure</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>img</span> <span style=color:#a6e22e>src</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;../file/meidusha.jpeg&#34;</span> <span style=color:#a6e22e>alt</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;美杜莎女王&#34;</span> <span style=color:#a6e22e>width</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;300&#34;</span>&gt;
-</span></span><span style=display:flex><span>            &lt;<span style=color:#f92672>figcaption</span>&gt;图一：突破斗宗的美杜莎女王&lt;/<span style=color:#f92672>figcaption</span>&gt;
-</span></span><span style=display:flex><span>        &lt;/<span style=color:#f92672>figure</span>&gt;
-</span></span><span style=display:flex><span>    &lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div></div><div class=post-footer></div></article></main></body></html>
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「前端开发」html入门多媒体和语义化 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「前端开发」html入门多媒体和语义化"/>
+<meta name="twitter:description" content="[toc] 概况 下面我们来介绍一下多媒体和语义化标签的使用 音频audio autoplay属性 autoplay会自动播放音频，但是有点浏览器可能会不允许"/>
+
+    <meta property="og:title" content="「前端开发」html入门多媒体和语义化" />
+<meta property="og:description" content="[toc] 概况 下面我们来介绍一下多媒体和语义化标签的使用 音频audio autoplay属性 autoplay会自动播放音频，但是有点浏览器可能会不允许" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E5%89%8D%E7%AB%AF/%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91html%E5%85%A5%E9%97%A8%E5%A4%9A%E5%AA%92%E4%BD%93%E5%92%8C%E8%AF%AD%E4%B9%89%E5%8C%96/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-05-25T20:18:48+08:00" />
+<meta property="article:modified_time" content="2023-05-25T20:18:48+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「前端开发」html入门多媒体和语义化</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 25, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          6 min read
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>下面我们来介绍一下多媒体和语义化标签的使用</p>
+<h3 id="音频audio">音频audio</h3>
+<h4 id="autoplay属性">autoplay属性</h4>
+<p><code>autoplay</code>会自动播放音频，但是有点浏览器可能会不允许这种行为(防止打扰用户)</p>
+<h4 id="loop属性">loop属性</h4>
+<p><code>loop</code> 循环播放，在属性栏加上即可</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">&lt;!--../file/-主角-1.mp3文件相对路径， controls为播放器控件， 如果不写将不会显示播放控件，如果浏览器不支持播放的话，就会显示：抱歉，您的浏览器不支持音频播放--&gt;</span>
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">audio</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/-主角-1.mp3&#34;</span> <span style="color:#a6e22e">controls</span> <span style="color:#a6e22e">autoplay</span> <span style="color:#a6e22e">loop</span>&gt;
+</span></span><span style="display:flex;"><span>        抱歉，您的浏览器不支持音频播放
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">audio</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="视频video">视频video</h3>
+<h4 id="autoplay属性-1">autoplay属性</h4>
+<p><code>autoplay</code>会自动播放视频，但是有点浏览器可能会不允许这种行为(防止打扰用户)</p>
+<h4 id="loop属性-1">loop属性</h4>
+<p><code>loop</code> 循环播放，在属性栏加上即可</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">video</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/meidusha.mp4&#34;</span> <span style="color:#a6e22e">controls</span> <span style="color:#a6e22e">autoplay</span> <span style="color:#a6e22e">loop</span>&gt;&lt;/<span style="color:#f92672">video</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="图片img">图片img</h3>
+<h4 id="alt属性">alt属性</h4>
+<p>当图片显示不出来时，将会将alt的内容作为备用，显示在图片处</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/meidusha.jpeg&#34;</span> <span style="color:#a6e22e">alt</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;美杜莎女王&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="超级链接a">超级链接a</h3>
+<p>跳转到其他网页或网站， 例如现在有两个文件：a.html 、b.html</p>
+<h4 id="titel文本悬停">titel文本悬停</h4>
+<p>将鼠标放置超链接位置就出现相应的文本</p>
+<h4 id="target新窗口">target新窗口</h4>
+<p><code>target=&quot;blank&quot;</code>时，点击超链接，浏览器会打开一个新窗口来显示跳转后的网页。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">a</span> <span style="color:#a6e22e">href</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../b.html&#34;</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;是不是很帅！&#34;</span> <span style="color:#a6e22e">target</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;blank&#34;</span>&gt;点击跳转&lt;/<span style="color:#f92672">a</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="网页锚点">网页锚点</h3>
+<p>当一个网页很长，需要用向下滚动鼠标时，就可以直接使用锚点到达指定位置。</p>
+<p>例如我们在:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">h2</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;meidusha&#34;</span>&gt;美杜莎女王3&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span></code></pre></div><p>添加了<code>id=&quot;meidusha&quot;</code></p>
+<p>当我们在浏览器搜索：</p>
+<pre tabindex="0"><code>http://127.0.0.1/dome/test.html#meidusha
+</code></pre><p>网页就会跳转到锚点位置：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">h2</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;meidusha&#34;</span>&gt;美杜莎女王3&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">h2</span>&gt;美杜莎女王0&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/meidusha.jpeg&#34;</span> <span style="color:#a6e22e">alt</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;美杜莎女王&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">h2</span>&gt;美杜莎女王1&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/meidusha.jpeg&#34;</span> <span style="color:#a6e22e">alt</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;美杜莎女王&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">h2</span>&gt;美杜莎女王2&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/meidusha.jpeg&#34;</span> <span style="color:#a6e22e">alt</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;美杜莎女王&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">h2</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;meidusha&#34;</span>&gt;美杜莎女王3&lt;/<span style="color:#f92672">h2</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/meidusha.jpeg&#34;</span> <span style="color:#a6e22e">alt</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;美杜莎女王&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="更多功能链接">更多功能链接</h3>
+<h4 id="下载链接">下载链接</h4>
+<p>标签a支持exe、zip、rar等文件的下载</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">a</span> <span style="color:#a6e22e">href</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/test.zip&#34;</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;是不是很帅！&#34;</span> <span style="color:#a6e22e">target</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;blank&#34;</span>&gt;点击下载&lt;/<span style="color:#f92672">a</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h4 id="邮件链接">邮件链接</h4>
+<p>点击链接后，系统会打开你的邮件，并指向示例中的邮件地址</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">a</span> <span style="color:#a6e22e">href</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;mailto:yourEmail.com&#34;</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;是不是很帅！&#34;</span> <span style="color:#a6e22e">target</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;blank&#34;</span>&gt;给小编发邮件&lt;/<span style="color:#f92672">a</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h4 id="电话链接">电话链接</h4>
+<p>用手机打开，点击链接后，系统会调用手机拨号功能，并会显示示例中的电话号码</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">a</span> <span style="color:#a6e22e">href</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;tel:12306&#34;</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;是不是很帅！&#34;</span> <span style="color:#a6e22e">target</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;blank&#34;</span>&gt;打电话购票&lt;/<span style="color:#f92672">a</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="更多标签">更多标签</h3>
+<p>在上一篇文章中介绍了div标签，但是整个网页的div标签太多，导致代码可读性不高，所以我们现在来试一试其他标签</p>
+<!-- raw HTML omitted -->
+<p>下面来看看实例</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">&lt;!-- 网页头部 --&gt;</span>
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">header</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!-- logo --&gt;</span>
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;logo&#34;</span>&gt;&lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!-- 导航条 --&gt;</span>
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">nav</span>&gt;导航条&lt;/<span style="color:#f92672">nav</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">header</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">&lt;!-- 网页核心 --&gt;</span>
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">main</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!-- 广告 --&gt;</span>
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">aside</span>&gt;我是广告&lt;/<span style="color:#f92672">aside</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!-- 文章 --&gt;</span>
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">article</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">h1</span>&gt;文章标题&lt;/<span style="color:#f92672">h1</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">section</span>&gt;部分1&lt;/<span style="color:#f92672">section</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">section</span>&gt;部分2&lt;/<span style="color:#f92672">section</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">section</span>&gt;部分3&lt;/<span style="color:#f92672">section</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">section</span>&gt;部分4&lt;/<span style="color:#f92672">section</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">article</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">main</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">&lt;!-- 页脚 --&gt;</span>
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">footer</span>&gt;页脚&lt;/<span style="color:#f92672">footer</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="span标签">span标签</h3>
+<p>span要结合css来使用，将需要添加样式的内容用<code>&lt;span&gt;需要的内容&lt;/span&gt;</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">span</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">color</span>: rgb(<span style="color:#ae81ff">248</span>, <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">6</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">style</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">p</span>&gt;&lt;<span style="color:#f92672">span</span>&gt;北京&lt;/<span style="color:#f92672">span</span>&gt;在区号是&lt;<span style="color:#f92672">span</span>&gt;010&lt;/<span style="color:#f92672">span</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">p</span>&gt;&lt;<span style="color:#f92672">span</span>&gt;上海&lt;/<span style="color:#f92672">span</span>&gt;在区号是&lt;<span style="color:#f92672">span</span>&gt;021&lt;/<span style="color:#f92672">span</span>&gt;&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="bbuuii标签"><code>&lt;b&gt;&lt;/b&gt;、&lt;u&gt;&lt;\u&gt;、&lt;i&gt;&lt;\i&gt;</code>标签</h3>
+<!-- raw HTML omitted -->
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">u</span>&gt;前端学习&lt;/<span style="color:#f92672">u</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">m</span>&gt;前端学习&lt;/<span style="color:#f92672">m</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">i</span>&gt;前端学习&lt;/<span style="color:#f92672">i</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="strongemmark标签">strong、em、mark标签</h3>
+<p>需要表示强调的内容</p>
+<!-- raw HTML omitted -->
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">strong</span>&gt;加油&lt;/<span style="color:#f92672">strong</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">em</span>&gt;加油&lt;/<span style="color:#f92672">em</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">mark</span>&gt;加油&lt;/<span style="color:#f92672">mark</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h3 id="figurefigcaption标签">figure、figcaption标签</h3>
+<p>两个标签混合使用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">http-equiv</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;X-UA-Compatible&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;IE=edge&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> <span style="color:#a6e22e">content</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width, initial-scale=1.0&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Document&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">p</span>&gt;美杜莎女王是《斗破苍穹》小说中被塑造得非常好的人物&lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">figure</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;../file/meidusha.jpeg&#34;</span> <span style="color:#a6e22e">alt</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;美杜莎女王&#34;</span> <span style="color:#a6e22e">width</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;300&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>            &lt;<span style="color:#f92672">figcaption</span>&gt;图一：突破斗宗的美杜莎女王&lt;/<span style="color:#f92672">figcaption</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">figure</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">p</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div>
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

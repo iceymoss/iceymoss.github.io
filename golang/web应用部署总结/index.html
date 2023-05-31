@@ -1,192 +1,443 @@
-<!doctype html><html lang=zh-cn><head><title>Web应用部署总结 // iceymoss - 刻意练习，卷无止境</title><link rel="shortcut icon" href=/favicon.ico><meta charset=utf-8><meta name=generator content="Hugo 0.111.3"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="iceymoss"><meta name=description content><link rel=stylesheet href=/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css><meta name=twitter:card content="summary"><meta name=twitter:title content="Web应用部署总结"><meta name=twitter:description content="[toc] 环境搭建 部署的第一步就是需要将服务所需要的环境搭建好 golang的安装 方法一 下载压缩包：将要下载在golang版本和对应操作系统在gola"><meta property="og:title" content="Web应用部署总结"><meta property="og:description" content="[toc] 环境搭建 部署的第一步就是需要将服务所需要的环境搭建好 golang的安装 方法一 下载压缩包：将要下载在golang版本和对应操作系统在gola"><meta property="og:type" content="article"><meta property="og:url" content="https://iceymoss.github.io/golang/web%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2%E6%80%BB%E7%BB%93/"><meta property="article:section" content="golang"><meta property="article:published_time" content="2023-05-04T22:12:15+08:00"><meta property="article:modified_time" content="2023-05-04T22:12:15+08:00"></head><body><header class=app-header><a href=https://iceymoss.github.io/><img class=app-header-avatar src=/avatar.jpg alt=iceymoss></a>
-<span class=app-header-title>iceymoss - 刻意练习，卷无止境</span><nav class=app-header-menu><a class=app-header-menu-item href=/>首页</a>
--
-<a class=app-header-menu-item href=/archives/>归档</a>
--
-<a class=app-header-menu-item href=/tags/>标签</a>
--
-<a class=app-header-menu-item href=/categories/>类别</a>
--
-<a class=app-header-menu-item href=/about/>关于</a></nav><p>iceymoss's blog, Golang Python Developer Life</p></header><main class=app-container><article class=post><header class=post-header><h1 class=post-title>Web应用部署总结</h1><div class=post-meta><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><title>calendar</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 4, 2023</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><title>clock</title><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>9 min read</div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag"><title>tag</title><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a class=tag href=https://iceymoss.github.io/tags/golang/>Golang</a>
-<a class=tag href=https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/>部署</a>
-<a class=tag href=https://iceymoss.github.io/tags/web%E5%BA%94%E7%94%A8/>web应用</a></div></div></header><div class=post-content><p>[toc]</p><h3 id=环境搭建>环境搭建</h3><p>部署的第一步就是需要将服务所需要的环境搭建好</p><h4 id=golang的安装>golang的安装</h4><h5 id=方法一>方法一</h5><ul><li><p>下载压缩包：将要下载在golang版本和对应操作系统在<a href=https://studygolang.com/dl>golang中文网</a>或者在golang官方下载到本地。</p></li><li><p>将下载后的压缩包上传服务器</p><p>在终端使用 (以Ubuntu为例）：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>scp -r /本地路径/go压缩包 ssh ubuntu@IP:/服务器下的文件路径/目录
-</span></span></code></pre></div></li><li><p>解压到/usr/local下：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>tar -C /usr/local -xzf gox.x.x.linux-amd64.tar.gz
-</span></span></code></pre></div></li><li><p>添加环境变量：</p><p>编辑/etc/profile文件</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>vim /etc/profile
-</span></span></code></pre></div><p>添加到末尾：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span> export PATH<span style=color:#f92672>=</span>$PATH:/usr/local/go/bin
-</span></span></code></pre></div><p>保存退出，使用命令source etc/profile 生效。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>source etc/profile
-</span></span></code></pre></div><p>配置完成后，输入go -version可以查看安装的版本。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ go  version
-</span></span><span style=display:flex><span>go version gox.x.x linux/amd64 
-</span></span></code></pre></div></li></ul><h5 id=方法二>方法二</h5><ul><li><p>以 root 或者其他 sudo 用户身份运行下面的命令，下载并且解压 Go 二进制文件到<code>/usr/local</code>目录：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>wget -c https://dl.google.com/go/go1.x.x.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
-</span></span></code></pre></div></li><li><p>配置环境变量(和方法一一致)</p></li></ul><h4 id=安装数据库mysql>安装数据库(mysql)</h4><h5 id=准备工作>准备工作</h5><ol><li><p>远程连接需要部署LNMP环境的ECS实例。</p><p>具体操作，请参见<a href=https://help.aliyun.com/document_detail/71529.htm#concept-tmr-pgx-wdb>连接方式概述</a>。</p></li><li><p>关闭系统内部防火墙。</p><ol><li><p>运行以下命令，检查防火墙当前状态。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>sudo ufw status
-</span></span></code></pre></div><ul><li>如果防火墙状态为Status: inactive，则表示防火墙为关闭状态。</li><li>如果防火墙状态为Status: active，则表示防火墙为开启状态。</li></ul></li><li><p>可选：</p><p>关闭防火墙。</p><p>如果您的防火墙为开启状态，需要运行以下命令，关闭防火墙并关闭开机自启动防火墙。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>sudo ufw disable
-</span></span></code></pre></div></li></ol></li></ol><h5 id=安装并配置mysql>安装并配置MySQL</h5><h6 id=方法一-1>方法一：</h6><ol><li><p>安装MySQL。</p><ol><li><p>运行以下命令，安装MySQL。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>sudo apt -y install mysql-server
-</span></span></code></pre></div></li><li><p>运行以下命令，查看MySQL版本。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>sudo mysql -V
-</span></span></code></pre></div><p>返回结果如下所示，表示MySQL已成功安装，MySQL的版本为8.0.27。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>mysql  Ver 8.0.27-0ubuntu0.20.04.1 <span style=color:#66d9ef>for</span> Linux on x86_64 <span style=color:#f92672>((</span>Ubuntu<span style=color:#f92672>))</span>
-</span></span></code></pre></div></li></ol></li><li><p>配置MySQL。</p><ol><li><p>运行以下命令，进入MySQL。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>sudo mysql
-</span></span></code></pre></div></li><li><p>运行以下命令，设置root用户密码。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#66d9ef>ALTER</span> <span style=color:#66d9ef>USER</span> <span style=color:#e6db74>&#39;root&#39;</span><span style=color:#f92672>@</span><span style=color:#e6db74>&#39;localhost&#39;</span> IDENTIFIED <span style=color:#66d9ef>WITH</span> mysql_native_password <span style=color:#66d9ef>by</span> <span style=color:#e6db74>&#39;mynewpassword&#39;</span>;
-</span></span></code></pre></div><p>本示例中密码以<code>Mysql@1234</code>为例，示例命令：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#66d9ef>ALTER</span> <span style=color:#66d9ef>USER</span> <span style=color:#e6db74>&#39;root&#39;</span><span style=color:#f92672>@</span><span style=color:#e6db74>&#39;localhost&#39;</span> IDENTIFIED <span style=color:#66d9ef>WITH</span> mysql_native_password <span style=color:#66d9ef>by</span> <span style=color:#e6db74>&#39;Mysql@1234&#39;</span>;
-</span></span></code></pre></div></li><li><p>运行以下命令，退出MySQL数据库。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>exit</span>;
-</span></span></code></pre></div></li><li><p>运行以下命令，对MySQL进行安全性配置。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>sudo mysql_secure_installation
-</span></span></code></pre></div></li><li><p>根据命令行提示，依次完成以下配置项。</p><ol><li><p>输入root用户的密码。本示例中输入</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>Mysql@1234
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-ruby data-lang=ruby><span style=display:flex><span>root@iZbp19jsi7s0g7m4zgc<span style=color:#f92672>****</span><span style=color:#e6db74>:~</span><span style=color:#75715e># sudo mysql_secure_installation</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>Securing</span> the <span style=color:#66d9ef>MySQL</span> server deployment<span style=color:#f92672>.</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>Enter</span> password <span style=color:#66d9ef>for</span> user <span style=color:#e6db74>root</span>: 
-</span></span></code></pre></div><p><strong>说明</strong> 在输入密码时，系统为了最大限度的保证数据安全，命令行将不做任何回显。您只需要输入正确的密码信息，然后按Enter键即可。</p></li><li><p>输入Y，更改root用户密码。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>Change the password for root ? ((Press y|Y for Yes, any other key for No) </span>: <span style=color:#66d9ef>Y</span>
-</span></span></code></pre></div></li><li><p>输入root用户密码。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>New password</span>:
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>Re-enter new password</span>:
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>Estimated strength of the password</span>: <span style=color:#ae81ff>100</span>
-</span></span></code></pre></div></li><li><p>输入Y，确认使用已设置的密码。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#a6e22e>Do</span> <span style=color:#a6e22e>you</span> <span style=color:#a6e22e>wish</span> <span style=color:#a6e22e>to</span> <span style=color:#66d9ef>continue</span> <span style=color:#66d9ef>with</span> <span style=color:#a6e22e>the</span> <span style=color:#a6e22e>password</span> <span style=color:#a6e22e>provided</span><span style=color:#f92672>?</span>(<span style=color:#a6e22e>Press</span> <span style=color:#a6e22e>y</span><span style=color:#f92672>|</span><span style=color:#a6e22e>Y</span> <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>Yes</span>, <span style=color:#66d9ef>any</span> <span style=color:#a6e22e>other</span> <span style=color:#a6e22e>key</span> <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>No</span>) <span style=color:#f92672>:</span> <span style=color:#a6e22e>Y</span>
-</span></span></code></pre></div></li><li><p>输入Y，删除MySQL自带的匿名用户。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#66d9ef>By</span> <span style=color:#66d9ef>default</span>, a MySQL installation has an anonymous <span style=color:#66d9ef>user</span>,
-</span></span><span style=display:flex><span>allowing anyone <span style=color:#66d9ef>to</span> log <span style=color:#66d9ef>into</span> MySQL <span style=color:#66d9ef>without</span> <span style=color:#66d9ef>having</span> <span style=color:#66d9ef>to</span> have
-</span></span><span style=display:flex><span>a <span style=color:#66d9ef>user</span> account created <span style=color:#66d9ef>for</span> them. This <span style=color:#66d9ef>is</span> intended <span style=color:#66d9ef>only</span> <span style=color:#66d9ef>for</span>
-</span></span><span style=display:flex><span>testing, <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>to</span> make the installation <span style=color:#66d9ef>go</span> a bit smoother.
-</span></span><span style=display:flex><span>You should remove them <span style=color:#66d9ef>before</span> moving <span style=color:#66d9ef>into</span> a production
-</span></span><span style=display:flex><span>environment.
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>Remove anonymous users<span style=color:#f92672>?</span> (Press y<span style=color:#f92672>|</span>Y <span style=color:#66d9ef>for</span> Yes, <span style=color:#66d9ef>any</span> other <span style=color:#66d9ef>key</span> <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>No</span>) : Y
-</span></span></code></pre></div></li><li><p>输入Y，禁止MySQL的root用户的远程登录权限，如果需要远程登录，可以不用禁止</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>Normally, root should <span style=color:#66d9ef>only</span> be allowed <span style=color:#66d9ef>to</span> <span style=color:#66d9ef>connect</span> <span style=color:#66d9ef>from</span>
-</span></span><span style=display:flex><span><span style=color:#e6db74>&#39;localhost&#39;</span>. This ensures that someone cannot guess <span style=color:#66d9ef>at</span>
-</span></span><span style=display:flex><span>the root password <span style=color:#66d9ef>from</span> the network.
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>Disallow root login remotely<span style=color:#f92672>?</span> (Press y<span style=color:#f92672>|</span>Y <span style=color:#66d9ef>for</span> Yes, <span style=color:#66d9ef>any</span> other <span style=color:#66d9ef>key</span> <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>No</span>) : Y
-</span></span></code></pre></div></li><li><p>输入Y，移除test数据库。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#66d9ef>By</span> <span style=color:#66d9ef>default</span>, MySQL comes <span style=color:#66d9ef>with</span> a <span style=color:#66d9ef>database</span> named <span style=color:#e6db74>&#39;test&#39;</span> that
-</span></span><span style=display:flex><span>anyone can <span style=color:#66d9ef>access</span>. This <span style=color:#66d9ef>is</span> also intended <span style=color:#66d9ef>only</span> <span style=color:#66d9ef>for</span> testing,
-</span></span><span style=display:flex><span><span style=color:#66d9ef>and</span> should be removed <span style=color:#66d9ef>before</span> moving <span style=color:#66d9ef>into</span> a production
-</span></span><span style=display:flex><span>environment.
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>Remove test <span style=color:#66d9ef>database</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>access</span> <span style=color:#66d9ef>to</span> it<span style=color:#f92672>?</span> (Press y<span style=color:#f92672>|</span>Y <span style=color:#66d9ef>for</span> Yes, <span style=color:#66d9ef>any</span> other <span style=color:#66d9ef>key</span> <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>No</span>) : 
-</span></span></code></pre></div></li><li><p>输入Y，重新加载授权表。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ae81ff>Reloading the privilege tables will ensure that all changes</span>
-</span></span><span style=display:flex><span><span style=color:#ae81ff>made so far will take effect immediately.</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>Reload privilege tables now? (Press y|Y for Yes, any other key for No) </span>: <span style=color:#66d9ef>Y</span>
-</span></span></code></pre></div><p>当命令行回显</p><p>All done!</p><p>时，表示配置完成。</p></li></ol></li></ol></li><li><p>测试登录MySQL数据库。</p><ol><li><p>运行以下命令，登录MySQL数据库。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>sudo mysql -u root -p
-</span></span></code></pre></div></li><li><p>在命令行回显的Enter password:后输入已设置的数据库密码。</p><p><strong>说明</strong> 在输入密码时，系统为了最大限度的保证数据安全，命令行将不做任何回显。您只需要输入正确的密码信息，然后按Enter键即可。</p><p>成功登录MySQL数据库后，命令行信息如下所示。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>root<span style=color:#a6e22e>@iZbp19jsi7s0g7m4zgc</span><span style=color:#f92672>****</span>:<span style=color:#f92672>~</span><span style=color:#75715e># sudo mysql -uroot -p</span>
-</span></span><span style=display:flex><span>Enter password:
-</span></span><span style=display:flex><span>Welcome to the MySQL monitor<span style=color:#f92672>.</span>  Commands end <span style=color:#66d9ef>with</span> ; <span style=color:#f92672>or</span> \g<span style=color:#f92672>.</span>
-</span></span><span style=display:flex><span>Your MySQL connection id <span style=color:#f92672>is</span> <span style=color:#ae81ff>15</span>
-</span></span><span style=display:flex><span>Server version: <span style=color:#ae81ff>8.0.29</span><span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>ubuntu0<span style=color:#ae81ff>.20.04.3</span> (Ubuntu)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>Copyright (c) <span style=color:#ae81ff>2000</span>, <span style=color:#ae81ff>2022</span>, Oracle <span style=color:#f92672>and</span><span style=color:#f92672>/</span><span style=color:#f92672>or</span> its affiliates<span style=color:#f92672>.</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>Oracle <span style=color:#f92672>is</span> a registered trademark of Oracle Corporation <span style=color:#f92672>and</span><span style=color:#f92672>/</span><span style=color:#f92672>or</span> its
-</span></span><span style=display:flex><span>affiliates<span style=color:#f92672>.</span> Other names may be trademarks of their respective
-</span></span><span style=display:flex><span>owners<span style=color:#f92672>.</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>Type <span style=color:#e6db74>&#39;help;&#39;</span> <span style=color:#f92672>or</span> <span style=color:#e6db74>&#39;\h&#39;</span> <span style=color:#66d9ef>for</span> help<span style=color:#f92672>.</span> Type <span style=color:#e6db74>&#39;\c&#39;</span> to clear the current input statement<span style=color:#f92672>.</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>mysql<span style=color:#f92672>&gt;</span>
-</span></span></code></pre></div></li><li><p>运行以下命令，退出MySQL数据库。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>exit</span>;
-</span></span></code></pre></div></li><li><p>配置远程访问，进入mysql配置文件（$为命令提示符)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>cd /etc/mysql/mysql.conf.d
-</span></span></code></pre></div><p>有两个文件：</p><pre tabindex=0><code>root@VM-0-6-ubuntu:/etc/mysql/mysql.conf.d# ls
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>Web应用部署总结 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Web应用部署总结"/>
+<meta name="twitter:description" content="[toc] 环境搭建 部署的第一步就是需要将服务所需要的环境搭建好 golang的安装 方法一 下载压缩包：将要下载在golang版本和对应操作系统在gola"/>
+
+    <meta property="og:title" content="Web应用部署总结" />
+<meta property="og:description" content="[toc] 环境搭建 部署的第一步就是需要将服务所需要的环境搭建好 golang的安装 方法一 下载压缩包：将要下载在golang版本和对应操作系统在gola" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/web%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2%E6%80%BB%E7%BB%93/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-05-04T22:12:15+08:00" />
+<meta property="article:modified_time" content="2023-05-04T22:12:15+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">Web应用部署总结</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          May 4, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          9 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/">部署</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web%E5%BA%94%E7%94%A8/">web应用</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="环境搭建">环境搭建</h3>
+<p>部署的第一步就是需要将服务所需要的环境搭建好</p>
+<h4 id="golang的安装">golang的安装</h4>
+<h5 id="方法一">方法一</h5>
+<ul>
+<li>
+<p>下载压缩包：将要下载在golang版本和对应操作系统在<a href="https://studygolang.com/dl">golang中文网</a>或者在golang官方下载到本地。</p>
+</li>
+<li>
+<p>将下载后的压缩包上传服务器</p>
+<p>在终端使用 (以Ubuntu为例）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>scp -r /本地路径/go压缩包 ssh ubuntu@IP:/服务器下的文件路径/目录
+</span></span></code></pre></div></li>
+<li>
+<p>解压到/usr/local下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>tar -C /usr/local -xzf gox.x.x.linux-amd64.tar.gz
+</span></span></code></pre></div></li>
+<li>
+<p>添加环境变量：</p>
+<p>编辑/etc/profile文件</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vim /etc/profile
+</span></span></code></pre></div><p>添加到末尾：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span> export PATH<span style="color:#f92672">=</span>$PATH:/usr/local/go/bin
+</span></span></code></pre></div><p>保存退出，使用命令source etc/profile 生效。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>source etc/profile
+</span></span></code></pre></div><p>配置完成后，输入go -version可以查看安装的版本。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ go  version
+</span></span><span style="display:flex;"><span>go version gox.x.x linux/amd64 
+</span></span></code></pre></div></li>
+</ul>
+<h5 id="方法二">方法二</h5>
+<ul>
+<li>
+<p>以 root 或者其他 sudo 用户身份运行下面的命令，下载并且解压 Go 二进制文件到<code>/usr/local</code>目录：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>wget -c https://dl.google.com/go/go1.x.x.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
+</span></span></code></pre></div></li>
+<li>
+<p>配置环境变量(和方法一一致)</p>
+</li>
+</ul>
+<h4 id="安装数据库mysql">安装数据库(mysql)</h4>
+<h5 id="准备工作">准备工作</h5>
+<ol>
+<li>
+<p>远程连接需要部署LNMP环境的ECS实例。</p>
+<p>具体操作，请参见<a href="https://help.aliyun.com/document_detail/71529.htm#concept-tmr-pgx-wdb">连接方式概述</a>。</p>
+</li>
+<li>
+<p>关闭系统内部防火墙。</p>
+<ol>
+<li>
+<p>运行以下命令，检查防火墙当前状态。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo ufw status
+</span></span></code></pre></div><ul>
+<li>如果防火墙状态为Status: inactive，则表示防火墙为关闭状态。</li>
+<li>如果防火墙状态为Status: active，则表示防火墙为开启状态。</li>
+</ul>
+</li>
+<li>
+<p>可选：</p>
+<p>关闭防火墙。</p>
+<p>如果您的防火墙为开启状态，需要运行以下命令，关闭防火墙并关闭开机自启动防火墙。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw disable
+</span></span></code></pre></div></li>
+</ol>
+</li>
+</ol>
+<h5 id="安装并配置mysql">安装并配置MySQL</h5>
+<h6 id="方法一-1">方法一：</h6>
+<ol>
+<li>
+<p>安装MySQL。</p>
+<ol>
+<li>
+<p>运行以下命令，安装MySQL。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo apt -y install mysql-server
+</span></span></code></pre></div></li>
+<li>
+<p>运行以下命令，查看MySQL版本。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo mysql -V
+</span></span></code></pre></div><p>返回结果如下所示，表示MySQL已成功安装，MySQL的版本为8.0.27。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>mysql  Ver 8.0.27-0ubuntu0.20.04.1 <span style="color:#66d9ef">for</span> Linux on x86_64 <span style="color:#f92672">((</span>Ubuntu<span style="color:#f92672">))</span>
+</span></span></code></pre></div></li>
+</ol>
+</li>
+<li>
+<p>配置MySQL。</p>
+<ol>
+<li>
+<p>运行以下命令，进入MySQL。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo mysql
+</span></span></code></pre></div></li>
+<li>
+<p>运行以下命令，设置root用户密码。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">ALTER</span> <span style="color:#66d9ef">USER</span> <span style="color:#e6db74">&#39;root&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;localhost&#39;</span> IDENTIFIED <span style="color:#66d9ef">WITH</span> mysql_native_password <span style="color:#66d9ef">by</span> <span style="color:#e6db74">&#39;mynewpassword&#39;</span>;
+</span></span></code></pre></div><p>本示例中密码以<code>Mysql@1234</code>为例，示例命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">ALTER</span> <span style="color:#66d9ef">USER</span> <span style="color:#e6db74">&#39;root&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;localhost&#39;</span> IDENTIFIED <span style="color:#66d9ef">WITH</span> mysql_native_password <span style="color:#66d9ef">by</span> <span style="color:#e6db74">&#39;Mysql@1234&#39;</span>;
+</span></span></code></pre></div></li>
+<li>
+<p>运行以下命令，退出MySQL数据库。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">exit</span>;
+</span></span></code></pre></div></li>
+<li>
+<p>运行以下命令，对MySQL进行安全性配置。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo mysql_secure_installation
+</span></span></code></pre></div></li>
+<li>
+<p>根据命令行提示，依次完成以下配置项。</p>
+<ol>
+<li>
+<p>输入root用户的密码。本示例中输入</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>Mysql@1234
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ruby" data-lang="ruby"><span style="display:flex;"><span>root@iZbp19jsi7s0g7m4zgc<span style="color:#f92672">****</span><span style="color:#e6db74">:~</span><span style="color:#75715e"># sudo mysql_secure_installation</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">Securing</span> the <span style="color:#66d9ef">MySQL</span> server deployment<span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">Enter</span> password <span style="color:#66d9ef">for</span> user <span style="color:#e6db74">root</span>: 
+</span></span></code></pre></div><p><strong>说明</strong> 在输入密码时，系统为了最大限度的保证数据安全，命令行将不做任何回显。您只需要输入正确的密码信息，然后按Enter键即可。</p>
+</li>
+<li>
+<p>输入Y，更改root用户密码。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">Change the password for root ? ((Press y|Y for Yes, any other key for No) </span>: <span style="color:#66d9ef">Y</span>
+</span></span></code></pre></div></li>
+<li>
+<p>输入root用户密码。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">New password</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Re-enter new password</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Estimated strength of the password</span>: <span style="color:#ae81ff">100</span>
+</span></span></code></pre></div></li>
+<li>
+<p>输入Y，确认使用已设置的密码。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-typescript" data-lang="typescript"><span style="display:flex;"><span><span style="color:#a6e22e">Do</span> <span style="color:#a6e22e">you</span> <span style="color:#a6e22e">wish</span> <span style="color:#a6e22e">to</span> <span style="color:#66d9ef">continue</span> <span style="color:#66d9ef">with</span> <span style="color:#a6e22e">the</span> <span style="color:#a6e22e">password</span> <span style="color:#a6e22e">provided</span><span style="color:#f92672">?</span>(<span style="color:#a6e22e">Press</span> <span style="color:#a6e22e">y</span><span style="color:#f92672">|</span><span style="color:#a6e22e">Y</span> <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">Yes</span>, <span style="color:#66d9ef">any</span> <span style="color:#a6e22e">other</span> <span style="color:#a6e22e">key</span> <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">No</span>) <span style="color:#f92672">:</span> <span style="color:#a6e22e">Y</span>
+</span></span></code></pre></div></li>
+<li>
+<p>输入Y，删除MySQL自带的匿名用户。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">By</span> <span style="color:#66d9ef">default</span>, a MySQL installation has an anonymous <span style="color:#66d9ef">user</span>,
+</span></span><span style="display:flex;"><span>allowing anyone <span style="color:#66d9ef">to</span> log <span style="color:#66d9ef">into</span> MySQL <span style="color:#66d9ef">without</span> <span style="color:#66d9ef">having</span> <span style="color:#66d9ef">to</span> have
+</span></span><span style="display:flex;"><span>a <span style="color:#66d9ef">user</span> account created <span style="color:#66d9ef">for</span> them. This <span style="color:#66d9ef">is</span> intended <span style="color:#66d9ef">only</span> <span style="color:#66d9ef">for</span>
+</span></span><span style="display:flex;"><span>testing, <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">to</span> make the installation <span style="color:#66d9ef">go</span> a bit smoother.
+</span></span><span style="display:flex;"><span>You should remove them <span style="color:#66d9ef">before</span> moving <span style="color:#66d9ef">into</span> a production
+</span></span><span style="display:flex;"><span>environment.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Remove anonymous users<span style="color:#f92672">?</span> (Press y<span style="color:#f92672">|</span>Y <span style="color:#66d9ef">for</span> Yes, <span style="color:#66d9ef">any</span> other <span style="color:#66d9ef">key</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">No</span>) : Y
+</span></span></code></pre></div></li>
+<li>
+<p>输入Y，禁止MySQL的root用户的远程登录权限，如果需要远程登录，可以不用禁止</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>Normally, root should <span style="color:#66d9ef">only</span> be allowed <span style="color:#66d9ef">to</span> <span style="color:#66d9ef">connect</span> <span style="color:#66d9ef">from</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;localhost&#39;</span>. This ensures that someone cannot guess <span style="color:#66d9ef">at</span>
+</span></span><span style="display:flex;"><span>the root password <span style="color:#66d9ef">from</span> the network.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Disallow root login remotely<span style="color:#f92672">?</span> (Press y<span style="color:#f92672">|</span>Y <span style="color:#66d9ef">for</span> Yes, <span style="color:#66d9ef">any</span> other <span style="color:#66d9ef">key</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">No</span>) : Y
+</span></span></code></pre></div></li>
+<li>
+<p>输入Y，移除test数据库。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">By</span> <span style="color:#66d9ef">default</span>, MySQL comes <span style="color:#66d9ef">with</span> a <span style="color:#66d9ef">database</span> named <span style="color:#e6db74">&#39;test&#39;</span> that
+</span></span><span style="display:flex;"><span>anyone can <span style="color:#66d9ef">access</span>. This <span style="color:#66d9ef">is</span> also intended <span style="color:#66d9ef">only</span> <span style="color:#66d9ef">for</span> testing,
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">and</span> should be removed <span style="color:#66d9ef">before</span> moving <span style="color:#66d9ef">into</span> a production
+</span></span><span style="display:flex;"><span>environment.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Remove test <span style="color:#66d9ef">database</span> <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">access</span> <span style="color:#66d9ef">to</span> it<span style="color:#f92672">?</span> (Press y<span style="color:#f92672">|</span>Y <span style="color:#66d9ef">for</span> Yes, <span style="color:#66d9ef">any</span> other <span style="color:#66d9ef">key</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">No</span>) : 
+</span></span></code></pre></div></li>
+<li>
+<p>输入Y，重新加载授权表。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">Reloading the privilege tables will ensure that all changes</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">made so far will take effect immediately.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Reload privilege tables now? (Press y|Y for Yes, any other key for No) </span>: <span style="color:#66d9ef">Y</span>
+</span></span></code></pre></div><p>当命令行回显</p>
+<p>All done!</p>
+<p>时，表示配置完成。</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>测试登录MySQL数据库。</p>
+<ol>
+<li>
+<p>运行以下命令，登录MySQL数据库。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo mysql -u root -p
+</span></span></code></pre></div></li>
+<li>
+<p>在命令行回显的Enter password:后输入已设置的数据库密码。</p>
+<p><strong>说明</strong> 在输入密码时，系统为了最大限度的保证数据安全，命令行将不做任何回显。您只需要输入正确的密码信息，然后按Enter键即可。</p>
+<p>成功登录MySQL数据库后，命令行信息如下所示。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>root<span style="color:#a6e22e">@iZbp19jsi7s0g7m4zgc</span><span style="color:#f92672">****</span>:<span style="color:#f92672">~</span><span style="color:#75715e"># sudo mysql -uroot -p</span>
+</span></span><span style="display:flex;"><span>Enter password:
+</span></span><span style="display:flex;"><span>Welcome to the MySQL monitor<span style="color:#f92672">.</span>  Commands end <span style="color:#66d9ef">with</span> ; <span style="color:#f92672">or</span> \g<span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span>Your MySQL connection id <span style="color:#f92672">is</span> <span style="color:#ae81ff">15</span>
+</span></span><span style="display:flex;"><span>Server version: <span style="color:#ae81ff">8.0.29</span><span style="color:#f92672">-</span><span style="color:#ae81ff">0</span>ubuntu0<span style="color:#ae81ff">.20.04.3</span> (Ubuntu)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Copyright (c) <span style="color:#ae81ff">2000</span>, <span style="color:#ae81ff">2022</span>, Oracle <span style="color:#f92672">and</span><span style="color:#f92672">/</span><span style="color:#f92672">or</span> its affiliates<span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Oracle <span style="color:#f92672">is</span> a registered trademark of Oracle Corporation <span style="color:#f92672">and</span><span style="color:#f92672">/</span><span style="color:#f92672">or</span> its
+</span></span><span style="display:flex;"><span>affiliates<span style="color:#f92672">.</span> Other names may be trademarks of their respective
+</span></span><span style="display:flex;"><span>owners<span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Type <span style="color:#e6db74">&#39;help;&#39;</span> <span style="color:#f92672">or</span> <span style="color:#e6db74">&#39;\h&#39;</span> <span style="color:#66d9ef">for</span> help<span style="color:#f92672">.</span> Type <span style="color:#e6db74">&#39;\c&#39;</span> to clear the current input statement<span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div></li>
+<li>
+<p>运行以下命令，退出MySQL数据库。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">exit</span>;
+</span></span></code></pre></div></li>
+<li>
+<p>配置远程访问，进入mysql配置文件（$为命令提示符)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd /etc/mysql/mysql.conf.d
+</span></span></code></pre></div><p>有两个文件：</p>
+<pre tabindex="0"><code>root@VM-0-6-ubuntu:/etc/mysql/mysql.conf.d# ls
 mysqld.cnf  mysqld_safe_syslog.cnf
-</code></pre><p>编辑mysqld.cnf:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>vim mysqld.cnf
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span><span style=color:#75715e># * Basic Settings</span>
-</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
-</span></span><span style=display:flex><span>user            <span style=color:#f92672>=</span> mysql
-</span></span><span style=display:flex><span>pid-file        <span style=color:#f92672>=</span> /var/run/mysqld/mysqld.pid
-</span></span><span style=display:flex><span>socket          <span style=color:#f92672>=</span> /var/run/mysqld/mysqld.sock
-</span></span><span style=display:flex><span>port            <span style=color:#f92672>=</span> <span style=color:#ae81ff>3306</span>
-</span></span><span style=display:flex><span>basedir         <span style=color:#f92672>=</span> /usr
-</span></span><span style=display:flex><span>datadir         <span style=color:#f92672>=</span> /var/lib/mysql
-</span></span><span style=display:flex><span>tmpdir          <span style=color:#f92672>=</span> /tmp
-</span></span><span style=display:flex><span>lc-messages-dir <span style=color:#f92672>=</span> /usr/share/mysql
-</span></span><span style=display:flex><span>skip-external-locking
-</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
-</span></span><span style=display:flex><span><span style=color:#75715e># Instead of skip-networking the default is now to listen only on</span>
-</span></span><span style=display:flex><span><span style=color:#75715e># localhost which is more compatible and is not less secure.</span>
-</span></span><span style=display:flex><span>bind-address            <span style=color:#f92672>=</span> localhost
-</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
-</span></span></code></pre></div><p>将<code>bind-address</code>的<code>localhost</code>改为<code>0.0.0.0</code>即可远程访问如果端口冲突，也可以更改端口即：3306。保存即可。</p></li></ol></li></ol><h6 id=方法二使用docker安装>方法二：使用docker安装</h6><ol><li><p>下载镜像</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>docker pull mysql:5.7
-</span></span></code></pre></div></li><li><p>通过镜像启动</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>docker run -p 3306:3306 --name mymysql -v $PWD/conf:/etc/mysql/conf.d -v $PWD/logs:/logs -v $PWD/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD<span style=color:#f92672>=</span><span style=color:#ae81ff>123456</span> -d mysql:5.7
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-p 3306:3306：将容器的 <span style=color:#ae81ff>3306</span> 端口映射到主机的 <span style=color:#ae81ff>3306</span> 端口。
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-v -v $PWD/conf:/etc/mysql/conf.d：将主机当前目录下的 conf/my.cnf 挂载到容器的 /etc/mysql/my.cnf。
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-v $PWD/logs:/logs：将主机当前目录下的 logs 目录挂载到容器的 /logs。
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-v $PWD/data:/var/lib/mysql ：将主机当前目录下的data目录挂载到容器的 /var/lib/mysql 。
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>-e MYSQL_ROOT_PASSWORD<span style=color:#f92672>=</span>123456：初始化 root 用户的密码。
-</span></span></code></pre></div></li><li><p>进入容器配置</p><p>由于mysql的安全策略，现在还不能使用root/123456来访问数据库</p><ol><li><p>进入容器</p><p>通过docker ps -a来查看mysql的容器id然后使用：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>docker exec -it 62349aa31687 /bin/bash
-</span></span></code></pre></div></li><li><p>进入mysql</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>mysql -u root -p <span style=color:#ae81ff>123456</span>
-</span></span></code></pre></div></li><li><p>建立用户并授权</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-mysql data-lang=mysql><span style=display:flex><span><span style=color:#66d9ef>GRANT</span> <span style=color:#66d9ef>ALL</span> <span style=color:#66d9ef>PRIVILEGES</span> <span style=color:#66d9ef>ON</span> <span style=color:#f92672>*</span>.<span style=color:#f92672>*</span> <span style=color:#66d9ef>TO</span> <span style=color:#e6db74>&#39;root&#39;</span><span style=color:#f92672>@</span><span style=color:#e6db74>&#39;%&#39;</span> <span style=color:#66d9ef>IDENTIFIED</span> <span style=color:#66d9ef>BY</span> <span style=color:#e6db74>&#39;root&#39;</span> <span style=color:#66d9ef>WITH</span> <span style=color:#66d9ef>GRANT</span> <span style=color:#66d9ef>OPTION</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>GRANT</span> <span style=color:#66d9ef>ALL</span> <span style=color:#66d9ef>PRIVILEGES</span> <span style=color:#66d9ef>ON</span> <span style=color:#f92672>*</span>.<span style=color:#f92672>*</span> <span style=color:#66d9ef>TO</span> <span style=color:#e6db74>&#39;root&#39;</span><span style=color:#f92672>@</span><span style=color:#e6db74>&#39;127.0.0.1&#39;</span> <span style=color:#66d9ef>IDENTIFIED</span> <span style=color:#66d9ef>BY</span> <span style=color:#e6db74>&#39;root&#39;</span> <span style=color:#66d9ef>WITH</span> <span style=color:#66d9ef>GRANT</span> <span style=color:#66d9ef>OPTION</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>GRANT</span> <span style=color:#66d9ef>ALL</span> <span style=color:#66d9ef>PRIVILEGES</span> <span style=color:#66d9ef>ON</span> <span style=color:#f92672>*</span>.<span style=color:#f92672>*</span> <span style=color:#66d9ef>TO</span> <span style=color:#e6db74>&#39;root&#39;</span><span style=color:#f92672>@</span><span style=color:#e6db74>&#39;localhost&#39;</span> <span style=color:#66d9ef>IDENTIFIED</span> <span style=color:#66d9ef>BY</span> <span style=color:#e6db74>&#39;root&#39;</span> <span style=color:#66d9ef>WITH</span> <span style=color:#66d9ef>GRANT</span> <span style=color:#66d9ef>OPTION</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>FLUSH</span> <span style=color:#66d9ef>PRIVILEGES</span>;
-</span></span></code></pre></div><p><strong>注</strong>：如果不能远程访问依然需要像方法一一样更改配置文件</p></li></ol></li></ol><h4 id=缓存redis的安装docker安装>缓存Redis的安装(docker安装)</h4><pre tabindex=0><code>docker run -p 6379:6379 -d redis:latest redis-server
+</code></pre><p>编辑mysqld.cnf:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vim mysqld.cnf
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># * Basic Settings</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#</span>
+</span></span><span style="display:flex;"><span>user            <span style="color:#f92672">=</span> mysql
+</span></span><span style="display:flex;"><span>pid-file        <span style="color:#f92672">=</span> /var/run/mysqld/mysqld.pid
+</span></span><span style="display:flex;"><span>socket          <span style="color:#f92672">=</span> /var/run/mysqld/mysqld.sock
+</span></span><span style="display:flex;"><span>port            <span style="color:#f92672">=</span> <span style="color:#ae81ff">3306</span>
+</span></span><span style="display:flex;"><span>basedir         <span style="color:#f92672">=</span> /usr
+</span></span><span style="display:flex;"><span>datadir         <span style="color:#f92672">=</span> /var/lib/mysql
+</span></span><span style="display:flex;"><span>tmpdir          <span style="color:#f92672">=</span> /tmp
+</span></span><span style="display:flex;"><span>lc-messages-dir <span style="color:#f92672">=</span> /usr/share/mysql
+</span></span><span style="display:flex;"><span>skip-external-locking
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Instead of skip-networking the default is now to listen only on</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># localhost which is more compatible and is not less secure.</span>
+</span></span><span style="display:flex;"><span>bind-address            <span style="color:#f92672">=</span> localhost
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#</span>
+</span></span></code></pre></div><p>将<code>bind-address</code>的<code>localhost</code>改为<code>0.0.0.0</code>即可远程访问如果端口冲突，也可以更改端口即：3306。保存即可。</p>
+</li>
+</ol>
+</li>
+</ol>
+<h6 id="方法二使用docker安装">方法二：使用docker安装</h6>
+<ol>
+<li>
+<p>下载镜像</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>docker pull mysql:5.7
+</span></span></code></pre></div></li>
+<li>
+<p>通过镜像启动</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>docker run -p 3306:3306 --name mymysql -v $PWD/conf:/etc/mysql/conf.d -v $PWD/logs:/logs -v $PWD/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD<span style="color:#f92672">=</span><span style="color:#ae81ff">123456</span> -d mysql:5.7
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-p 3306:3306：将容器的 <span style="color:#ae81ff">3306</span> 端口映射到主机的 <span style="color:#ae81ff">3306</span> 端口。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-v -v $PWD/conf:/etc/mysql/conf.d：将主机当前目录下的 conf/my.cnf 挂载到容器的 /etc/mysql/my.cnf。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-v $PWD/logs:/logs：将主机当前目录下的 logs 目录挂载到容器的 /logs。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-v $PWD/data:/var/lib/mysql ：将主机当前目录下的data目录挂载到容器的 /var/lib/mysql 。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-e MYSQL_ROOT_PASSWORD<span style="color:#f92672">=</span>123456：初始化 root 用户的密码。
+</span></span></code></pre></div></li>
+<li>
+<p>进入容器配置</p>
+<p>由于mysql的安全策略，现在还不能使用root/123456来访问数据库</p>
+<ol>
+<li>
+<p>进入容器</p>
+<p>通过docker ps -a来查看mysql的容器id然后使用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>docker exec -it 62349aa31687 /bin/bash
+</span></span></code></pre></div></li>
+<li>
+<p>进入mysql</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>mysql -u root -p <span style="color:#ae81ff">123456</span>
+</span></span></code></pre></div></li>
+<li>
+<p>建立用户并授权</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span><span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">ALL</span> <span style="color:#66d9ef">PRIVILEGES</span> <span style="color:#66d9ef">ON</span> <span style="color:#f92672">*</span>.<span style="color:#f92672">*</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#39;root&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;%&#39;</span> <span style="color:#66d9ef">IDENTIFIED</span> <span style="color:#66d9ef">BY</span> <span style="color:#e6db74">&#39;root&#39;</span> <span style="color:#66d9ef">WITH</span> <span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">OPTION</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">ALL</span> <span style="color:#66d9ef">PRIVILEGES</span> <span style="color:#66d9ef">ON</span> <span style="color:#f92672">*</span>.<span style="color:#f92672">*</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#39;root&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;127.0.0.1&#39;</span> <span style="color:#66d9ef">IDENTIFIED</span> <span style="color:#66d9ef">BY</span> <span style="color:#e6db74">&#39;root&#39;</span> <span style="color:#66d9ef">WITH</span> <span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">OPTION</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">ALL</span> <span style="color:#66d9ef">PRIVILEGES</span> <span style="color:#66d9ef">ON</span> <span style="color:#f92672">*</span>.<span style="color:#f92672">*</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#39;root&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;localhost&#39;</span> <span style="color:#66d9ef">IDENTIFIED</span> <span style="color:#66d9ef">BY</span> <span style="color:#e6db74">&#39;root&#39;</span> <span style="color:#66d9ef">WITH</span> <span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">OPTION</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FLUSH</span> <span style="color:#66d9ef">PRIVILEGES</span>;
+</span></span></code></pre></div><p><strong>注</strong>：如果不能远程访问依然需要像方法一一样更改配置文件</p>
+</li>
+</ol>
+</li>
+</ol>
+<h4 id="缓存redis的安装docker安装">缓存Redis的安装(docker安装)</h4>
+<pre tabindex="0"><code>docker run -p 6379:6379 -d redis:latest redis-server
 
 docker container update --restart=always 容器名字
-</code></pre><p><a href=https://github.com/go-redis/redis>redis的go驱动</a></p><h4 id=中间件rocketmq的安装docker安装>中间件RocketMQ的安装(docker安装)</h4><h5 id=配置文件>配置文件</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>├── conf
-</span></span><span style=display:flex><span>│   └── broker.conf
-</span></span><span style=display:flex><span>└── docker-compose.yml
-</span></span></code></pre></div><p>新建一个目录：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>~ mkdir install
-</span></span><span style=display:flex><span>~ cd install
-</span></span></code></pre></div><p>新建docker-compose.yml：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>vim docker-compose.yml
-</span></span></code></pre></div><p>写入配置：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>version</span>: <span style=color:#e6db74>&#39;3.5&#39;</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>services</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>rmqnamesrv</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>foxiswho/rocketmq:server</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>container_name</span>: <span style=color:#ae81ff>rmqnamesrv</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>ports</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>9876</span>:<span style=color:#ae81ff>9876</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>volumes</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>./logs:/opt/logs</span>
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>./store:/opt/store</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>networks</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>rmq</span>:
-</span></span><span style=display:flex><span>          <span style=color:#f92672>aliases</span>:
-</span></span><span style=display:flex><span>            - <span style=color:#ae81ff>rmqnamesrv</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>rmqbroker</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>foxiswho/rocketmq:broker</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>container_name</span>: <span style=color:#ae81ff>rmqbroker</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>ports</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>10909</span>:<span style=color:#ae81ff>10909</span>
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>10911</span>:<span style=color:#ae81ff>10911</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>volumes</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>./logs:/opt/logs</span>
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>./store:/opt/store</span>
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>./conf/broker.conf:/etc/rocketmq/broker.conf</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>environment</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>NAMESRV_ADDR</span>: <span style=color:#e6db74>&#34;rmqnamesrv:9876&#34;</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>JAVA_OPTS</span>: <span style=color:#e6db74>&#34; -Duser.home=/opt&#34;</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>JAVA_OPT_EXT</span>: <span style=color:#e6db74>&#34;-server -Xms256m -Xmx256m -Xmn256m&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>command</span>: <span style=color:#ae81ff>mqbroker -c /etc/rocketmq/broker.conf</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>depends_on</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>rmqnamesrv</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>networks</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>rmq</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>aliases</span>:
-</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>rmqbroker</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>rmqconsole</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>styletang/rocketmq-console-ng</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>container_name</span>: <span style=color:#ae81ff>rmqconsole</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>ports</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>8080</span>:<span style=color:#ae81ff>8080</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>environment</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>JAVA_OPTS</span>: <span style=color:#e6db74>&#34;-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>depends_on</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>rmqnamesrv</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>networks</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>rmq</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>aliases</span>:
-</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>rmqconsole</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#f92672>networks</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>rmq</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>rmq</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>driver</span>: <span style=color:#ae81ff>bridge</span>
-</span></span></code></pre></div><p>新建目录：conf</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>~ mkdir conf
-</span></span><span style=display:flex><span>~ cd conf
-</span></span></code></pre></div><p>新建配置文件：</p><pre tabindex=0><code>vim broker.conf
-</code></pre><p>写入配置：</p><pre tabindex=0><code># Licensed to the Apache Software Foundation (ASF) under one or more
+</code></pre><p><a href="https://github.com/go-redis/redis">redis的go驱动</a></p>
+<h4 id="中间件rocketmq的安装docker安装">中间件RocketMQ的安装(docker安装)</h4>
+<h5 id="配置文件">配置文件</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>├── conf
+</span></span><span style="display:flex;"><span>│   └── broker.conf
+</span></span><span style="display:flex;"><span>└── docker-compose.yml
+</span></span></code></pre></div><p>新建一个目录：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>~ mkdir install
+</span></span><span style="display:flex;"><span>~ cd install
+</span></span></code></pre></div><p>新建docker-compose.yml：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>vim docker-compose.yml
+</span></span></code></pre></div><p>写入配置：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3.5&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rmqnamesrv</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">foxiswho/rocketmq:server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">rmqnamesrv</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">9876</span>:<span style="color:#ae81ff">9876</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">./logs:/opt/logs</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">./store:/opt/store</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">rmq</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">aliases</span>:
+</span></span><span style="display:flex;"><span>            - <span style="color:#ae81ff">rmqnamesrv</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rmqbroker</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">foxiswho/rocketmq:broker</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">rmqbroker</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">10909</span>:<span style="color:#ae81ff">10909</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">10911</span>:<span style="color:#ae81ff">10911</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">./logs:/opt/logs</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">./store:/opt/store</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">./conf/broker.conf:/etc/rocketmq/broker.conf</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">NAMESRV_ADDR</span>: <span style="color:#e6db74">&#34;rmqnamesrv:9876&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">JAVA_OPTS</span>: <span style="color:#e6db74">&#34; -Duser.home=/opt&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">JAVA_OPT_EXT</span>: <span style="color:#e6db74">&#34;-server -Xms256m -Xmx256m -Xmn256m&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command</span>: <span style="color:#ae81ff">mqbroker -c /etc/rocketmq/broker.conf</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">rmqnamesrv</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">rmq</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">aliases</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">rmqbroker</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rmqconsole</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">styletang/rocketmq-console-ng</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">rmqconsole</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">8080</span>:<span style="color:#ae81ff">8080</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">JAVA_OPTS</span>: <span style="color:#e6db74">&#34;-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">rmqnamesrv</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">rmq</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">aliases</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">rmqconsole</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rmq</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">rmq</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">bridge</span>
+</span></span></code></pre></div><p>新建目录：conf</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>~ mkdir conf
+</span></span><span style="display:flex;"><span>~ cd conf
+</span></span></code></pre></div><p>新建配置文件：</p>
+<pre tabindex="0"><code>vim broker.conf
+</code></pre><p>写入配置：</p>
+<pre tabindex="0"><code># Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
 # The ASF licenses this file to You under the Apache License, Version 2.0
@@ -282,33 +533,107 @@ flushDiskType=ASYNC_FLUSH
 # sendMessageThreadPoolNums=128
 # 拉消息线程池数量
 # pullMessageThreadPoolNums=128
-</code></pre><p>**注意：**需要将<code>brokerIP1=127.0.0.1</code>ip改为公网ip。</p><h5 id=安装并启动>安装并启动</h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span><span style=color:#75715e>#cd到目录之下</span>
-</span></span><span style=display:flex><span>docker-compose up
-</span></span></code></pre></div><p>安装配置完成。</p><h5 id=参考>参考</h5><p>当然也可以参考更简单的安装方式：<a href=https://www.cnblogs.com/franson-2016/p/12714692.html>rocketMQ的安装</a></p><h4 id=代理服务器nginx的安装>代理服务器Nginx的安装</h4><ol><li><p>运行以下命令，更新Ubuntu系统内的软件包。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>sudo apt <span style=color:#66d9ef>update</span>
-</span></span></code></pre></div></li><li><p>运行以下命令，安装Nginx。</p><pre tabindex=0><code class=language-undefined data-lang=undefined>sudo apt -y install nginx
-</code></pre></li><li><p>运行以下命令，查看Nginx版本。</p><pre tabindex=0><code class=language-undefined data-lang=undefined>sudo nginx -v
-</code></pre><p>返回结果如下所示，查看到Nginx的版本信息为1.18.0。同时也表示Nginx已成功安装。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>nginx version</span>: <span style=color:#ae81ff>nginx/1.18.0 (Ubuntu)</span>
-</span></span></code></pre></div></li></ol><h4 id=更多安装配置参考>更多安装配置参考：</h4><p><a href=https://github.com/iceymoss/Learning-notes/blob/main/blog/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83nacos.md>配置中心nacos的安装</a></p><p><a href=https://github.com/iceymoss/Learning-notes/blob/main/blog/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83consul.md>注册中心consul的安装</a></p><p><a href=https://github.com/iceymoss/Learning-notes/blob/main/blog/Elasticsearch%E5%AD%A6%E4%B9%A0.md>Elasticsearch的安装及配置</a></p><h3 id=部署>部署</h3><p>环境搭建完成后我们就应该将前后端代码上传了</p><h4 id=上传代码>上传代码</h4><h5 id=方法一命令上传>方法一：命令上传</h5><p>将本地代码上传到服务器可以使用命令</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>scp -r /本地路径/项目目录 ssh ubuntu@IP:/服务器下的文件路径/目录
-</span></span></code></pre></div><h5 id=方法二通过git拉取>方法二：通过git拉取</h5><p>我们可以将测试好的代码(项目)上传至github或者gitee然后使用git clone拉取</p><h4 id=后端项目部署>后端项目部署</h4><h5 id=部署并启动服务>部署并启动服务</h5><p>如果条件允许，我们最好有两天服务器：测试服务器和线上服务器。</p><p>条件有限，这里我就以一台服务器介绍。</p><p>进入项目目录：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>root@VM-0-6-ubuntu:/home/ubuntu/project/mxshop/mxshop_srvs/user_srv# ls
-</span></span><span style=display:flex><span>config  config-debug.yaml  config-pro.yaml  global  handler  initialize  main.go  model  proto  test  tmp  utils
-</span></span></code></pre></div><p>我们直接使用命令：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>go run main.go    <span style=color:#75715e>#当然也可以在后台运行：go run main.go &amp;</span>
-</span></span></code></pre></div><p>他会自动去拉取项目所有的依赖，然后运行，测试无误后，使用命令：<code>kill -9 pid </code>退出测试服务进行，将main.go编译成可执行文件：</p><pre tabindex=0><code>go build main.go 
-</code></pre><p>或者</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>go build main.go user_main   <span style=color:#75715e>#user_main 为可执行文件名</span>
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>root@VM-0-6-ubuntu:/home/ubuntu/project/mxshop/mxshop_srvs/user_srv# ls
-</span></span><span style=display:flex><span>config  config-debug.yaml  config-pro.yaml  global  handler  initialize  main  main.go  model  proto  test  tmp  utils
-</span></span></code></pre></div><p>可以看到多了一个可执行文件<code>main</code></p><p>然后运行可执行文件：& 后台运行</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>../user_srv/main &amp; 
-</span></span></code></pre></div><p>如果还有一台服务器的情况，这里我们就完成了，测试服务器的测试，然后将可执行文件上传线上服务器运行即可。</p><p>当然这是最简单的部署模式，我们也可以将服务制作成一个docker镜像，将服务容器化。</p><p>这样我们的后端项目就成功部署到服务器了。</p><h4 id=前端项目部署>前端项目部署</h4><h5 id=方法一使用ngin部署>方法一：使用Ngin部署</h5><p>怎么只需要将本地打包好的静态文件上传服务器，然后使用Nginx即可，具体如下：</p><p><strong>我们准备我们的前端项目不管你是vue项目还是普通的jquery写的项目都是一样的，本文的前端项目是vue。</strong></p><p><strong>通过git把他克隆到我们的服务器下面，我的前端项目就放在/home/ubuntu/web/下</strong></p><p><strong>下面是我前端项目的目录和内容，我们主要是用到打包后的dist文件夹。</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist# ls
-</span></span><span style=display:flex><span>index.entry.js  index.html  static
-</span></span><span style=display:flex><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist# pwd
-</span></span><span style=display:flex><span>/home/ubuntu/web/dist
-</span></span><span style=display:flex><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist#
-</span></span></code></pre></div><p>进入：/etc/nginx/sites-enabled/</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist# cd /etc/nginx/sites-enabled/
-</span></span><span style=display:flex><span>root@VM-0-6-ubuntu:/etc/nginx/sites-enabled# ls
-</span></span><span style=display:flex><span>default
-</span></span></code></pre></div><p>下面有一个默认的配置，我们将其复制一份：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>cp /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/myproject
-</span></span></code></pre></div><p>然后进入配置：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>vim myproject
-</span></span></code></pre></div><p>可以看到</p><p>只需要修改图中对应的内容即可。</p><p>然后重新加载Nginx</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>nginx -s reload
-</span></span></code></pre></div><p>前端项目就部署完成。</p><h5 id=方法二使用node和npm部署>方法二：使用node和npm部署</h5><p>可以直接在服务器上将</p><p>将前端项目clone到服务器，使用命令npm install拉取依赖</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>npm install
-</span></span></code></pre></div><p>然后使用npm run dev 运行</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>npm run dev
-</span></span></code></pre></div><p>同样这里测试完成后，也可以使用命令 npm run build 将文件打包为静态文件</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>npm run build
-</span></span></code></pre></div><p>然后静态文件会在项目中的dist文件夹中。</p><p>依然可以使用nginx来部署。</p><h5 id=方法三使用其他服务代理>方法三：使用其他服务代理</h5><p>可以使用<code>kong</code>等服务代理。</p></div><div class=post-footer></div></article></main></body></html>
+</code></pre><p>**注意：**需要将<code>brokerIP1=127.0.0.1</code>ip改为公网ip。</p>
+<h5 id="安装并启动">安装并启动</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e">#cd到目录之下</span>
+</span></span><span style="display:flex;"><span>docker-compose up
+</span></span></code></pre></div><p>安装配置完成。</p>
+<h5 id="参考">参考</h5>
+<p>当然也可以参考更简单的安装方式：<a href="https://www.cnblogs.com/franson-2016/p/12714692.html">rocketMQ的安装</a></p>
+<h4 id="代理服务器nginx的安装">代理服务器Nginx的安装</h4>
+<ol>
+<li>
+<p>运行以下命令，更新Ubuntu系统内的软件包。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>sudo apt <span style="color:#66d9ef">update</span>
+</span></span></code></pre></div></li>
+<li>
+<p>运行以下命令，安装Nginx。</p>
+<pre tabindex="0"><code class="language-undefined" data-lang="undefined">sudo apt -y install nginx
+</code></pre></li>
+<li>
+<p>运行以下命令，查看Nginx版本。</p>
+<pre tabindex="0"><code class="language-undefined" data-lang="undefined">sudo nginx -v
+</code></pre><p>返回结果如下所示，查看到Nginx的版本信息为1.18.0。同时也表示Nginx已成功安装。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">nginx version</span>: <span style="color:#ae81ff">nginx/1.18.0 (Ubuntu)</span>
+</span></span></code></pre></div></li>
+</ol>
+<h4 id="更多安装配置参考">更多安装配置参考：</h4>
+<p><a href="https://github.com/iceymoss/Learning-notes/blob/main/blog/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83nacos.md">配置中心nacos的安装</a></p>
+<p><a href="https://github.com/iceymoss/Learning-notes/blob/main/blog/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83consul.md">注册中心consul的安装</a></p>
+<p><a href="https://github.com/iceymoss/Learning-notes/blob/main/blog/Elasticsearch%E5%AD%A6%E4%B9%A0.md">Elasticsearch的安装及配置</a></p>
+<h3 id="部署">部署</h3>
+<p>环境搭建完成后我们就应该将前后端代码上传了</p>
+<h4 id="上传代码">上传代码</h4>
+<h5 id="方法一命令上传">方法一：命令上传</h5>
+<p>将本地代码上传到服务器可以使用命令</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>scp -r /本地路径/项目目录 ssh ubuntu@IP:/服务器下的文件路径/目录
+</span></span></code></pre></div><h5 id="方法二通过git拉取">方法二：通过git拉取</h5>
+<p>我们可以将测试好的代码(项目)上传至github或者gitee然后使用git clone拉取</p>
+<h4 id="后端项目部署">后端项目部署</h4>
+<h5 id="部署并启动服务">部署并启动服务</h5>
+<p>如果条件允许，我们最好有两天服务器：测试服务器和线上服务器。</p>
+<p>条件有限，这里我就以一台服务器介绍。</p>
+<p>进入项目目录：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>root@VM-0-6-ubuntu:/home/ubuntu/project/mxshop/mxshop_srvs/user_srv# ls
+</span></span><span style="display:flex;"><span>config  config-debug.yaml  config-pro.yaml  global  handler  initialize  main.go  model  proto  test  tmp  utils
+</span></span></code></pre></div><p>我们直接使用命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>go run main.go    <span style="color:#75715e">#当然也可以在后台运行：go run main.go &amp;</span>
+</span></span></code></pre></div><p>他会自动去拉取项目所有的依赖，然后运行，测试无误后，使用命令：<code>kill -9 pid </code>退出测试服务进行，将main.go编译成可执行文件：</p>
+<pre tabindex="0"><code>go build main.go 
+</code></pre><p>或者</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>go build main.go user_main   <span style="color:#75715e">#user_main 为可执行文件名</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>root@VM-0-6-ubuntu:/home/ubuntu/project/mxshop/mxshop_srvs/user_srv# ls
+</span></span><span style="display:flex;"><span>config  config-debug.yaml  config-pro.yaml  global  handler  initialize  main  main.go  model  proto  test  tmp  utils
+</span></span></code></pre></div><p>可以看到多了一个可执行文件<code>main</code></p>
+<p>然后运行可执行文件：&amp; 后台运行</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>../user_srv/main &amp; 
+</span></span></code></pre></div><p>如果还有一台服务器的情况，这里我们就完成了，测试服务器的测试，然后将可执行文件上传线上服务器运行即可。</p>
+<p>当然这是最简单的部署模式，我们也可以将服务制作成一个docker镜像，将服务容器化。</p>
+<p>这样我们的后端项目就成功部署到服务器了。</p>
+<h4 id="前端项目部署">前端项目部署</h4>
+<h5 id="方法一使用ngin部署">方法一：使用Ngin部署</h5>
+<p>怎么只需要将本地打包好的静态文件上传服务器，然后使用Nginx即可，具体如下：</p>
+<p><strong>我们准备我们的前端项目不管你是vue项目还是普通的jquery写的项目都是一样的，本文的前端项目是vue。</strong></p>
+<p><strong>通过git把他克隆到我们的服务器下面，我的前端项目就放在/home/ubuntu/web/下</strong></p>
+<p><strong>下面是我前端项目的目录和内容，我们主要是用到打包后的dist文件夹。</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist# ls
+</span></span><span style="display:flex;"><span>index.entry.js  index.html  static
+</span></span><span style="display:flex;"><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist# pwd
+</span></span><span style="display:flex;"><span>/home/ubuntu/web/dist
+</span></span><span style="display:flex;"><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist#
+</span></span></code></pre></div><p>进入：/etc/nginx/sites-enabled/</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>root@VM-0-6-ubuntu:/home/ubuntu/web/dist# cd /etc/nginx/sites-enabled/
+</span></span><span style="display:flex;"><span>root@VM-0-6-ubuntu:/etc/nginx/sites-enabled# ls
+</span></span><span style="display:flex;"><span>default
+</span></span></code></pre></div><p>下面有一个默认的配置，我们将其复制一份：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cp /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/myproject
+</span></span></code></pre></div><p>然后进入配置：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vim myproject
+</span></span></code></pre></div><p>可以看到</p>
+<!-- raw HTML omitted -->
+<p>只需要修改图中对应的内容即可。</p>
+<p>然后重新加载Nginx</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>nginx -s reload
+</span></span></code></pre></div><p>前端项目就部署完成。</p>
+<h5 id="方法二使用node和npm部署">方法二：使用node和npm部署</h5>
+<p>可以直接在服务器上将</p>
+<p>将前端项目clone到服务器，使用命令npm install拉取依赖</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>npm install
+</span></span></code></pre></div><p>然后使用npm run dev 运行</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>npm run dev
+</span></span></code></pre></div><p>同样这里测试完成后，也可以使用命令 npm run build 将文件打包为静态文件</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>npm run build
+</span></span></code></pre></div><p>然后静态文件会在项目中的dist文件夹中。</p>
+<p>依然可以使用nginx来部署。</p>
+<h5 id="方法三使用其他服务代理">方法三：使用其他服务代理</h5>
+<p>可以使用<code>kong</code>等服务代理。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
