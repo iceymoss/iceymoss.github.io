@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「从0到1搭建一个IM项目」用户模块开发之api鉴权与密码加密 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「从0到1搭建一个IM项目」用户模块开发之api鉴权与密码加密"/>
+<meta name="twitter:description" content="[toc] 概况 前面我们学习了api的开发及api的测试，但是也提到了api权限问题，那么这里将来介绍jwt授权和鉴权以及Md5盐值加密。 HiChat ├── common /"/>
+
+    <meta property="og:title" content="「从0到1搭建一个IM项目」用户模块开发之api鉴权与密码加密" />
+<meta property="og:description" content="[toc] 概况 前面我们学习了api的开发及api的测试，但是也提到了api权限问题，那么这里将来介绍jwt授权和鉴权以及Md5盐值加密。 HiChat ├── common /" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E7%94%A8%E6%88%B7%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8Bapi%E9%89%B4%E6%9D%83%E4%B8%8E%E5%AF%86%E7%A0%81%E5%8A%A0%E5%AF%86/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-06-01T21:56:04+08:00" />
+<meta property="article:modified_time" content="2023-06-01T21:56:04+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「从0到1搭建一个IM项目」用户模块开发之api鉴权与密码加密</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 1, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          6 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gin/">Gin</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web/">web</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/jwt/">JWT</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>前面我们学习了api的开发及api的测试，但是也提到了api权限问题，那么这里将来介绍jwt授权和鉴权以及Md5盐值加密。</p>
+<pre tabindex="0"><code>HiChat   
+    ├── common    //放置公共文件
+    │  
+    ├── config    //做配置文件
+    │  
+    ├── dao//数据库crud
+    │     |——user.go
+    |
+    ├── global    //放置各种连接池，配置等
+    │   		|——global.go
+    |
+    ├── initialize  //项目初始化文件
+    │  			|——db.go
+    |				|——logger.go
+    |
+    ├── middlewear  //放置web中间件
+    │ 
+    ├── models      //数据库表设计
+    │   		|——user_basic.go
+    |
+    ├── router   		//路由
+    │   
+    ├── service     //对外api
+    │   
+    ├── test        //测试文件
+    │  
+    ├── main.go     //项目入口
+    ├── go.mod			//项目依赖管理
+    ├── go.sum			//项目依赖管理
+</code></pre><h3 id="jwt">JWT</h3>
+<h4 id="什么是jwt">什么是jwt</h4>
+<p>jwt全称：json web token</p>
+<p>其实就是以json格式颁发的web服务使用的令牌，有了令牌就拥有了访问一些被保护资源的权利。</p>
+<h4 id="分类">分类</h4>
+<h5 id="对称加密">对称加密</h5>
+<p>指使用同一把钥匙开门，授权和鉴权都使用同一份秘钥进行验证</p>
+<p>例如 ：</p>
+<blockquote>
+<p>秘钥为：dhdifidfhiadfdhifhdf</p>
+<p>载入信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;sub&#34;</span>: <span style="color:#e6db74">&#34;1234567890&#34;</span>,
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;ice_moss&#34;</span>,
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;userId&#34;</span>:<span style="color:#e6db74">&#34;14&#34;</span> 
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>加密方式、类型：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;alg&#34;</span>: <span style="color:#e6db74">&#34;HS256&#34;</span>,
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;typ&#34;</span>: <span style="color:#e6db74">&#34;JWT&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></blockquote>
+<blockquote>
+<p>生成token:</p>
+<pre tabindex="0"><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6ImljZV9tb3NzIiwidXNlcklkIjoiMTQifQ.uPug9OgNZXZ0NutD26u81Q4HNQPIWfYauY6vvkZLiQM
+</code></pre></blockquote>
+<p>我们使用这段token就可以验证， 当前验证人是合法的。</p>
+<h5 id="非对称加密">非对称加密</h5>
+<p>使用私钥加密，使用公钥进行验证</p>
+<blockquote>
+<p>加密算法和类型：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;alg&#34;</span>: <span style="color:#e6db74">&#34;RS512&#34;</span>,
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;typ&#34;</span>: <span style="color:#e6db74">&#34;JWT&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>载入信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;sub&#34;</span>: <span style="color:#e6db74">&#34;1234567890&#34;</span>,
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;ice_moss&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></blockquote>
+<p>有两分秘钥：公钥和私钥</p>
+<blockquote>
+<p>公钥：</p>
+<pre tabindex="0"><code>-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu1SU1LfVLPHCozMxH2Mo
+4lgOEePzNm0tRgeLezV6ffAt0gunVTLw7onLRnrq0/IzW7yWR7QkrmBL7jTKEn5u
++qKhbwKfBstIs+bMY2Zkp18gnTxKLxoS2tFczGkPLPgizskuemMghRniWaoLcyeh
+kd3qqGElvW/VDL5AaWTg0nLVkjRo9z+40RQzuVaE8AkAFmxZzow3x+VJYKdjykkJ
+0iT9wCS0DRTXu269V264Vf/3jvredZiKRkgwlL9xNAwxXFg0x/XFw005UWVRIkdg
+cKWTjpBP2dPwVZ4WWC+9aGVd+Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbc
+mwIDAQAB
+-----END PUBLIC KEY-----
+</code></pre><p>私钥：</p>
+<pre tabindex="0"><code>-----BEGIN PRIVATE KEY-----
+MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC7VJTUt9Us8cKj
+MzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu
+NMoSfm76oqFvAp8Gy0iz5sxjZmSnXyCdPEovGhLa0VzMaQ8s+CLOyS56YyCFGeJZ
+qgtzJ6GR3eqoYSW9b9UMvkBpZODSctWSNGj3P7jRFDO5VoTwCQAWbFnOjDfH5Ulg
+p2PKSQnSJP3AJLQNFNe7br1XbrhV//eO+t51mIpGSDCUv3E0DDFcWDTH9cXDTTlR
+ZVEiR2BwpZOOkE/Z0/BVnhZYL71oZV34bKfWjQIt6V/isSMahdsAASACp4ZTGtwi
+VuNd9tybAgMBAAECggEBAKTmjaS6tkK8BlPXClTQ2vpz/N6uxDeS35mXpqasqskV
+laAidgg/sWqpjXDbXr93otIMLlWsM+X0CqMDgSXKejLS2jx4GDjI1ZTXg++0AMJ8
+sJ74pWzVDOfmCEQ/7wXs3+cbnXhKriO8Z036q92Qc1+N87SI38nkGa0ABH9CN83H
+mQqt4fB7UdHzuIRe/me2PGhIq5ZBzj6h3BpoPGzEP+x3l9YmK8t/1cN0pqI+dQwY
+dgfGjackLu/2qH80MCF7IyQaseZUOJyKrCLtSD/Iixv/hzDEUPfOCjFDgTpzf3cw
+ta8+oE4wHCo1iI1/4TlPkwmXx4qSXtmw4aQPz7IDQvECgYEA8KNThCO2gsC2I9PQ
+DM/8Cw0O983WCDY+oi+7JPiNAJwv5DYBqEZB1QYdj06YD16XlC/HAZMsMku1na2T
+N0driwenQQWzoev3g2S7gRDoS/FCJSI3jJ+kjgtaA7Qmzlgk1TxODN+G1H91HW7t
+0l7VnL27IWyYo2qRRK3jzxqUiPUCgYEAx0oQs2reBQGMVZnApD1jeq7n4MvNLcPv
+t8b/eU9iUv6Y4Mj0Suo/AU8lYZXm8ubbqAlwz2VSVunD2tOplHyMUrtCtObAfVDU
+AhCndKaA9gApgfb3xw1IKbuQ1u4IF1FJl3VtumfQn//LiH1B3rXhcdyo3/vIttEk
+48RakUKClU8CgYEAzV7W3COOlDDcQd935DdtKBFRAPRPAlspQUnzMi5eSHMD/ISL
+DY5IiQHbIH83D4bvXq0X7qQoSBSNP7Dvv3HYuqMhf0DaegrlBuJllFVVq9qPVRnK
+xt1Il2HgxOBvbhOT+9in1BzA+YJ99UzC85O0Qz06A+CmtHEy4aZ2kj5hHjECgYEA
+mNS4+A8Fkss8Js1RieK2LniBxMgmYml3pfVLKGnzmng7H2+cwPLhPIzIuwytXywh
+2bzbsYEfYx3EoEVgMEpPhoarQnYPukrJO4gwE2o5Te6T5mJSZGlQJQj9q4ZB2Dfz
+et6INsK0oG8XVGXSpQvQh3RUYekCZQkBBFcpqWpbIEsCgYAnM3DQf3FJoSnXaMhr
+VBIovic5l0xFkEHskAjFTevO86Fsz1C2aSeRKSqGFoOQ0tmJzBEs1R6KqnHInicD
+TQrKhArgLXX4v3CddjfTRJkFWDbE/CkvKZNOrcf1nhaGCPspRJj2KUkj1Fhl9Cnc
+dn/RsYEONbwQSjIfMPkvxF+8HQ==
+-----END PRIVATE KEY-----
+</code></pre><p>生成token：</p>
+<pre tabindex="0"><code>eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6ImljZV9tb3NzIn0.K8ZCGpv2e7B6YUBtxZwLwh9YEQqHe6FxUHXhBn99EAmOoPsnnn7Jam5A34TGbWKbQHnrTvXkpy14WMIA9fFW3TQBbMPD4LSRMG_T2nyxRJspaWGWaVnYAqx16FCTcHr_UNjQ1AMc-GkN5InlkbRZiwck1GLgR6B2kSnHc6RqfGDRiM1Z5gG-quPmukzFvW9aGq0XoNpb73itI_6CH-OzaykwgNMWSj4vM-frvXWwKFD9ICYcXk2wZ1p3-3v59G75s9JqWV581pVNHXH7mA-x074sPar7oOg9HEUotGugc3LxUzEIqh4GkMS0f3ANaMtH2yy6m759P0E5p8_t3A6oGA
+</code></pre></blockquote>
+<p>使用私钥生成token，验证时使用公钥进行验证</p>
+<p>我们的项目中使用非对称加密进行授权和鉴权。</p>
+<h3 id="项目集成jwt">项目集成jwt</h3>
+<h4 id="拉取依赖">拉取依赖</h4>
+<pre tabindex="0"><code>go get github.com/dgrijalva/jwt-go
+</code></pre><p>项目中我们分为两步：1. 授权； 2.鉴权</p>
+<h4 id="授权">授权</h4>
+<p>token的生成，我们在middlewear目录下新建一个jwt.go文件</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">TokenExpired</span> = <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;Token is expired&#34;</span>)
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 指定加密密钥
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jwtSecret</span> = []byte(<span style="color:#e6db74">&#34;ice_moss&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Claims 是一些实体（通常指的用户）的状态和额外的元数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Claims</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">UserID</span> <span style="color:#66d9ef">uint</span> <span style="color:#e6db74">`json:&#34;userId&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">StandardClaims</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//GenerateToken 根据用户的用户名和密码产生token
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GenerateToken</span>(<span style="color:#a6e22e">userId</span> <span style="color:#66d9ef">uint</span>, <span style="color:#a6e22e">iss</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//设置token有效时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">nowTime</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">expireTime</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nowTime</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">48</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">30</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">claims</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Claims</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">UserID</span>: <span style="color:#a6e22e">userId</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">StandardClaims</span>: <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">StandardClaims</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// 过期时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">ExpiresAt</span>: <span style="color:#a6e22e">expireTime</span>.<span style="color:#a6e22e">Unix</span>(),
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// 指定token发行人
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">Issuer</span>: <span style="color:#a6e22e">iss</span>,
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tokenClaims</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">NewWithClaims</span>(<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">SigningMethodHS256</span>, <span style="color:#a6e22e">claims</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//该方法内部生成签名字符串，再用于获取完整、已签名的token
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tokenClaims</span>.<span style="color:#a6e22e">SignedString</span>(<span style="color:#a6e22e">jwtSecret</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="鉴权">鉴权</h4>
+<p>下面就是，用户在http请求中将token带上，然后我们就需要进行验证。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">TokenExpired</span> = <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;Token is expired&#34;</span>)
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 指定加密密钥
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jwtSecret</span> = []byte(<span style="color:#e6db74">&#34;ice_moss&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Claims 是一些实体（通常指的用户）的状态和额外的元数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Claims</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">UserID</span> <span style="color:#66d9ef">uint</span> <span style="color:#e6db74">`json:&#34;userId&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">StandardClaims</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">JWY</span>() <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;token&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Query</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>				<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您userId不合法&#34;</span>,
+</span></span><span style="display:flex;"><span>			})
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">token</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>				<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;请登录&#34;</span>,
+</span></span><span style="display:flex;"><span>			})
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">claims</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ParseToken</span>(<span style="color:#a6e22e">token</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>					<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;token失效&#34;</span>,
+</span></span><span style="display:flex;"><span>				})
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>() &gt; <span style="color:#a6e22e">claims</span>.<span style="color:#a6e22e">ExpiresAt</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">TokenExpired</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>					<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;授权已过期&#34;</span>,
+</span></span><span style="display:flex;"><span>				})
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">claims</span>.<span style="color:#a6e22e">UserID</span> <span style="color:#f92672">!=</span> uint(<span style="color:#a6e22e">userId</span>) {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>					<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您的登录不合法&#34;</span>,
+</span></span><span style="display:flex;"><span>				})
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;token认证成功&#34;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//ParseToken 根据传入的token值获取到Claims对象信息（进而获取其中的用户id）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ParseToken</span>(<span style="color:#a6e22e">token</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">Claims</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用于解析鉴权的声明，方法内部主要是具体的解码和校验的过程，最终返回*Token
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tokenClaims</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">ParseWithClaims</span>(<span style="color:#a6e22e">token</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Claims</span>{}, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">token</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">Token</span>) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">jwtSecret</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tokenClaims</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// 从tokenClaims中获取到Claims对象，并使用断言，将该对象转换为我们自己定义的Claims
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// 要传入指针，项目中结构体都是用指针传递，节省空间。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">claims</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tokenClaims</span>.<span style="color:#a6e22e">Claims</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">Claims</span>); <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">tokenClaims</span>.<span style="color:#a6e22e">Valid</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">claims</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="jwtgo完整代码">jwt.go完整代码</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">middlewear</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;errors&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strconv&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/dgrijalva/jwt-go&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">TokenExpired</span> = <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;Token is expired&#34;</span>)
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 指定加密密钥
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jwtSecret</span> = []byte(<span style="color:#e6db74">&#34;ice_moss&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Claims 是一些实体（通常指的用户）的状态和额外的元数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Claims</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">UserID</span> <span style="color:#66d9ef">uint</span> <span style="color:#e6db74">`json:&#34;userId&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">StandardClaims</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">JWY</span>() <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;token&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Query</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>				<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您userId不合法&#34;</span>,
+</span></span><span style="display:flex;"><span>			})
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">token</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>				<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;请登录&#34;</span>,
+</span></span><span style="display:flex;"><span>			})
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">claims</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ParseToken</span>(<span style="color:#a6e22e">token</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>					<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;token失效&#34;</span>,
+</span></span><span style="display:flex;"><span>				})
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>() &gt; <span style="color:#a6e22e">claims</span>.<span style="color:#a6e22e">ExpiresAt</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">TokenExpired</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>					<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;授权已过期&#34;</span>,
+</span></span><span style="display:flex;"><span>				})
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">claims</span>.<span style="color:#a6e22e">UserID</span> <span style="color:#f92672">!=</span> uint(<span style="color:#a6e22e">userId</span>) {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusUnauthorized</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>					<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您的登录不合法&#34;</span>,
+</span></span><span style="display:flex;"><span>				})
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;token认证成功&#34;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//GenerateToken 根据用户的用户名和密码产生token
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GenerateToken</span>(<span style="color:#a6e22e">userId</span> <span style="color:#66d9ef">uint</span>, <span style="color:#a6e22e">iss</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//设置token有效时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">nowTime</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">expireTime</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nowTime</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">48</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">30</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">claims</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Claims</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">UserID</span>: <span style="color:#a6e22e">userId</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">StandardClaims</span>: <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">StandardClaims</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// 过期时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">ExpiresAt</span>: <span style="color:#a6e22e">expireTime</span>.<span style="color:#a6e22e">Unix</span>(),
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// 指定token发行人
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">Issuer</span>: <span style="color:#a6e22e">iss</span>,
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tokenClaims</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">NewWithClaims</span>(<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">SigningMethodHS256</span>, <span style="color:#a6e22e">claims</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//该方法内部生成签名字符串，再用于获取完整、已签名的token
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tokenClaims</span>.<span style="color:#a6e22e">SignedString</span>(<span style="color:#a6e22e">jwtSecret</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//ParseToken 根据传入的token值获取到Claims对象信息（进而获取其中的用户id）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ParseToken</span>(<span style="color:#a6e22e">token</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">Claims</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用于解析鉴权的声明，方法内部主要是具体的解码和校验的过程，最终返回*Token
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tokenClaims</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">ParseWithClaims</span>(<span style="color:#a6e22e">token</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Claims</span>{}, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">token</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">Token</span>) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">jwtSecret</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tokenClaims</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// 从tokenClaims中获取到Claims对象，并使用断言，将该对象转换为我们自己定义的Claims
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// 要传入指针，项目中结构体都是用指针传递，节省空间。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">claims</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tokenClaims</span>.<span style="color:#a6e22e">Claims</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">Claims</span>); <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">tokenClaims</span>.<span style="color:#a6e22e">Valid</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">claims</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="jwt加入gin中间件">jwt加入gin中间件</h3>
+<p>之前我们看到在登录api代码中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">GenerateToken</span>(<span style="color:#a6e22e">Rsp</span>.<span style="color:#a6e22e">ID</span>, <span style="color:#e6db74">&#34;yk&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;生成token失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><p>现在我们要如何进行鉴权呢?</p>
+<p>答案是：在路由中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/middlewear&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/service&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Router</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Engine</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化路由
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//v1版本
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">v1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;v1&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用户模块，后续有个用户的api就放置其中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/list&#34;</span>,<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">List</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/login_pw&#34;</span>,<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">LoginByNameAndPassWord</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/new&#34;</span>,<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">NewUser</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/delete&#34;</span>,<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">DeleteUser</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/updata&#34;</span>,<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">UpdataUser</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这样我们现在访问执行api,需要在body中加入token了。当再次请求用户列表时没有加token：</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2022-12-28%20%E4%B8%8B%E5%8D%887.19.10.png" alt=""></p>
+<p>添加token后：</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2022-12-28%20%E4%B8%8B%E5%8D%887.21.40.png" alt=""></p>
+<p>现在整个用户模块api就完整了。</p>
+<h3 id="md5密码加密">MD5密码加密</h3>
+<p>之前的文章也看到了，在存储密码时没有使用明文存储，而是存储使用md加密后的密文，下面来看看这个加密过程。</p>
+<h4 id="什么是md5">什么是MD5</h4>
+<p>参考文章：<a href="https://learnku.com/articles/69126">MD5加密</a></p>
+<h4 id="项目中md5的使用">项目中MD5的使用</h4>
+<p>将加密文件放置common目录下，命名为md5.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">common</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;crypto/md5&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;encoding/hex&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;io&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strings&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Md5encoder 加密后返回小写值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Md5encoder</span>(<span style="color:#a6e22e">code</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">md5</span>.<span style="color:#a6e22e">New</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">m</span>, <span style="color:#a6e22e">code</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">hex</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">Sum</span>(<span style="color:#66d9ef">nil</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Md5StrToUpper 加密后返回大写
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Md5StrToUpper</span>(<span style="color:#a6e22e">code</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">ToUpper</span>(<span style="color:#a6e22e">Md5encoder</span>(<span style="color:#a6e22e">code</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//SaltPassWord 密码加盐
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">SaltPassWord</span>(<span style="color:#a6e22e">pw</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">salt</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">saltPW</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%s$%s&#34;</span>, <span style="color:#a6e22e">Md5encoder</span>(<span style="color:#a6e22e">pw</span>), <span style="color:#a6e22e">salt</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">saltPW</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//CheckPassWord 核验密码
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">CheckPassWord</span>(<span style="color:#a6e22e">rpw</span>, <span style="color:#a6e22e">salt</span>, <span style="color:#a6e22e">pw</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">pw</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">SaltPassWord</span>(<span style="color:#a6e22e">rpw</span>, <span style="color:#a6e22e">salt</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="总结">总结</h3>
+<p>到目前为止，完成了用户模块的基本开发，相关功能已经进行了测试，整套完整的用户服务api开发完成， 当然还有很多不做， 希望小伙伴们可以进行优化，这个模块涉及的知识点还有挺多的，如有不足，错误等欢迎评论区指正；接下来将介绍用户关系模块的开发，大家一起加油！</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

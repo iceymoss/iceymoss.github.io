@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「从0到1搭建一个IM项目」好友关系模块开发之群关系设计 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「从0到1搭建一个IM项目」好友关系模块开发之群关系设计"/>
+<meta name="twitter:description" content="[toc] 概况 前面把好友关系设计完成了，下面我们来设计群关系，主要内容：群关系表设计、群表设计、群列表、新键群、加入群等功能。 到目前为止，项目目录结"/>
+
+    <meta property="og:title" content="「从0到1搭建一个IM项目」好友关系模块开发之群关系设计" />
+<meta property="og:description" content="[toc] 概况 前面把好友关系设计完成了，下面我们来设计群关系，主要内容：群关系表设计、群表设计、群列表、新键群、加入群等功能。 到目前为止，项目目录结" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E5%A5%BD%E5%8F%8B%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8B%E7%BE%A4%E5%85%B3%E7%B3%BB%E8%AE%BE%E8%AE%A1/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-06-01T22:00:16+08:00" />
+<meta property="article:modified_time" content="2023-06-01T22:00:16+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「从0到1搭建一个IM项目」好友关系模块开发之群关系设计</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 1, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          8 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gin/">Gin</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web/">web</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>前面把好友关系设计完成了，下面我们来设计群关系，主要内容：群关系表设计、群表设计、群列表、新键群、加入群等功能。</p>
+<p>到目前为止，项目目录结构：</p>
+<pre tabindex="0"><code>HiChat   
+    ├── common    //放置公共文件
+    |      |——md5.go
+    |      |——resp.go
+    │  
+    ├── config    //做配置文件
+    │  
+    ├── dao//数据库crud
+    │     |——user.go
+    |  		|——relation.go
+    |
+    ├── global    //放置各种连接池，配置等
+    │   		|——global.go
+    |
+    ├── initialize  //项目初始化文件
+    │  			|——db.go
+    |				|——logger.go
+    |
+    ├── middlewear  //放置web中间件
+    |  			|——jwt.go
+    ├── models      //数据库表设计
+    │   		|——user_basic.go
+    |  		  |——relation.go
+    |
+    ├── router   		//路由
+    |       |——router.go
+    │   
+    ├── service     //对外api
+    |       |——user.go
+    |  		  |——relation.go
+    │   
+    ├── test        //测试文件
+    │  
+    ├── main.go     //项目入口
+    ├── go.mod			//项目依赖管理
+    ├── go.sum			//项目依赖管理
+</code></pre><h3 id="群关系设计">群关系设计</h3>
+<h4 id="群结构设计">群结构设计</h4>
+<p>首先来看一下群表的设计，在models目录下新建community.go文件，一样少不了model，需要引入user_basic.go中的Model结构体</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Model</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ID</span>        <span style="color:#66d9ef">uint</span> <span style="color:#e6db74">`gorm:&#34;primaryKey&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">CreatedAt</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Time</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">UpdatedAt</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Time</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">DeletedAt</span> <span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">DeletedAt</span> <span style="color:#e6db74">`gorm:&#34;index&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>群聊应该有哪些字段：</p>
+<blockquote>
+<p>群名称</p>
+<p>群拥有者</p>
+<p>群类型</p>
+<p>群头像</p>
+<p>群描述</p>
+</blockquote>
+<p>结构体：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Community</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Model</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Name</span>    <span style="color:#66d9ef">string</span> <span style="color:#75715e">//群名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">OwnerId</span> <span style="color:#66d9ef">uint</span>   <span style="color:#75715e">//群拥有者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Type</span>    <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//群类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Image</span>   <span style="color:#66d9ef">string</span> <span style="color:#75715e">//头像
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Desc</span>    <span style="color:#66d9ef">string</span> <span style="color:#75715e">//描述
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//FindUsers 获取群成员id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">FindUsers</span>(<span style="color:#a6e22e">groupId</span> <span style="color:#66d9ef">uint</span>) (<span style="color:#f92672">*</span>[]<span style="color:#66d9ef">uint</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">Relation</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;target_id = ? and type = 2&#34;</span>, <span style="color:#a6e22e">groupId</span>).<span style="color:#a6e22e">Find</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;未查询到成员信息&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIDs</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">uint</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">relation</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">userId</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">OwnerId</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">userIDs</span> = append(<span style="color:#a6e22e">userIDs</span>, <span style="color:#a6e22e">userId</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">userIDs</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后使用gorm根据结构体生成表就完成了。</p>
+<h4 id="群关系设计-1">群关系设计</h4>
+<p>群关系设计，我们可以单独用一张表来存储，但是由于内容和用户关系设计一样，我们就把群关系和用户关系放在一张表中。</p>
+<p>对于一个用户的好友关系，这里我们就以最简单的方式进行设计</p>
+<blockquote>
+<p>当前用户id</p>
+<p>加入的群id</p>
+<p>关系类型</p>
+<p>关系描述</p>
+</blockquote>
+<p>结构体：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">models</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Relation</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Model</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">OwnerId</span>  <span style="color:#66d9ef">uint</span>   <span style="color:#75715e">//当前用户id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">TargetID</span> <span style="color:#66d9ef">uint</span>   <span style="color:#75715e">//加入的群id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Type</span>     <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//关系类型：2    1表示好友关系 2表示群关系
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Desc</span>     <span style="color:#66d9ef">string</span> <span style="color:#75715e">//描述
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Relation</span>) <span style="color:#a6e22e">RelTableName</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;relation&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="dao层的实现">dao层的实现</h3>
+<p>在dao目录下新建community.go文件，然后完成下面函数</p>
+<h4 id="新建群聊">新建群聊</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//CreateCommunity 新建群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">CreateCommunity</span>(<span style="color:#a6e22e">community</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">com</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//查询群是否已经存在
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;name = ?&#34;</span>, <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Name</span>).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">com</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;当前群记录已存在&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Begin</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>); <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;群记录创建失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">OwnerId</span> = <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">OwnerId</span> <span style="color:#75715e">//群主id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">TargetID</span> = <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">ID</span>     <span style="color:#75715e">//群id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">Type</span> = <span style="color:#ae81ff">2</span>                    <span style="color:#75715e">//群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;群记录创建失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Commit</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="获取群列表">获取群列表</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">/</span><span style="color:#a6e22e">GetCommunityList</span> <span style="color:#960050;background-color:#1e0010">获取群列表</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GetCommunityList</span>(<span style="color:#a6e22e">ownerId</span> <span style="color:#66d9ef">uint</span>) (<span style="color:#f92672">*</span>[]<span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//获取我加入的群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;owner_id = ? and type = 2&#34;</span>, <span style="color:#a6e22e">ownerId</span>).<span style="color:#a6e22e">Find</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;不存在群记录&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">communityID</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">uint</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">relation</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">cid</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">TargetID</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">communityID</span> = append(<span style="color:#a6e22e">communityID</span>, <span style="color:#a6e22e">cid</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;id in ?&#34;</span>, <span style="color:#a6e22e">communityID</span>).<span style="color:#a6e22e">Find</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;获取群数据失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="加入群聊">加入群聊</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//JoinCommunity 根据群昵称搜索并加入群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">JoinCommunity</span>(<span style="color:#a6e22e">ownerId</span> <span style="color:#66d9ef">uint</span>, <span style="color:#a6e22e">cname</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;name = ?&#34;</span>, <span style="color:#a6e22e">cname</span>).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;群记录不存在&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//重复加群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;owner_id = ? and target_id = ? and type = 2&#34;</span>, <span style="color:#a6e22e">ownerId</span>, <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">ID</span>).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;该群已经加入&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span> = <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">OwnerId</span> = <span style="color:#a6e22e">ownerId</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">TargetID</span> = <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">ID</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">Type</span> = <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;加入失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="完整代码">完整代码</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">dao</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/global&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/models&#34;</span>
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;errors&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//CreateCommunity 新建群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">CreateCommunity</span>(<span style="color:#a6e22e">community</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">com</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//查询群是否已经存在
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;name = ?&#34;</span>, <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Name</span>).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">com</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;当前群记录已存在&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Begin</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>); <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;群记录创建失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">OwnerId</span> = <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">OwnerId</span> <span style="color:#75715e">//群主id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">TargetID</span> = <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">ID</span>     <span style="color:#75715e">//群id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">Type</span> = <span style="color:#ae81ff">2</span>                    <span style="color:#75715e">//群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;群记录创建失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Commit</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//GetCommunityList 获取群列表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GetCommunityList</span>(<span style="color:#a6e22e">ownerId</span> <span style="color:#66d9ef">uint</span>) (<span style="color:#f92672">*</span>[]<span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//获取我加入的群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;owner_id = ? and type = 2&#34;</span>, <span style="color:#a6e22e">ownerId</span>).<span style="color:#a6e22e">Find</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;不存在群记录&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">communityID</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">uint</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">relation</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">cid</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">TargetID</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">communityID</span> = append(<span style="color:#a6e22e">communityID</span>, <span style="color:#a6e22e">cid</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;id in ?&#34;</span>, <span style="color:#a6e22e">communityID</span>).<span style="color:#a6e22e">Find</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;获取群数据失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//JoinCommunity 根据群昵称搜索并加入群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">JoinCommunity</span>(<span style="color:#a6e22e">ownerId</span> <span style="color:#66d9ef">uint</span>, <span style="color:#a6e22e">cname</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;name = ?&#34;</span>, <span style="color:#a6e22e">cname</span>).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">community</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;群记录不存在&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//重复加群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;owner_id = ? and target_id = ? and type = 2&#34;</span>, <span style="color:#a6e22e">ownerId</span>, <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">ID</span>).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;该群已经加入&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span> = <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Relation</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">OwnerId</span> = <span style="color:#a6e22e">ownerId</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">TargetID</span> = <span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">ID</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">Type</span> = <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;加入失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="群关系api的实现">群关系api的实现</h3>
+<p>我们将dao成的crud完成了，接下来将来完成对外api的实现，在service目录下的relation.go中进行编码</p>
+<h4 id="新建群">新建群</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//NewGroup 新建群聊
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGroup</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">owner</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;ownerId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ownerId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">owner</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;owner类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ty</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;cate&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Type</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">ty</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;ty类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">img</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;icon&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">name</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;name&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">desc</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;desc&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ownerId</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您未登录&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;群名称不能为空&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">img</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Image</span> = <span style="color:#a6e22e">img</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">desc</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Desc</span> = <span style="color:#a6e22e">desc</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Name</span> = <span style="color:#a6e22e">name</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Type</span> = <span style="color:#a6e22e">Type</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">OwnerId</span> = uint(<span style="color:#a6e22e">ownerId</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">CreateCommunity</span>(<span style="color:#a6e22e">community</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">HandleErr</span>(<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;键群成功&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="群列表">群列表</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//GroupList 获取群列表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GroupList</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">owner</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;ownerId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ownerId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">owner</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;owner类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ownerId</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您未登录&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rsp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">GetCommunityList</span>(uint(<span style="color:#a6e22e">ownerId</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;获取群列表失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;你还没加入任何群聊&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespOKList</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Writer</span>, <span style="color:#a6e22e">rsp</span>, len(<span style="color:#f92672">*</span><span style="color:#a6e22e">rsp</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="加入群">加入群</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//JoinGroup 加入群聊
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">JoinGroup</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">comInfo</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;comId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">comInfo</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;群名称不能为空&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;user类型转换失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userId</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;你未登录&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">JoinCommunity</span>(uint(<span style="color:#a6e22e">userId</span>), <span style="color:#a6e22e">comInfo</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">HandleErr</span>(<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;加群成功&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="完整代码-1">完整代码</h4>
+<p>和用户关系结合起来，我们就完成了用户关系和群关系的开发，整个api的代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">service</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strconv&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/common&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/dao&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/models&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;go.uber.org/zap&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">user</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Name</span>     <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Avatar</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Gender</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Phone</span>    <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Email</span>    <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Identity</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">FriendList</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">id</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">FormValue</span>(<span style="color:#e6db74">&#34;userId&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">users</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">FriendList</span>(uint(<span style="color:#a6e22e">id</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;获取好友列表失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;好友为空&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">infos</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">user</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">users</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">info</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">user</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Name</span>:     <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Avatar</span>:   <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Avatar</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Gender</span>:   <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Gender</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Phone</span>:    <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Phone</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Email</span>:    <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Email</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Identity</span>: <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Identity</span>,
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">infos</span> = append(<span style="color:#a6e22e">infos</span>, <span style="color:#a6e22e">info</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespOKList</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Writer</span>, <span style="color:#a6e22e">infos</span>, len(<span style="color:#a6e22e">infos</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//AddFriendByName 通过加好友
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AddFriendByName</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tar</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;targetName&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">target</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">tar</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">AddFriendByName</span>(uint(<span style="color:#a6e22e">userId</span>), <span style="color:#a6e22e">tar</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">HandleErr</span>(<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">AddFriend</span>(uint(<span style="color:#a6e22e">userId</span>), uint(<span style="color:#a6e22e">target</span>))
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">HandleErr</span>(<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;添加好友成功&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">HandleErr</span>(<span style="color:#a6e22e">code</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">code</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>(),
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;该好友已经存在&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;不能添加自己&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGroup</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">owner</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;ownerId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ownerId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">owner</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;owner类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ty</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;cate&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Type</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">ty</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;ty类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">img</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;icon&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">name</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;name&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">desc</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;desc&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Community</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ownerId</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您未登录&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;群名称不能为空&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">img</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Image</span> = <span style="color:#a6e22e">img</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">desc</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Desc</span> = <span style="color:#a6e22e">desc</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Name</span> = <span style="color:#a6e22e">name</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">Type</span> = <span style="color:#a6e22e">Type</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">community</span>.<span style="color:#a6e22e">OwnerId</span> = uint(<span style="color:#a6e22e">ownerId</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">CreateCommunity</span>(<span style="color:#a6e22e">community</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">HandleErr</span>(<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;键群成功&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GroupList</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">owner</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;ownerId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ownerId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">owner</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;owner类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ownerId</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;您未登录&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rsp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">GetCommunityList</span>(uint(<span style="color:#a6e22e">ownerId</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;获取群列表失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;你还没加入任何群聊&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespOKList</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Writer</span>, <span style="color:#a6e22e">rsp</span>, len(<span style="color:#f92672">*</span><span style="color:#a6e22e">rsp</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">JoinGroup</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">comInfo</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;comId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">comInfo</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;群名称不能为空&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">user</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;user类型转换失败&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userId</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;你未登录&#34;</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dao</span>.<span style="color:#a6e22e">JoinCommunity</span>(uint(<span style="color:#a6e22e">userId</span>), <span style="color:#a6e22e">comInfo</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">HandleErr</span>(<span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;code&#34;</span>:    <span style="color:#ae81ff">0</span>, <span style="color:#75715e">//  0成功   -1失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;加群成功&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="匹配路由">匹配路由</h3>
+<p>在router目录下的router.go文件下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//关系
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;relation&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>())
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/list&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">FriendList</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/add&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">AddFriendByName</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/new_group&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">NewGroup</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/group_list&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">GroupList</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/join_group&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">JoinGroup</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><h3 id="测试">测试</h3>
+<p>现在来测试新建群、加入群、群列表这三个api</p>
+<h4 id="新建群-1">新建群</h4>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-08%20%E4%B8%8B%E5%8D%883.46.16.png" alt=""></p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-08%20%E4%B8%8B%E5%8D%883.47.51.png" alt=""></p>
+<h4 id="加入群-1">加入群</h4>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-08%20%E4%B8%8B%E5%8D%883.50.11.png" alt=""></p>
+<h4 id="群列表-1">群列表</h4>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-08%20%E4%B8%8B%E5%8D%883.51.33.png" alt=""></p>
+<h3 id="总结">总结</h3>
+<p>到这里整个关系结构就已经完成了，细心就会发现，整个项目各个模块的思路就是表设计、然后进行crud、最后对外暴露接口，到目前为止，我们整个项目就已经完成了用户模块，关系模块的开发接下来也就是要完成文件的上传(头像、发送图片等功能)，消息发送和接收。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
