@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「从0到1搭建一个IM项目」消息模块开发之消息体的设计 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「从0到1搭建一个IM项目」消息模块开发之消息体的设计"/>
+<meta name="twitter:description" content="[toc] 概况 经过前四篇文章的讲解，完成了用户模块的开发，下面就进入到了IM项目的核心模块，即信息模块，这部分内容我们主要介绍信息结构的设计，信息的"/>
+
+    <meta property="og:title" content="「从0到1搭建一个IM项目」消息模块开发之消息体的设计" />
+<meta property="og:description" content="[toc] 概况 经过前四篇文章的讲解，完成了用户模块的开发，下面就进入到了IM项目的核心模块，即信息模块，这部分内容我们主要介绍信息结构的设计，信息的" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8B%E6%B6%88%E6%81%AF%E4%BD%93%E7%9A%84%E8%AE%BE%E8%AE%A1/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-06-05T16:16:15+08:00" />
+<meta property="article:modified_time" content="2023-06-05T16:16:15+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「从0到1搭建一个IM项目」消息模块开发之消息体的设计</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 5, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          7 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gin/">Gin</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web/">web</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/redis/">Redis</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%94%81%E6%9C%BA%E5%88%B6/">锁机制</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>经过前四篇文章的讲解，完成了用户模块的开发，下面就进入到了IM项目的核心模块，即信息模块，这部分内容我们主要介绍信息结构的设计，信息的发送接收。</p>
+<p>经过用户模块的开发，项目目录结构如下：</p>
+<pre tabindex="0"><code>HiChat   
+    ├── common    //放置公共文件
+    |      |——md5.go
+    │  
+    ├── config    //做配置文件
+    │  
+    ├── dao//数据库crud
+    │     |——user.go
+    |
+    ├── global    //放置各种连接池，配置等
+    │   		|——global.go
+    |
+    ├── initialize  //项目初始化文件
+    │  			|——db.go
+    |				|——logger.go
+    |
+    ├── middlewear  //放置web中间件
+    |       |——jwt.go
+    │ 
+    ├── models      //数据库表设计
+    │   		|——user_basic.go
+    |
+    ├── router   		//路由
+    │       |——router.go
+    ├── service     //对外api
+    │   		|——user.go
+    ├── test        //测试文件
+    │  
+    ├── main.go     //项目入口
+    ├── go.mod			//项目依赖管理
+    ├── go.sum			//项目依赖管理
+</code></pre><h3 id="信息结构设计">信息结构设计</h3>
+<p>每一个表都需要一个model来记录相应数据，在model下新建文件message.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Model</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ID</span>        <span style="color:#66d9ef">uint</span> <span style="color:#e6db74">`gorm:&#34;primaryKey&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">CreatedAt</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Time</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">UpdatedAt</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Time</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">DeletedAt</span> <span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">DeletedAt</span> <span style="color:#e6db74">`gorm:&#34;index&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="消息体">消息体</h4>
+<blockquote>
+<p>信息发送者</p>
+<p>信息接收者</p>
+<p>聊天类型：单聊、群聊</p>
+<p>信息类型：文字、表情包、图片、语音</p>
+<p>信息内容</p>
+<p>图片url</p>
+<p>涉及文件</p>
+<p>文件描述</p>
+<p>文件大小</p>
+</blockquote>
+<p>目前能只想到了这么多，后续有其他需求可以自行添加</p>
+<p>信息结构体：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Message</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Model</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">FormId</span>   <span style="color:#66d9ef">int64</span>  <span style="color:#e6db74">`json:&#34;userId&#34;`</span>   <span style="color:#75715e">//信息发送者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">TargetId</span> <span style="color:#66d9ef">int64</span>  <span style="color:#e6db74">`json:&#34;targetId&#34;`</span> <span style="color:#75715e">//信息接收者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Type</span>     <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//聊天类型：群聊 私聊 广播
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Media</span>    <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//信息类型：文字 图片 音频
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Content</span>  <span style="color:#66d9ef">string</span> <span style="color:#75715e">//消息内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Pic</span>      <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;url&#34;`</span> <span style="color:#75715e">//图片相关
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Url</span>      <span style="color:#66d9ef">string</span> <span style="color:#75715e">//文件相关
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Desc</span>     <span style="color:#66d9ef">string</span> <span style="color:#75715e">//文件描述
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Amount</span>   <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//其他数据大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//MsgTableName 生成指定数据表名
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Message</span>) <span style="color:#a6e22e">MsgTableName</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;message&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="通信逻辑">通信逻辑</h3>
+<p>在正式开发信息模块前，我们需要梳理一下通信的逻辑</p>
+<p>用户登录后与服务器建立websocket连接：</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-06%20%E4%B8%8B%E5%8D%884.41.26.png" alt=""></p>
+<p>通信流程：</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-06%20%E4%B8%8B%E5%8D%884.45.40.png" alt=""></p>
+<h4 id="http升级为websocket">http升级为websocket</h4>
+<p>用户登录后，此时用户上线，通过发送http请求，将服务升级到websocket连接。</p>
+<h4 id="id与构造的node进行绑定">id与构造的node进行绑定</h4>
+<p>用户上线后，将其id和对应的websocket的构造体node绑定</p>
+<h4 id="发送消息">发送消息</h4>
+<p>用户发送消息给指定用户时，带上接收者id，发送至websocket，通过一系列逻辑处理，使用接收者id查找到对应的node，然后将消息放入node，此时websocket连接，会将消息推送给接收者。</p>
+<h4 id="接收消息">接收消息</h4>
+<p>接收者在线后，同样会连接到websocket，然后id绑定node，去node中的websocket中读取对应的信息。</p>
+<h4 id="举例">举例</h4>
+<p>例如：用户小明(userID=1)和小红(userID=2)都在线，他们都有对应发node并且都与服务器建立了websocket连接，当小明要发送一条信息(您好，在干嘛？)给小红，服务器获取到小明发送的消息体，然后通过消息体里接收者小红的id=2， 然后匹配map[2] = node， 然后将消息写入小红(userID=2)对应的node中的websocket连接中(也就是小红与服务器的websocket连接)，小红就可以收到小明的信息了。</p>
+<h3 id="构造node">构造node</h3>
+<p>用户登录后，为每一个用户绑定一个node</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//Node 构造连接
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Conn</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">Conn</span> <span style="color:#75715e">//socket连接
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Addr</span>      <span style="color:#66d9ef">string</span>          <span style="color:#75715e">//客户端地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">DataQueue</span> <span style="color:#66d9ef">chan</span> []<span style="color:#66d9ef">byte</span>     <span style="color:#75715e">//消息内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">GroupSets</span> <span style="color:#a6e22e">set</span>.<span style="color:#a6e22e">Interface</span>   <span style="color:#75715e">//好友 / 群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><h3 id="消息发送接收核心">消息发送接收核心</h3>
+<p>信息发送和接收的核心逻辑仍然在message.go中编写</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">models</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;encoding/json&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strconv&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;sync&#34;</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;HiChat/global&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gorilla/websocket&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;go.uber.org/zap&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;gopkg.in/fatih/set.v0&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Message</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Model</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">FormId</span>   <span style="color:#66d9ef">int64</span>  <span style="color:#e6db74">`json:&#34;userId&#34;`</span>   <span style="color:#75715e">//信息发送者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">TargetId</span> <span style="color:#66d9ef">int64</span>  <span style="color:#e6db74">`json:&#34;targetId&#34;`</span> <span style="color:#75715e">//信息接收者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Type</span>     <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//聊天类型：群聊 私聊 广播
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Media</span>    <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//信息类型：文字 图片 音频
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Content</span>  <span style="color:#66d9ef">string</span> <span style="color:#75715e">//消息内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Pic</span>      <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;url&#34;`</span> <span style="color:#75715e">//图片相关
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Url</span>      <span style="color:#66d9ef">string</span> <span style="color:#75715e">//文件相关
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Desc</span>     <span style="color:#66d9ef">string</span> <span style="color:#75715e">//文件描述
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Amount</span>   <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//其他数据大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Message</span>) <span style="color:#a6e22e">MsgTableName</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;message&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Node 构造连接
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Conn</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">Conn</span> <span style="color:#75715e">//连接
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Addr</span>      <span style="color:#66d9ef">string</span>          <span style="color:#75715e">//客户端地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">DataQueue</span> <span style="color:#66d9ef">chan</span> []<span style="color:#66d9ef">byte</span>     <span style="color:#75715e">//消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">GroupSets</span> <span style="color:#a6e22e">set</span>.<span style="color:#a6e22e">Interface</span>   <span style="color:#75715e">//好友 / 群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//映射关系
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">clientMap</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int64</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int64</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//读写锁，绑定node时需要线程安全
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rwLocker</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span>
+</span></span></code></pre></div><h4 id="chat初始化node进行信息收发调度">Chat初始化node进行信息收发调度</h4>
+<p>编写一个chat方法：核心作用就是升级连接， 初始化node， 用户id绑定node， 使用协程并发调用<code>sendProc(node)</code>和<code>recProc(node)</code>进行信息收发。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Chat	需要 ：发送者ID ，接受者ID ，消息类型，发送的内容，发送类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Chat</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//1.  获取参数信息发送者userId
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">query</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Query</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Id</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">query</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">ParseInt</span>(<span style="color:#a6e22e">Id</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">64</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//升级为socket
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">isvalida</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">conn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">Upgrader</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">CheckOrigin</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">isvalida</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}).<span style="color:#a6e22e">Upgrade</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>, <span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//获取socket连接,构造消息节点
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">node</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Conn</span>:      <span style="color:#a6e22e">conn</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">DataQueue</span>: make(<span style="color:#66d9ef">chan</span> []<span style="color:#66d9ef">byte</span>, <span style="color:#ae81ff">50</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GroupSets</span>: <span style="color:#a6e22e">set</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">set</span>.<span style="color:#a6e22e">ThreadSafe</span>),
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//将userId和Node绑定
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">clientMap</span>[<span style="color:#a6e22e">userId</span>] = <span style="color:#a6e22e">node</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//服务发送消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">sendProc</span>(<span style="color:#a6e22e">node</span>)
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//服务接收消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">recProc</span>(<span style="color:#a6e22e">node</span>)
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//sendMsg(userId, []byte(&#34;欢迎进入聊天系统&#34;))
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><h4 id="服务器发送信息">服务器发送信息</h4>
+<p>从node中获取信息并写入websocket中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//sendProc 从node中获取信息并写入websocket中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendProc</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">DataQueue</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Conn</span>.<span style="color:#a6e22e">WriteMessage</span>(<span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">TextMessage</span>, <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;写入消息失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;数据发送socket成功&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="服务器接收消息">服务器接收消息</h4>
+<p>从websocket中将消息体拿出，然后进行解析，再进行聊天类型判断， 最后将消息发送至目的用户的node中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//recProc 从websocket中将消息体拿出，然后进行解析，再进行信息类型判断， 最后将消息发送至目的用户的node中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">recProc</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//获取信息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Conn</span>.<span style="color:#a6e22e">ReadMessage</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;读取消息失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//这里是简单实现的一种方法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Message</span>{}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">data</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;json解析失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Type</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;这是一条私信:&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Content</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">tarNode</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">clientMap</span>[<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>]
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;不存在对应的node&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">tarNode</span>.<span style="color:#a6e22e">DataQueue</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">data</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;发送成功：&#34;</span>, string(<span style="color:#a6e22e">data</span>))
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>整个单聊服务就完成了。</p>
+<h4 id="配置api">配置api</h4>
+<p>将逻辑编写完成后，在service目录下user.go中编写</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//SendUserMsg 发送消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">SendUserMsg</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">Chat</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Writer</span>, <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后在router中配置路由</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//用户模块
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">……</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/SendUserMsg&#34;</span>, <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">SendUserMsg</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><h3 id="测试">测试</h3>
+<h4 id="注意事项">注意事项</h4>
+<p>在测试之前我已经将jwt中token验证，改成了get请求：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>		<span style="color:#75715e">//token := c.PostForm(&#34;token&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Query</span>(<span style="color:#e6db74">&#34;token&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Query</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span></code></pre></div><p>当然最简单的测试方法是，直接在router中:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/SendUserMsg&#34;</span>, <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">SendUserMsg</span>)
+</span></span></code></pre></div><p>将<code>middlewear.JWY()</code>扔掉，最后参数只需要这样：<code>ws://127.0.0.1:8000/v1/user/SendUserMsg?userId=13</code>就可以直接参数了</p>
+<h4 id="测试网站">测试网站</h4>
+<p><a href="https://stackoverflow.org.cn/websocket/">https://stackoverflow.org.cn/websocket/</a></p>
+<p>用户13：<code>ws://127.0.0.1:8000/v1/user/SendUserMsg?userId=13&amp;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEzLCJleHAiOjE2NzgxNzUwNjgsImlzcyI6InlrIn0.VNOp7G4T3BGkCUNe_yyDcw7b8hZvjqTGDRWUe9mNims</code></p>
+<p>用户14：<code>ws://127.0.0.1:8000/v1/user/SendUserMsg?userId=14&amp;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE0LCJleHAiOjE2NzgxNzUwMDcsImlzcyI6InlrIn0.nkVjhbSNnZLVNfFstWQNOgzrNMIcmgyvDIlCn6oAsDU</code></p>
+<p>这里你想要重新登录，然后获取到ws://127.0.0.1:8000/v1/user/SendUserMsg?后续参数userId和token</p>
+<p>消息体：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{<span style="color:#f92672">&#34;TargetId&#34;</span>:<span style="color:#ae81ff">13</span>,<span style="color:#f92672">&#34;Type&#34;</span>:<span style="color:#ae81ff">1</span>,<span style="color:#f92672">&#34;CreateTime&#34;</span>:<span style="color:#ae81ff">1672996855236</span>,<span style="color:#f92672">&#34;userId&#34;</span>:<span style="color:#ae81ff">14</span>,<span style="color:#f92672">&#34;Media&#34;</span>:<span style="color:#ae81ff">1</span>,<span style="color:#f92672">&#34;Content&#34;</span>:<span style="color:#e6db74">&#34;在干嘛&#34;</span>}
+</span></span></code></pre></div><p>测试如下：</p>
+<p>13发送消息给14</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-06%20%E4%B8%8B%E5%8D%886.06.06.png" alt=""></p>
+<p>14收到来自13的信息：</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-06%20%E4%B8%8B%E5%8D%886.06.26.png" alt=""></p>
+<p>14回复13信息：</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-06%20%E4%B8%8B%E5%8D%886.07.17.png" alt=""></p>
+<p>13收到14的回复：</p>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-06%20%E4%B8%8B%E5%8D%886.07.26.png" alt=""></p>
+<p>这样用户信息的发送和接收都完成了。</p>
+<h3 id="总结">总结</h3>
+<p>这一部分的内容，主要就是对信息的发送和接收进行理解，当然这里的信息收发都只是使用websocket就行简单的使用，在下一篇文章中，我们将信息的收发核心加入udp连接。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

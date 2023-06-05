@@ -6,11 +6,11 @@
     <description>Recent content in Categories on iceymoss - 刻意练习，卷无止境</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 01 Jun 2023 22:00:16 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 05 Jun 2023 16:21:39 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>dev</title>
       <link>https://iceymoss.github.io/categories/dev/</link>
-      <pubDate>Thu, 01 Jun 2023 22:00:16 +0800</pubDate>
+      <pubDate>Mon, 05 Jun 2023 16:21:39 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/categories/dev/</guid>
       <description></description>
@@ -23,14 +23,6 @@
       
       <guid>https://iceymoss.github.io/categories/living/</guid>
       <description></description>
-    </item>
-    
-  </channel>
-</rss>
- 18:42:13 +0800</pubDate>
-      
-      <guid>https://iceymoss.github.io/categories/dev/%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83consul/</guid>
-      <description>文章介绍 本文我们将介绍什么是consul，为什么需要consul， consul的安装， 服务注册， 健康检查， 服务发现 什么是consul 官方介绍</description>
     </item>
     
   </channel>

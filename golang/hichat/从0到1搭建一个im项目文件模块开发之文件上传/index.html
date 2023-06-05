@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「从0到1搭建一个IM项目」文件模块开发之文件上传 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「从0到1搭建一个IM项目」文件模块开发之文件上传"/>
+<meta name="twitter:description" content="[toc] 概况 前面介绍了用户模块和关系模块、下面来简单介绍一下文件上传模块，这个模块主要是处理用户头像、群头像、消息图片、语音。 目前为止下面目录结构"/>
+
+    <meta property="og:title" content="「从0到1搭建一个IM项目」文件模块开发之文件上传" />
+<meta property="og:description" content="[toc] 概况 前面介绍了用户模块和关系模块、下面来简单介绍一下文件上传模块，这个模块主要是处理用户头像、群头像、消息图片、语音。 目前为止下面目录结构" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E6%96%87%E4%BB%B6%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8B%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-06-05T16:13:57+08:00" />
+<meta property="article:modified_time" content="2023-06-05T16:13:57+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「从0到1搭建一个IM项目」文件模块开发之文件上传</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 5, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          3 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gin/">Gin</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web/">web</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>前面介绍了用户模块和关系模块、下面来简单介绍一下文件上传模块，这个模块主要是处理用户头像、群头像、消息图片、语音。</p>
+<p>目前为止下面目录结构：</p>
+<pre tabindex="0"><code>HiChat   
+    ├── common    //放置公共文件
+    |      |——md5.go
+    |      |——resp.go
+    │  
+    ├── config    //做配置文件
+    │  
+    ├── dao//数据库crud
+    │     |——user.go
+    |     |——relation.go
+    |     |——community.go
+    |
+    ├── global    //放置各种连接池，配置等
+    │           |——global.go
+    |
+    ├── initialize  //项目初始化文件
+    │              |——db.go
+    |              |——logger.go
+    |
+    ├── middlewear  //放置web中间件
+    |              |——jwt.go
+    ├── models      //数据库表设计
+    │           |——user_basic.go
+    |           |——relation.go
+    |           |——community.go
+    |
+    ├── router           //路由
+    |       |——router.go
+    │   
+    ├── service     //对外api
+    |       |——user.go
+    |       |——relation.go
+    │   
+    ├── test        //测试文件
+    │  
+    ├── main.go     //项目入口
+    ├── go.mod            //项目依赖管理
+    ├── go.sum
+</code></pre><h3 id="文件上传api">文件上传api</h3>
+<p>对于文件上传，这里提供两种思路来实现，1.上传到项目服务器；2.使用云厂商(腾讯云或者阿里云)对象存储来存储文件；当然这两种方法都是用户通过上传头像或者发送文件等然后通过调用api，将文件上传至项目服务器或者对象存储，最后只需要返回其文件URL即可。项目中就只实现第一种就可以了，但是使用对象存储会更好，使用有想要使用对象存储的同学可参考<a href="https://help.aliyun.com/product/31815.html?spm=5176.8465980.help.dexternal.4e701450EIOet8&amp;scm=20140722.S_help%40%40%E6%96%87%E6%A1%A3%40%4031815.S_hot%2Bos0.ID_31815-RL_oss%E6%96%87%E6%A1%A3%E8%AF%B4%E6%98%8E%E9%97%AE%E9%A2%98-LOC_consoleUNDhelp-OR_ser-V_2-P0_0">阿里云对象存储文档</a>和<a href="https://help.aliyun.com/document_detail/475446.html?spm=a2c4g.11186623.0.0.6d5c3e063d43o8">阿里云对象存储Go-SDK</a>进行参考。</p>
+<p>下面来实现将文件上传至我们的项目服务器：可上传图片和语音</p>
+<p>在service目录下新建attach_upload.go文件，并且在下面项目总目录下新建asset目录，然后在该目录下新建upload目录，用来存储文件。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">service</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;io&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;os&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strings&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;HiChat/common&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Image 图片语音上传并返回url
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Image</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">w</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Writer</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">req</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Request</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//获取文件
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">srcFile</span>, <span style="color:#a6e22e">head</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">FormFile</span>(<span style="color:#e6db74">&#34;file&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespFail</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//检查文件后缀
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">suffix</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;.png&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ofilName</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">head</span>.<span style="color:#a6e22e">Filename</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">tem</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">ofilName</span>, <span style="color:#e6db74">&#34;.&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">tem</span>) &gt; <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">suffix</span> = <span style="color:#e6db74">&#34;.&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">tem</span>[len(<span style="color:#a6e22e">tem</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//保存文件
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fileName</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%d%04d%s&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>(), <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Int31</span>(), <span style="color:#a6e22e">suffix</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">dstFile</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#e6db74">&#34;./asset/upload/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">fileName</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespFail</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#a6e22e">dstFile</span>, <span style="color:#a6e22e">srcFile</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespFail</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">url</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;./asset/upload/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">fileName</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespOK</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">url</span>, <span style="color:#e6db74">&#34;发送成功&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>最后在router目录下router.go中配置路由</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//图片、语音模块
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">upload</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;upload&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>())
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">upload</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/image&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">Image</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><h3 id="测试">测试</h3>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-08%20%E4%B8%8B%E5%8D%886.04.00.png" alt=""></p>
+<p>最后可以直接访问url:http://127.0.0.1:8000/asset/upload/16731722322019727887.png 就可以看到我们上传的文件。</p>
+<h3 id="总结">总结</h3>
+<p>本篇内容比较简单，就是使用go上传文件，将其保存到服务器，当然这里简单介绍了对象存储，对于文件等资源我们更多的是使用对象存储来，管理文件；有兴趣的同学可以试一试对象存储。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
