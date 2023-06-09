@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「从0到1搭建一个IM项目」消息模块开发之信息分类与Redis的引入 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「从0到1搭建一个IM项目」消息模块开发之信息分类与Redis的引入"/>
+<meta name="twitter:description" content="[toc] 概况 前面我们已经完成了单聊模式的开发，并且已经完成了测试同时对信息发送流程进行了升级改造引入了udp，在本篇内容中，我们将开始完善聊天功能"/>
+
+    <meta property="og:title" content="「从0到1搭建一个IM项目」消息模块开发之信息分类与Redis的引入" />
+<meta property="og:description" content="[toc] 概况 前面我们已经完成了单聊模式的开发，并且已经完成了测试同时对信息发送流程进行了升级改造引入了udp，在本篇内容中，我们将开始完善聊天功能" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E4%B9%8B%E4%BF%A1%E6%81%AF%E5%88%86%E7%B1%BB%E4%B8%8Eredis%E7%9A%84%E5%BC%95%E5%85%A5/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-06-09T21:21:40+08:00" />
+<meta property="article:modified_time" content="2023-06-09T21:21:40+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「从0到1搭建一个IM项目」消息模块开发之信息分类与Redis的引入</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 9, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          9 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gin/">Gin</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web/">web</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/redis/">Redis</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/udp/">UDP</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>前面我们已经完成了单聊模式的开发，并且已经完成了测试同时对信息发送流程进行了升级改造引入了udp，在本篇内容中，我们将开始完善聊天功能，将聊天类型划分为单聊和群聊分别来实现他们的信息转发；与此同时对应聊天系统一定是要有将聊天记录进行存储的，由于我们的应用是web服务，不能将其聊天记录存储到浏览器的cook中，这是不安全的，所以最后是将聊天记录存储到服务端，所以选择Redis来缓存聊天记录。</p>
+<p>下面目录结构：</p>
+<pre tabindex="0"><code>HiChat   
+    ├── common    //放置公共文件
+    |      |——md5.go
+    |      |——resp.go
+    │  
+    ├── config    //做配置文件
+    │  
+    ├── dao//数据库crud
+    │     |——user.go
+    |     |——relation.go
+    |     |——community.go
+    |
+    ├── global    //放置各种连接池，配置等
+    │           |——global.go
+    |
+    ├── initialize  //项目初始化文件
+    │              |——db.go
+    |              |——logger.go
+    |
+    ├── middlewear  //放置web中间件
+    |              |——jwt.go
+    ├── models      //数据库表设计
+    │           |——user_basic.go
+    |           |——relation.go
+    |           |——message.go
+    |           |——community.go
+    |
+    ├── router           //路由
+    |       |——router.go
+    │   
+    ├── service     //对外api
+    |       |——user.go
+    |       |——relation.go
+    │   
+    ├── test        //测试文件
+    │  
+    ├── main.go     //项目入口
+    ├── go.mod            //项目依赖管理
+    ├── go.sum            //项目依赖管理
+</code></pre><h3 id="单聊信息的收发及存储">单聊信息的收发及存储</h3>
+<p>在上一篇文章中，我们已经完成了消息收发以及udp连接，所以这里我们将重点讲解消息的分类，对单聊消息的处理和存储。</p>
+<p>在udp服务端中调用了函数：<code>dispatch(data []byte)</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">dispatch</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//解析消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Message</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">data</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;消息解析失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;解析数据:&#34;</span>, <span style="color:#a6e22e">msg</span>, <span style="color:#e6db74">&#34;msg.FormId&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">FormId</span>, <span style="color:#e6db74">&#34;targetId:&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>, <span style="color:#e6db74">&#34;type:&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Type</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//判断消息类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Type</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">1</span>: <span style="color:#75715e">//私聊
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendMsgAndSave</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>, <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">2</span>: <span style="color:#75715e">//群发
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendGroupMsg</span>(uint(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">FormId</span>), uint(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>), <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="消息的私发与存储">消息的私发与存储</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//sendMsgTest 发送消息 并存储聊天记录到redis
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendMsgAndSave</span>(<span style="color:#a6e22e">userId</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">msg</span> []<span style="color:#66d9ef">byte</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">RLock</span>()              <span style="color:#75715e">//保证线程安全，上锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">node</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">clientMap</span>[<span style="color:#a6e22e">userId</span>] <span style="color:#75715e">//对方是否在线
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">RUnlock</span>()						<span style="color:#75715e">//解锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">jsonMsg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Message</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">msg</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">jsonMsg</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">userId</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">jsonMsg</span>.<span style="color:#a6e22e">FormId</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//如果当前用户在线，将消息转发到当前用户的websocket连接中，然后进行存储
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">DataQueue</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">msg</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//userIdStr和targetIdStr进行拼接唯一key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userId</span> &gt; <span style="color:#a6e22e">jsonMsg</span>.<span style="color:#a6e22e">FormId</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span>
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//创建记录
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZRevRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>).<span style="color:#a6e22e">Result</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//将聊天记录写入redis缓存中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">score</span> <span style="color:#f92672">:=</span> float64(cap(<span style="color:#a6e22e">res</span>)) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ress</span>, <span style="color:#a6e22e">e</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Z</span>{<span style="color:#a6e22e">score</span>, <span style="color:#a6e22e">msg</span>}).<span style="color:#a6e22e">Result</span>() <span style="color:#75715e">//jsonMsg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//res, e := utils.Red.Do(ctx, &#34;zadd&#34;, key, 1, jsonMsg).Result() //备用 后续拓展 记录完整msg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">e</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">e</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">ress</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="消息的群消息收发与存储">消息的群消息收发与存储</h3>
+<p>群发消息的逻辑：当群成员在当前群聊发送一条消息后，然后服务器将该群所有成员获取到，然后向除发送消息的用户外的所有群成员一一单发消息；简单的说就是：将群消息，给群成员都进行一次单聊信息的发送。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">dispatch</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//解析消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Message</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">data</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;消息解析失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;解析数据:&#34;</span>, <span style="color:#a6e22e">msg</span>, <span style="color:#e6db74">&#34;msg.FormId&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">FormId</span>, <span style="color:#e6db74">&#34;targetId:&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>, <span style="color:#e6db74">&#34;type:&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Type</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//判断消息类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Type</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">1</span>: <span style="color:#75715e">//私聊
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendMsgAndSave</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>, <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">2</span>: <span style="color:#75715e">//群发
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendGroupMsg</span>(uint(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">FormId</span>), uint(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>), <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="群信息收发及存储">群信息收发及存储</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//sendGroupMsg 群发
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendGroupMsg</span>(<span style="color:#a6e22e">formId</span>, <span style="color:#a6e22e">target</span> <span style="color:#66d9ef">uint</span>, <span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//群发的逻辑：1获取到群里所有用户，然后向除开自己的每一位用户发送消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">userIDs</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">FindUsers</span>(<span style="color:#a6e22e">target</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">userId</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">userIDs</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">formId</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">userId</span> {  <span style="color:#75715e">//不能给当前发送消息的成员进行转发
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#75715e">//调用单聊的函数，群聊变成了多次单聊
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">sendMsgAndSave</span>(int64(<span style="color:#a6e22e">userId</span>), <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>调用的<code>FindUsers(target)</code>在community.go中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//FindUsers 获取群成员id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">FindUsers</span>(<span style="color:#a6e22e">groupId</span> <span style="color:#66d9ef">uint</span>) (<span style="color:#f92672">*</span>[]<span style="color:#66d9ef">uint</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">Relation</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">DB</span>.<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;target_id = ? and type = 2&#34;</span>, <span style="color:#a6e22e">groupId</span>).<span style="color:#a6e22e">Find</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">relation</span>); <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">RowsAffected</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;未查询到成员信息&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIDs</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">uint</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">relation</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">userId</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">OwnerId</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">userIDs</span> = append(<span style="color:#a6e22e">userIDs</span>, <span style="color:#a6e22e">userId</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">userIDs</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这样消息分类和聊天记录的存储就完成了</p>
+<h3 id="聊天记录的获取">聊天记录的获取</h3>
+<p>对于聊天记录，不管是单聊还是群聊，目前为止都已经将其有标识的存储到缓存Redis中了，对于聊天记录我们只需要完成相应的api，当客户端进行请求时就可以请求到，对应的聊天记录</p>
+<h4 id="聊天记录的获取-1">聊天记录的获取</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//RedisMsg 获取缓存里面的聊天记录
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">RedisMsg</span>(<span style="color:#a6e22e">userIdA</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">userIdB</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">start</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">end</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">isRev</span> <span style="color:#66d9ef">bool</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">userIdA</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">userIdB</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//userIdStr和targetIdStr进行拼接唯一key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userIdA</span> &gt; <span style="color:#a6e22e">userIdB</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span>
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rels</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">isRev</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rels</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rels</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZRevRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>) <span style="color:#75715e">//没有找到
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">rels</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="对外api的暴露">对外api的暴露</h4>
+<p>在service目录下relation.go中编写函数：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">RedisMsg</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIdA</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;userIdA&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIdB</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;userIdB&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;start&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">end</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;end&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">isRev</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">ParseBool</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">PostForm</span>(<span style="color:#e6db74">&#34;isRev&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">res</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">models</span>.<span style="color:#a6e22e">RedisMsg</span>(int64(<span style="color:#a6e22e">userIdA</span>), int64(<span style="color:#a6e22e">userIdB</span>), int64(<span style="color:#a6e22e">start</span>), int64(<span style="color:#a6e22e">end</span>), <span style="color:#a6e22e">isRev</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">RespOKList</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>, <span style="color:#e6db74">&#34;ok&#34;</span>, <span style="color:#a6e22e">res</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="路由">路由</h4>
+<p>在router目录下的router.go中：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">//聊天记录
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/user/redisMsg&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">RedisMsg</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>())
+</span></span></code></pre></div><h3 id="message完整代码">message完整代码</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">models</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;encoding/json&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strconv&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;sync&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/global&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gorilla/websocket&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;go.uber.org/zap&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;gopkg.in/fatih/set.v0&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Message</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Model</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">FormId</span>   <span style="color:#66d9ef">int64</span>  <span style="color:#e6db74">`json:&#34;userId&#34;`</span>   <span style="color:#75715e">//信息发送者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">TargetId</span> <span style="color:#66d9ef">int64</span>  <span style="color:#e6db74">`json:&#34;targetId&#34;`</span> <span style="color:#75715e">//信息接收者
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Type</span>     <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//聊天类型：群聊 私聊 广播
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Media</span>    <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//信息类型：文字 图片 音频
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Content</span>  <span style="color:#66d9ef">string</span> <span style="color:#75715e">//消息内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Pic</span>      <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;url&#34;`</span> <span style="color:#75715e">//图片相关
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Url</span>      <span style="color:#66d9ef">string</span> <span style="color:#75715e">//文件相关
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Desc</span>     <span style="color:#66d9ef">string</span> <span style="color:#75715e">//文件描述
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Amount</span>   <span style="color:#66d9ef">int</span>    <span style="color:#75715e">//其他数据大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Message</span>) <span style="color:#a6e22e">MsgTableName</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;message&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Node 构造连接
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Conn</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">Conn</span> <span style="color:#75715e">//连接
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Addr</span>      <span style="color:#66d9ef">string</span>          <span style="color:#75715e">//客户端地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">DataQueue</span> <span style="color:#66d9ef">chan</span> []<span style="color:#66d9ef">byte</span>     <span style="color:#75715e">//消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">GroupSets</span> <span style="color:#a6e22e">set</span>.<span style="color:#a6e22e">Interface</span>   <span style="color:#75715e">//好友 / 群
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//映射关系
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">clientMap</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int64</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int64</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//读写锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rwLocker</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//Chat	需要 ：发送者ID ，接受者ID ，消息类型，发送的内容，发送类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Chat</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//1.  获取参数 并 检验 token 等合法性
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">query</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Query</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;handle:&#34;</span>, <span style="color:#a6e22e">query</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Id</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">query</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;userId&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//token := query.Get(&#34;token&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">ParseInt</span>(<span style="color:#a6e22e">Id</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">64</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;类型转换失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//升级为socket
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">isvalida</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">conn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">Upgrader</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//token 校验
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">CheckOrigin</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">isvalida</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}).<span style="color:#a6e22e">Upgrade</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>, <span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//获取socket连接,构造消息节点
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">node</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Node</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Conn</span>:      <span style="color:#a6e22e">conn</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">DataQueue</span>: make(<span style="color:#66d9ef">chan</span> []<span style="color:#66d9ef">byte</span>, <span style="color:#ae81ff">50</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GroupSets</span>: <span style="color:#a6e22e">set</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">set</span>.<span style="color:#a6e22e">ThreadSafe</span>),
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用户关系
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//将userId和Node绑定
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">clientMap</span>[<span style="color:#a6e22e">userId</span>] = <span style="color:#a6e22e">node</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;uid&#34;</span>, <span style="color:#a6e22e">userId</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//发送接收消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//发送消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">sendProc</span>(<span style="color:#a6e22e">node</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//接收消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">recProc</span>(<span style="color:#a6e22e">node</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">sendMsg</span>(<span style="color:#a6e22e">userId</span>, []byte(<span style="color:#e6db74">&#34;欢迎进入聊天系统&#34;</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendProc</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">DataQueue</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Conn</span>.<span style="color:#a6e22e">WriteMessage</span>(<span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">TextMessage</span>, <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;写入消息失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;数据发送socket成功&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">recProc</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//获取信息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Conn</span>.<span style="color:#a6e22e">ReadMessage</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;读取消息失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//dispatch(data)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">brodMsg</span>(<span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//这里是简单实现的一种方法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//msg := Message{}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//err = json.Unmarshal(data, &amp;msg)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//if err != nil {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	zap.S().Info(&#34;json解析失败&#34;, err)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	return
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//if msg.Type == 1 {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	zap.S().Info(&#34;这是一条私信:&#34;, msg.Content)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	tarNode, ok := clientMap[msg.TargetId]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	if !ok {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//		zap.S().Info(&#34;不存在对应的node&#34;, msg.TargetId)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//		return
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	tarNode.DataQueue &lt;- data
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//	fmt.Println(&#34;发送成功：&#34;, string(data))
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">//}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">upSendChan</span> <span style="color:#66d9ef">chan</span> []<span style="color:#66d9ef">byte</span> = make(<span style="color:#66d9ef">chan</span> []<span style="color:#66d9ef">byte</span>, <span style="color:#ae81ff">1024</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">brodMsg</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">upSendChan</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">data</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">init</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">UdpSendProc</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">UpdRecProc</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//UdpSendProc 完成upd数据发送
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">UdpSendProc</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">udpConn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">DialUDP</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">UDPAddr</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//192.168.31.147
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">IP</span>:   <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">IPv4</span>(<span style="color:#ae81ff">127</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Port</span>: <span style="color:#ae81ff">3000</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Zone</span>: <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;拨号udp端口失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">udpConn</span>.<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">upSendChan</span>:
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">udpConn</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;写入udp消息失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;数据成功发送到udp服务端:&#34;</span>, string(<span style="color:#a6e22e">data</span>))
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//UpdRecProc 完成udp数据的接收
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">UpdRecProc</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">udpConn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">ListenUDP</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">UDPAddr</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">IP</span>:   <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">IPv4</span>(<span style="color:#ae81ff">127</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Port</span>: <span style="color:#ae81ff">3000</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;监听udp端口失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">udpConn</span>.<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">buf</span> [<span style="color:#ae81ff">1024</span>]<span style="color:#66d9ef">byte</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">n</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">udpConn</span>.<span style="color:#a6e22e">Read</span>(<span style="color:#a6e22e">buf</span>[<span style="color:#ae81ff">0</span>:])
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;读取udp数据失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;udp服务端接收udp数据&#34;</span>, <span style="color:#a6e22e">buf</span>[<span style="color:#ae81ff">0</span>:<span style="color:#a6e22e">n</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//处理发送逻辑
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">dispatch</span>(<span style="color:#a6e22e">buf</span>[<span style="color:#ae81ff">0</span>:<span style="color:#a6e22e">n</span>])
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">dispatch</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//解析消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Message</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">data</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;消息解析失败&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;解析数据:&#34;</span>, <span style="color:#a6e22e">msg</span>, <span style="color:#e6db74">&#34;msg.FormId&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">FormId</span>, <span style="color:#e6db74">&#34;targetId:&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>, <span style="color:#e6db74">&#34;type:&#34;</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Type</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//判断消息类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Type</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">1</span>: <span style="color:#75715e">//私聊
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendMsgAndSave</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>, <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">2</span>: <span style="color:#75715e">//群发
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendGroupMsg</span>(uint(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">FormId</span>), uint(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">TargetId</span>), <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//sendGroupMsg 群发
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendGroupMsg</span>(<span style="color:#a6e22e">formId</span>, <span style="color:#a6e22e">target</span> <span style="color:#66d9ef">uint</span>, <span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//群发的逻辑：1获取到群里所有用户，然后向除开自己的每一位用户发送消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">userIDs</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">FindUsers</span>(<span style="color:#a6e22e">target</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">userId</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">userIDs</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">formId</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">userId</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">sendMsgAndSave</span>(int64(<span style="color:#a6e22e">userId</span>), <span style="color:#a6e22e">data</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//sendMs 向用户发送消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendMsg</span>(<span style="color:#a6e22e">id</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">msg</span> []<span style="color:#66d9ef">byte</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">node</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">clientMap</span>[<span style="color:#a6e22e">id</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;userID没有对应的node&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;targetID:&#34;</span>, <span style="color:#a6e22e">id</span>, <span style="color:#e6db74">&#34;node:&#34;</span>, <span style="color:#a6e22e">node</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">DataQueue</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">msg</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//sendMsgTest 发送消息 并存储聊天记录到redis
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendMsgAndSave</span>(<span style="color:#a6e22e">userId</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">msg</span> []<span style="color:#66d9ef">byte</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">RLock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">node</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">clientMap</span>[<span style="color:#a6e22e">userId</span>] <span style="color:#75715e">//对方是否在线
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rwLocker</span>.<span style="color:#a6e22e">RUnlock</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">jsonMsg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Message</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">msg</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">jsonMsg</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">userId</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">jsonMsg</span>.<span style="color:#a6e22e">FormId</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//如果不在线
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#a6e22e">userId</span>, <span style="color:#e6db74">&#34;不在线， 没有对应的node,&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">DataQueue</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">msg</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//拼接记录名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userId</span> &gt; <span style="color:#a6e22e">jsonMsg</span>.<span style="color:#a6e22e">FormId</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span>
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//创建记录
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZRevRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>).<span style="color:#a6e22e">Result</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//将聊天记录写入数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">score</span> <span style="color:#f92672">:=</span> float64(cap(<span style="color:#a6e22e">res</span>)) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ress</span>, <span style="color:#a6e22e">e</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Z</span>{<span style="color:#a6e22e">score</span>, <span style="color:#a6e22e">msg</span>}).<span style="color:#a6e22e">Result</span>() <span style="color:#75715e">//jsonMsg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//res, e := utils.Red.Do(ctx, &#34;zadd&#34;, key, 1, jsonMsg).Result() //备用 后续拓展 记录完整msg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">e</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">e</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">ress</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//MarshalBinary 需要重写此方法才能完整的msg转byte[]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">msg</span> <span style="color:#a6e22e">Message</span>) <span style="color:#a6e22e">MarshalBinary</span>() ([]<span style="color:#66d9ef">byte</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//RedisMsg 获取缓存里面的消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">RedisMsg</span>(<span style="color:#a6e22e">userIdA</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">userIdB</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">start</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">end</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">isRev</span> <span style="color:#66d9ef">bool</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">userIdA</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">userIdB</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//拼接key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userIdA</span> &gt; <span style="color:#a6e22e">userIdB</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span>
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">key</span> = <span style="color:#e6db74">&#34;msg_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">userIdStr</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">targetIdStr</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">rels</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">isRev</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rels</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rels</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">RedisDB</span>.<span style="color:#a6e22e">ZRevRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>) <span style="color:#75715e">//没有找到
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">rels</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="测试">测试</h3>
+<h4 id="消息的发送与接收">消息的发送与接收</h4>
+<p>消息发送与接收不管是单聊还是群聊测试方法都和《「从0到1搭建一个IM项目」信息模块开发之消息体的设计》中的测试是一样的，这里就不做过多介绍了。</p>
+<h4 id="获取聊天记录">获取聊天记录</h4>
+<p><img src="https://blogfiles-iceymoss.oss-cn-hangzhou.aliyuncs.com/blogs/%E6%88%AA%E5%B1%8F2023-01-08%20%E4%B8%8B%E5%8D%887.48.05.png" alt=""></p>
+<h3 id="总结">总结</h3>
+<p>本篇中主要讲解了聊天分类，聊天记录存储和获取，IM系统的核心还是消息的收发过程，这个过程你可能需要多看代码，先把这个思路整理出来，我想这才是最重要的。到这里，我们的项目大部分功能就完成了，整个api的开发就完成，所有api:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/middlewear&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/service&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Router</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Engine</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">v1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;v1&#34;</span>)
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用户模块
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/list&#34;</span>, <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">List</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/login_pw&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">LoginByNameAndPassWord</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/new&#34;</span>, <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">NewUser</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/delete&#34;</span>, <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">DeleteUser</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/updata&#34;</span>, <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">UpdataUser</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/SendUserMsg&#34;</span>, <span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>(), <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">SendUserMsg</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//图片、语音模块
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">upload</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;upload&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>())
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">upload</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/image&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">Image</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//好友关系
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">relation</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;relation&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>())
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/list&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">FriendList</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/add&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">AddFriendByName</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/new_group&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">NewGroup</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/group_list&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">GroupList</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">relation</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/join_group&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">JoinGroup</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//聊天记录
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/user/redisMsg&#34;</span>, <span style="color:#a6e22e">service</span>.<span style="color:#a6e22e">RedisMsg</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middlewear</span>.<span style="color:#a6e22e">JWY</span>())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">router</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在后续文章中，我们将项目参数使用viper进行配置化，然后加入前端最后进行部署。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
