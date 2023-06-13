@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>「从0到1搭建一个IM项目」参数配置之基于viper的配置化 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="「从0到1搭建一个IM项目」参数配置之基于viper的配置化"/>
+<meta name="twitter:description" content="[toc] 概况 到目前为止我们已经对I项目的基本业务开发完毕了，接下来我们需要将项目里涉及到的所有参数进行配置化，编辑配置文件，对于go开发做参数配置"/>
+
+    <meta property="og:title" content="「从0到1搭建一个IM项目」参数配置之基于viper的配置化" />
+<meta property="og:description" content="[toc] 概况 到目前为止我们已经对I项目的基本业务开发完毕了，接下来我们需要将项目里涉及到的所有参数进行配置化，编辑配置文件，对于go开发做参数配置" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/golang/hichat/%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AAim%E9%A1%B9%E7%9B%AE%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E4%B9%8B%E5%9F%BA%E4%BA%8Eviper%E7%9A%84%E9%85%8D%E7%BD%AE%E5%8C%96/" /><meta property="article:section" content="golang" />
+<meta property="article:published_time" content="2023-06-13T16:07:28+08:00" />
+<meta property="article:modified_time" content="2023-06-13T16:07:28+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">「从0到1搭建一个IM项目」参数配置之基于viper的配置化</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 13, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          3 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gin/">Gin</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/web/">web</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/mysql/">MySQL</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/redis/">Redis</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/viper/">Viper</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="概况">概况</h3>
+<p>到目前为止我们已经对I项目的基本业务开发完毕了，接下来我们需要将项目里涉及到的所有参数进行配置化，编辑配置文件，对于go开发做参数配置使用较高的就是viper，这里也将使用viper进行配置。</p>
+<p>到目前为止项目的结构：</p>
+<pre tabindex="0"><code>HiChat
+|
+├── common
+│   ├── md5.go
+│   ├── resp.go
+│  
+├── config
+│   
+├── dao
+│   ├── community.go
+│   ├── relation.go
+│   └── user.go
+|
+├── global
+│   └── global.go
+|
+├── initialize
+│   ├── db.go
+│   └── logger.go
+├── middlewear
+│   └── jwt.go
+├── models
+│   ├── community.go
+│   ├── group_info.go
+│   ├── message.go
+│   ├── relation.go
+│   └── userBasic.go
+├── router
+│   └── router.go
+├── service
+│   ├── attach_upload.go
+│   ├── index.go
+│   ├── relation.go
+│   └── user.go
+├── sql
+├── test
+|   ├── main.go
+├── go.mod
+├── go.sum
+├── main.go
+</code></pre><h3 id="编写配置文件">编写配置文件</h3>
+<p>这里配置文件yaml文件为例，在项目目录下新建文件config-debug.yaml，需要将项目中所有的参数进行编写</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;8000&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">mysql</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">host</span>: <span style="color:#e6db74">&#39;127.0.0.1&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;3306&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;hi_chat&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">user</span>: <span style="color:#e6db74">&#39;root&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;Qq/201djfidf&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">redis</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">host</span>: <span style="color:#e6db74">&#39;127.0.0.1&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;6379&#39;</span>
+</span></span></code></pre></div><h3 id="编写配置结构体">编写配置结构体</h3>
+<p>在config目录下新建文件config.go，编写的结构体结构需要和yaml文件对应。</p>
+<p><code>mapstructure</code>是用来读取yaml文件字段名tag</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">config</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//MysqlConfig mysql信息配置
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MysqlConfig</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Host</span>     <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`mapstructure:&#34;host&#34; json:&#34;host&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Port</span>     <span style="color:#66d9ef">int</span>    <span style="color:#e6db74">`mapstructure:&#34;port&#34; json:&#34;port&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Name</span>     <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`mapstructure:&#34;name&#34; json:&#34;Name&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">User</span>     <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`mapstructure:&#34;user&#34; json:&#34;user&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Password</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`mapstructure:&#34;password&#34; json:&#34;password&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">RedisConfig</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Host</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`mapstructure:&#34;host&#34; json:&#34;host&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Port</span> <span style="color:#66d9ef">int</span>    <span style="color:#e6db74">`mapstructure:&#34;port&#34; json:&#34;port&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//对应yaml文件结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ServiceConfig</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Port</span>    <span style="color:#66d9ef">int</span>         <span style="color:#e6db74">`mapstructure:&#34;port&#34; json:&#34;port&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">DB</span>      <span style="color:#a6e22e">MysqlConfig</span> <span style="color:#e6db74">`mapstructure:&#34;mysql&#34; json:&#34;mysql&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">RedisDB</span> <span style="color:#a6e22e">RedisConfig</span> <span style="color:#e6db74">`mapstructure:&#34;redis&#34; json:&#34;redis&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="添加全局变量">添加全局变量</h3>
+<p>在global目录下的global.go文件中添加字段<code>ServiceConfig</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">global</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/config&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;gorm.io/gorm&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ServiceConfig</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">ServiceConfig</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">DB</span>            <span style="color:#f92672">*</span><span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">DB</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">RedisDB</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="读取配置文件">读取配置文件</h3>
+<p>在initialize目录下新建config.go文件，使用viper将配置文件读取到全局变量ServiceConfig中。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">initialize</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/global&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/spf13/viper&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;go.uber.org/zap&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">InitConfig</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//实例化对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">viper</span>.<span style="color:#a6e22e">New</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">configFile</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;../HiChat/config-debug.yaml&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//读取配置文件
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">SetConfigFile</span>(<span style="color:#a6e22e">configFile</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//读入文件
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">ReadInConfig</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//将数据放入global.ServerConfig 这个对象如何在其他文件中使用--全局变量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">ServiceConfig</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">S</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;配置信息&#34;</span>, <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">ServiceConfig</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>最后在main.go中进行初始化：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/global&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/initialize&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;HiChat/router&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化日志
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">initialize</span>.<span style="color:#a6e22e">InitLogger</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化配置
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">initialize</span>.<span style="color:#a6e22e">InitConfig</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//初始化数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">initialize</span>.<span style="color:#a6e22e">InitDB</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">initialize</span>.<span style="color:#a6e22e">InitRedis</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Router</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;:%d&#34;</span>, <span style="color:#a6e22e">global</span>.<span style="color:#a6e22e">ServiceConfig</span>.<span style="color:#a6e22e">Port</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="总结">总结</h3>
+<p>这样整个项目的参数就配置好了，整个IM项目的基础功能就完成了，整个项目被分成了：用户，关系，文件，消息等模块；这个虽然很小也很简单，但是对于缺少项目经验同学来说，可以快速了解实际项目的设计到落地，从中学到项目如何拆分，项目结构如何设计，如何设计api等；也是将学习到的心得分享出来，希望对大家也有帮助，同时有很多不足，欢迎大家指正，建议。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

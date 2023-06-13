@@ -6,11 +6,11 @@
     <description>Recent content in Tags on iceymoss - 刻意练习，卷无止境</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 09 Jun 2023 21:21:40 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 13 Jun 2023 16:07:28 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Gin</title>
       <link>https://iceymoss.github.io/tags/gin/</link>
-      <pubDate>Fri, 09 Jun 2023 21:21:40 +0800</pubDate>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/tags/gin/</guid>
       <description></description>
@@ -19,7 +19,7 @@
     <item>
       <title>Golang</title>
       <link>https://iceymoss.github.io/tags/golang/</link>
-      <pubDate>Fri, 09 Jun 2023 21:21:40 +0800</pubDate>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/tags/golang/</guid>
       <description></description>
@@ -28,7 +28,7 @@
     <item>
       <title>MySQL</title>
       <link>https://iceymoss.github.io/tags/mysql/</link>
-      <pubDate>Fri, 09 Jun 2023 21:21:40 +0800</pubDate>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/tags/mysql/</guid>
       <description></description>
@@ -37,9 +37,36 @@
     <item>
       <title>Redis</title>
       <link>https://iceymoss.github.io/tags/redis/</link>
-      <pubDate>Fri, 09 Jun 2023 21:21:40 +0800</pubDate>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/tags/redis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Viper</title>
+      <link>https://iceymoss.github.io/tags/viper/</link>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/tags/viper/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>web</title>
+      <link>https://iceymoss.github.io/tags/web/</link>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/tags/web/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>项目实战</title>
+      <link>https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/</link>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/</guid>
       <description></description>
     </item>
     
@@ -49,24 +76,6 @@
       <pubDate>Fri, 09 Jun 2023 21:21:40 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/tags/udp/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>web</title>
-      <link>https://iceymoss.github.io/tags/web/</link>
-      <pubDate>Fri, 09 Jun 2023 21:21:40 +0800</pubDate>
-      
-      <guid>https://iceymoss.github.io/tags/web/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>项目实战</title>
-      <link>https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/</link>
-      <pubDate>Fri, 09 Jun 2023 21:21:40 +0800</pubDate>
-      
-      <guid>https://iceymoss.github.io/tags/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/</guid>
       <description></description>
     </item>
     
