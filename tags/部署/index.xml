@@ -6,7 +6,16 @@
     <description>Recent content in 部署 on iceymoss - 刻意练习，卷无止境</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 04 May 2023 22:12:15 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 25 Jun 2023 08:54:56 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于Gokins自动化部署</title>
+      <link>https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Egokins%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2/</link>
+      <pubDate>Sun, 25 Jun 2023 08:54:56 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Egokins%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2/</guid>
+      <description>[toc] 写在前面 最近在公司学习到一个新玩意-Gokins基于Golang开发的自动化构建工具， 在此之前我是使用有使用过Jenkins进行项目自动化</description>
+    </item>
+    
     <item>
       <title>Web应用部署总结</title>
       <link>https://iceymoss.github.io/golang/web%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2%E6%80%BB%E7%BB%93/</link>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Gokins on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/gokins/</link>
+    <description>Recent content in Gokins on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 25 Jun 2023 08:54:56 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/gokins/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于Gokins自动化部署</title>
+      <link>https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Egokins%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2/</link>
+      <pubDate>Sun, 25 Jun 2023 08:54:56 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Egokins%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2/</guid>
+      <description>[toc] 写在前面 最近在公司学习到一个新玩意-Gokins基于Golang开发的自动化构建工具， 在此之前我是使用有使用过Jenkins进行项目自动化</description>
+    </item>
+    
+  </channel>
+</rss>

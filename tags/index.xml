@@ -6,22 +6,40 @@
     <description>Recent content in Tags on iceymoss - 刻意练习，卷无止境</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 13 Jun 2023 16:07:28 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 25 Jun 2023 08:54:56 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Gin</title>
-      <link>https://iceymoss.github.io/tags/gin/</link>
-      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
+      <title>Gokins</title>
+      <link>https://iceymoss.github.io/tags/gokins/</link>
+      <pubDate>Sun, 25 Jun 2023 08:54:56 +0800</pubDate>
       
-      <guid>https://iceymoss.github.io/tags/gin/</guid>
+      <guid>https://iceymoss.github.io/tags/gokins/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Golang</title>
       <link>https://iceymoss.github.io/tags/golang/</link>
-      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
+      <pubDate>Sun, 25 Jun 2023 08:54:56 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/tags/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>部署</title>
+      <link>https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/</link>
+      <pubDate>Sun, 25 Jun 2023 08:54:56 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Gin</title>
+      <link>https://iceymoss.github.io/tags/gin/</link>
+      <pubDate>Tue, 13 Jun 2023 16:07:28 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/tags/gin/</guid>
       <description></description>
     </item>
     
@@ -247,15 +265,6 @@
       <pubDate>Thu, 04 May 2023 22:12:15 +0800</pubDate>
       
       <guid>https://iceymoss.github.io/tags/web%E5%BA%94%E7%94%A8/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>部署</title>
-      <link>https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/</link>
-      <pubDate>Thu, 04 May 2023 22:12:15 +0800</pubDate>
-      
-      <guid>https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/</guid>
       <description></description>
     </item>
     

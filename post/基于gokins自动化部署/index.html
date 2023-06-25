@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>基于Gokins自动化部署 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="基于Gokins自动化部署"/>
+<meta name="twitter:description" content="[toc] 写在前面 最近在公司学习到一个新玩意-Gokins基于Golang开发的自动化构建工具， 在此之前我是使用有使用过Jenkins进行项目自动化"/>
+
+    <meta property="og:title" content="基于Gokins自动化部署" />
+<meta property="og:description" content="[toc] 写在前面 最近在公司学习到一个新玩意-Gokins基于Golang开发的自动化构建工具， 在此之前我是使用有使用过Jenkins进行项目自动化" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E5%9F%BA%E4%BA%8Egokins%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-06-25T08:54:56+08:00" />
+<meta property="article:modified_time" content="2023-06-25T08:54:56+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">基于Gokins自动化部署</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 25, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          2 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/gokins/">Gokins</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E9%83%A8%E7%BD%B2/">部署</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h2 id="写在前面">写在前面</h2>
+<p>最近在公司学习到一个新玩意-Gokins基于Golang开发的自动化构建工具， 在此之前我是使用有使用过Jenkins进行项目自动化部署，Gokins相比于Jenkins功能非常简单，使用起来也非常方便，下面本文将以Gokins完成项目后端的部署。</p>
+<h2 id="gokins的安装">Gokins的安装</h2>
+<h3 id="方法一">方法一</h3>
+<p>直接服务器服务器下载Gokins(以ubuntu为例)，使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wget http://down.gokins.cn/static/golang/gokins/gokins
+</span></span></code></pre></div><p>下载完成后可能需要更改权限：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>chmod <span style="color:#ae81ff">777</span> gokins
+</span></span></code></pre></div><p>运行Gokins:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>./gokins &amp;
+</span></span></code></pre></div><p>直接访问：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>http://your:8030/
+</span></span></code></pre></div><h3 id="方法二">方法二</h3>
+<p>使用docker安装，首先您的服务器上有安装docker， 然后直接使用命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker pull mgr9525/gokins:latest
+</span></span></code></pre></div><p>运行容器：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker run -d -p 8030:8030 mgr9525/gokins:latest
+</span></span></code></pre></div><p>直接访问：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>http://your:8030/
+</span></span></code></pre></div><h2 id="如何使用">如何使用</h2>
+<p>关于Gokins官方文档写得更好这里不做介绍了，参考<a href="http://gokins.cn/">Gokins官方文档</a></p>
+<h2 id="部署项目">部署项目</h2>
+<p>登录Gokins后，新建流水线，填写项目名称，项目描述，项目托管仓库(github，gitlab，gitee等)</p>
+<blockquote>
+<p>注意：如果是项目不公开或者不是仓库目录模式下,需要填写仓库拥有者的账号并且需要填写Access Token。</p>
+<p>注意：这里有一个小问题，项目拉取不下来，没有权限的原因，但是我填写了相关的数据，所以这里我先将项目从远程仓库clone到了我的服务器。</p>
+</blockquote>
+<p>接下来填写yaml文件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#ae81ff">1.0</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span><span style="color:#f92672">stages</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">stage</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">displayName</span>: <span style="color:#ae81ff">build</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">build</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">steps</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">step</span>: <span style="color:#ae81ff">shell@bash</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">displayName</span>: <span style="color:#ae81ff">bash</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">repo</span>: <span style="color:#ae81ff">/home/ubuntu/gokins/web</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">bash</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">git pull</span>
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">nohup go run main.go &gt; web-go.log</span>
+</span></span></code></pre></div><p>这里您可能需要修改<code>repo: /home/ubuntu/gokins/web</code>指你项目在服务器上位置</p>
+<p>将日志写入到日志文件中<code>nohup go run main.go &gt; web-go.log</code>，保存yaml后，直接点击构建，即可完成项目的部署，构建输出：</p>
+<pre tabindex="0"><code>git pull														 00:02
+1											 2023-06-21 16:25:43
+Already up to date.
+nohup go run main.go &gt; web-go.log    00:00
+1
+</code></pre><p>我们还可以在服务器上查看日志文件<code>web-go.log</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>GIN-debug<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>WARNING<span style="color:#f92672">]</span> Creating an Engine instance with the Logger and Recovery middleware already attached.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>GIN-debug<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>WARNING<span style="color:#f92672">]</span> Running in <span style="color:#e6db74">&#34;debug&#34;</span> mode. Switch to <span style="color:#e6db74">&#34;release&#34;</span> mode in production.
+</span></span><span style="display:flex;"><span> - using env:   export GIN_MODE<span style="color:#f92672">=</span>release
+</span></span><span style="display:flex;"><span> - using code:  gin.SetMode<span style="color:#f92672">(</span>gin.ReleaseMode<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>GIN-debug<span style="color:#f92672">]</span> GET    /v1/pong                  --&gt; main.Pong <span style="color:#f92672">(</span><span style="color:#ae81ff">3</span> handlers<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>GIN-debug<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>WARNING<span style="color:#f92672">]</span> You trusted all proxies, this is NOT safe. We recommend you to set a value.
+</span></span><span style="display:flex;"><span>Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies <span style="color:#66d9ef">for</span> details.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>GIN-debug<span style="color:#f92672">]</span> Listening and serving HTTP on :8093
+</span></span></code></pre></div><p>这样整个项目就构建完成了。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
