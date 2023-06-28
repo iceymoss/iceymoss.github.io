@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>Git多人协作开发 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Git多人协作开发"/>
+<meta name="twitter:description" content="[toc] 前言 相信很多同学在初入职场后，对于git使用场景不太熟悉，本文以我自己为视角出发在公司日常开发中使用git的流程，希望对你有帮助，如果您不"/>
+
+    <meta property="og:title" content="Git多人协作开发" />
+<meta property="og:description" content="[toc] 前言 相信很多同学在初入职场后，对于git使用场景不太熟悉，本文以我自己为视角出发在公司日常开发中使用git的流程，希望对你有帮助，如果您不" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/git%E5%A4%9A%E4%BA%BA%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-06-28T08:55:57+08:00" />
+<meta property="article:modified_time" content="2023-06-28T08:55:57+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">Git多人协作开发</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Jun 28, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          2 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/git/">Git</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h2 id="前言">前言</h2>
+<p>相信很多同学在初入职场后，对于git使用场景不太熟悉，本文以我自己为视角出发在公司日常开发中使用git的流程，希望对你有帮助，如果您不了解Git或者不熟悉Git常用命令，可参考<a href="https://iceymoss.github.io/post/%E4%B8%80%E7%AF%87%E5%AD%A6%E4%BC%9Agit/">一篇学会Git</a>。</p>
+<h2 id="git多人协作">Git多人协作</h2>
+<h3 id="场景">场景</h3>
+<p>到新公司后在熟悉相关业务之后给部门的任务就来了，比如我目前的公司是不允许直接将代码上传至master分支的，必须统一上传至release分支，而每天master分支都会更新，开发时是直接clone master分支的然后在本地新建属于自己的分支，开发完成后，再将代码合并到release。</p>
+<h3 id="流程">流程</h3>
+<p>如果你的公司不允许将代码直接合并到远程的 master 分支，而是要求将代码合并到远程的 release 分支，你可以按照以下步骤进行操作：</p>
+<ol>
+<li>将公司远程代码拉取到本地：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git clone url
+</span></span></code></pre></div><ol start="2">
+<li>新建本地开发分支：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git branch iceymoss
+</span></span></code></pre></div><blockquote>
+<p>注意：本文我自己的开发分支命名为iceymoss</p>
+</blockquote>
+<ol start="3">
+<li>确保你当前在 iceymoss 分支上工作，可以使用以下命令切换到 iceymoss 分支（如果尚未切换）：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git checkout iceymoss
+</span></span></code></pre></div><ol start="4">
+<li>确认你的本地 iceymoss 分支已经包含了你要上传的所有代码修改。</li>
+</ol>
+<blockquote>
+<p>注意：就是完成功能的开发，将代码提交到 iceymoss分支本地仓库</p>
+</blockquote>
+<ol start="5">
+<li>推送 iceymoss 分支到远程仓库，使用以下命令：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git push origin iceymoss
+</span></span></code></pre></div><ol start="6">
+<li>
+<p>使用以上命令，这将把你的本地 iceymoss 分支推送到远程仓库，并在远程仓库中创建一个名为 iceymoss 的分支。</p>
+</li>
+<li>
+<p>切换到 release 分支，使用以下命令：</p>
+</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git checkout release
+</span></span></code></pre></div><ol start="8">
+<li>
+<p>如果远程仓库中不存在 release 分支，你需要先创建一个 release 分支。</p>
+</li>
+<li>
+<p>将远程 release 分支更新为最新版本(就是将远程 release更新到本地 release分支)，使用以下命令：</p>
+</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git pull origin release
+</span></span></code></pre></div><ol start="10">
+<li>将 iceymoss 分支合并到本地 release 分支（这里需要注意：在 release分之下合并iceymoss分支，使用以下命令：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git merge iceymoss
+</span></span></code></pre></div><ol start="11">
+<li>
+<p>这将把 iceymoss 分支的代码合并到本地的 release 分支。</p>
+</li>
+<li>
+<p>推送本地的 release 分支到远程仓库，使用以下命令：</p>
+</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git push origin release
+</span></span></code></pre></div><ol start="13">
+<li>这将把本地的 release 分支推送到远程仓库的 release 分支。现在，你的 iceymoss 分支上的代码已经合并到了远程的 release 分支中了。</li>
+</ol>
+<p>请注意，在执行以上操作时，确保你具有足够的权限来推送到远程仓库。根据你的具体情况，可能需要进行适当的调整。</p>
+<h2 id="总结">总结</h2>
+<p>这就是Git多人协作开发，项目或者部门开发人员开发时都重新clone最小的master分支，然后的本地新建自己对应的开发分支，最后将代码合并到本地 release并上传远程 release分支即可。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

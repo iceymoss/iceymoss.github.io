@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Git on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/git/</link>
+    <description>Recent content in Git on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 28 Jun 2023 08:55:57 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/git/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Git多人协作开发</title>
+      <link>https://iceymoss.github.io/post/git%E5%A4%9A%E4%BA%BA%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91/</link>
+      <pubDate>Wed, 28 Jun 2023 08:55:57 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/git%E5%A4%9A%E4%BA%BA%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91/</guid>
+      <description>[toc] 前言 相信很多同学在初入职场后，对于git使用场景不太熟悉，本文以我自己为视角出发在公司日常开发中使用git的流程，希望对你有帮助，如果您不</description>
+    </item>
+    
+  </channel>
+</rss>
