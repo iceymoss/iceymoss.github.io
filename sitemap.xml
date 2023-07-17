@@ -2,28 +2,40 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://iceymoss.github.io/categories/</loc>
-    <lastmod>2023-06-28T08:55:57+08:00</lastmod>
+    <loc>https://iceymoss.github.io/tags/ansible/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
   </url><url>
     <loc>https://iceymoss.github.io/categories/</loc>
-    <lastmod>2023-06-28T08:55:57+08:00</lastmod>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
+  </url><url>
+    <loc>https://iceymoss.github.io/categories/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
   </url><url>
     <loc>https://iceymoss.github.io/categories/dev/</loc>
-    <lastmod>2023-06-28T08:55:57+08:00</lastmod>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
+  </url><url>
+    <loc>https://iceymoss.github.io/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
+  </url><url>
+    <loc>https://iceymoss.github.io/post/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
+  </url><url>
+    <loc>https://iceymoss.github.io/tags/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
+  </url><url>
+    <loc>https://iceymoss.github.io/tags/%E5%B7%A5%E5%85%B7/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
+  </url><url>
+    <loc>https://iceymoss.github.io/post/%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0ansible%E5%B7%A5%E5%85%B7/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
+  </url><url>
+    <loc>https://iceymoss.github.io/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/</loc>
+    <lastmod>2023-07-17T18:07:35+08:00</lastmod>
   </url><url>
     <loc>https://iceymoss.github.io/tags/git/</loc>
     <lastmod>2023-06-28T08:55:57+08:00</lastmod>
   </url><url>
     <loc>https://iceymoss.github.io/post/git%E5%A4%9A%E4%BA%BA%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91/</loc>
-    <lastmod>2023-06-28T08:55:57+08:00</lastmod>
-  </url><url>
-    <loc>https://iceymoss.github.io/</loc>
-    <lastmod>2023-06-28T08:55:57+08:00</lastmod>
-  </url><url>
-    <loc>https://iceymoss.github.io/post/</loc>
-    <lastmod>2023-06-28T08:55:57+08:00</lastmod>
-  </url><url>
-    <loc>https://iceymoss.github.io/tags/</loc>
     <lastmod>2023-06-28T08:55:57+08:00</lastmod>
   </url><url>
     <loc>https://iceymoss.github.io/tags/gokins/</loc>
