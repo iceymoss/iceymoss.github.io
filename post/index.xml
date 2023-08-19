@@ -6,7 +6,16 @@
     <description>Recent content in Posts on iceymoss - 刻意练习，卷无止境</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 19 Aug 2023 15:16:20 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 19 Aug 2023 15:29:28 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go异步读取MySQL</title>
+      <link>https://iceymoss.github.io/post/go%E5%BC%82%E6%AD%A5%E8%AF%BB%E5%8F%96mysql/</link>
+      <pubDate>Sat, 19 Aug 2023 15:29:28 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/go%E5%BC%82%E6%AD%A5%E8%AF%BB%E5%8F%96mysql/</guid>
+      <description>Go异步读取MySQL 有些使用我们面临在数据量很多的情况，例如之前在公司实习，就需要在多个6亿条记录的MySQL数据库中查询数据，面对这庞大</description>
+    </item>
+    
     <item>
       <title>列式数据库ClickHouse</title>
       <link>https://iceymoss.github.io/post/%E5%88%97%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93clickhouse/</link>
