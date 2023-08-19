@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>Pprof性能分析 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Pprof性能分析"/>
+<meta name="twitter:description" content="[toc] 写在前面 pprof（性能剖析工具）是 Go 语言标准库中用于性能分析的工具。它可以帮助你了解程序在 CPU 和内存方面的性能表现，以便优化代码。使用 pp"/>
+
+    <meta property="og:title" content="Pprof性能分析" />
+<meta property="og:description" content="[toc] 写在前面 pprof（性能剖析工具）是 Go 语言标准库中用于性能分析的工具。它可以帮助你了解程序在 CPU 和内存方面的性能表现，以便优化代码。使用 pp" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/pprof%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-08-19T15:35:20+08:00" />
+<meta property="article:modified_time" content="2023-08-19T15:35:20+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">Pprof性能分析</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Aug 19, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          3 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/pprof/">pprof</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/">性能分析</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="写在前面">写在前面</h3>
+<p><strong>pprof</strong>（性能剖析工具）是 Go 语言标准库中用于性能分析的工具。它可以帮助你了解程序在 CPU 和内存方面的性能表现，以便优化代码。使用 <strong>pprof</strong>，你可以获取 CPU 使用率、内存分配情况、阻塞情况等信息，并生成分析报告。</p>
+<h3 id="快速使用">快速使用</h3>
+<h4 id="使用步骤">使用步骤</h4>
+<p><strong>pprof</strong> 的使用主要分为两个步骤：收集性能数据和生成分析报告。</p>
+<ol>
+<li>收集性能数据：</li>
+</ol>
+<p>首先，在你的 Go 代码中导入 <strong>net/http/pprof</strong> 包，并在程序中启动一个 HTTP 服务器，以便能够通过 HTTP 接口来获取性能数据。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">_</span> <span style="color:#e6db74">&#34;net/http/pprof&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 启动 HTTP 服务器，监听在 6060 端口
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;localhost:6060&#34;</span>, <span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>    }()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ... 其他代码 ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><ol>
+<li>生成分析报告：</li>
+</ol>
+<p>在程序运行时，你可以通过访问特定的 URL 来获取性能数据，然后使用 <strong>pprof</strong> 工具生成分析报告。</p>
+<ul>
+<li>获取 CPU 使用率数据：</li>
+</ul>
+<p>在浏览器中访问 <strong>http://localhost:6060/debug/pprof/profile</strong>，该 URL 会运行 CPU 使用率分析，运行一段时间后，下载 <strong>.pb.gz</strong> 文件，然后使用 <strong>go tool pprof</strong> 命令来查看报告。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-plain" data-lang="plain"><span style="display:flex;"><span>bashCopy code
+</span></span><span style="display:flex;"><span>go tool pprof http://localhost:6060/debug/pprof/profile
+</span></span></code></pre></div><ul>
+<li>获取内存分配数据：</li>
+</ul>
+<p>在浏览器中访问 <strong>http://localhost:6060/debug/pprof/heap</strong>，该 URL 会运行内存分配分析，然后下载 <strong>.pb.gz</strong> 文件，并使用 <strong>go tool pprof</strong> 命令来查看报告。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-plain" data-lang="plain"><span style="display:flex;"><span>bashCopy code
+</span></span><span style="display:flex;"><span>go tool pprof http://localhost:6060/debug/pprof/heap
+</span></span></code></pre></div><p>以上是基本用法，<strong>pprof</strong> 还支持更多的性能分析功能，如阻塞分析、goroutine 分析等。你可以通过访问 <strong>http://localhost:6060/debug/pprof</strong> 来获取所有支持的性能分析功能列表，并按需生成相应的报告。</p>
+<p>注意：在生产环境中，建议避免将 <strong>pprof</strong> 暴露在公开的网络上，因为它可能泄漏敏感信息。在生产环境中，可以使用类似 <strong>net/http/pprof</strong> 提供的 <strong>mux</strong> 来进行路由管理，并通过安全手段限制访问。</p>
+<h4 id="参数分析">参数分析</h4>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>allocs</td>
+<td>内存分配情况的采样信息</td>
+<td>可以用浏览器打开，但可读性不高</td>
+</tr>
+<tr>
+<td>blocks</td>
+<td>阻塞操作情况的采样信息</td>
+<td>可以用浏览器打开，但可读性不高</td>
+</tr>
+<tr>
+<td>cmdline</td>
+<td>显示程序启动命令及参数</td>
+<td>可以用浏览器打开，这里会显示 ./go-pprof-practice</td>
+</tr>
+<tr>
+<td>goroutine</td>
+<td>当前所有协程的堆栈信息</td>
+<td>可以用浏览器打开，但可读性不高</td>
+</tr>
+<tr>
+<td>heap</td>
+<td>堆上内存使用情况的采样信息</td>
+<td>可以用浏览器打开，但可读性不高</td>
+</tr>
+<tr>
+<td>mutex</td>
+<td>锁争用情况的采样信息</td>
+<td>可以用浏览器打开，但可读性不高</td>
+</tr>
+<tr>
+<td>profile</td>
+<td>CPU 占用情况的采样信息</td>
+<td>浏览器打开会下载文件</td>
+</tr>
+<tr>
+<td>threadcreate</td>
+<td>系统线程创建情况的采样信息</td>
+<td>可以用浏览器打开，但可读性不高</td>
+</tr>
+<tr>
+<td>trace</td>
+<td>程序运行跟踪信息</td>
+<td>浏览器打开会下载文件，本文不涉及</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>flat：代表“平均”，表示对应函数的执行时间或者内存占用量。</li>
+<li>flat%：代表“平均百分比”，表示对应函数占整体的百分比。</li>
+<li>sum%：代表“累积百分比”，表示对应函数及其调用链上的函数占整体的百分比。</li>
+<li>cum：代表“累积”，表示对应函数及其调用链上的函数的执行时间或者内存占用量。</li>
+<li>cum%：代表“累积百分比”，表示对应函数及其调用链上的函数占整体的百分比。</li>
+</ol>
+<h3 id="使用实例">使用实例</h3>
+<h4 id="排查-cpu-占用情况">排查 CPU 占用情况</h4>
+<p>使用命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">tool</span> <span style="color:#a6e22e">pprof</span> <span style="color:#a6e22e">http</span>:<span style="color:#75715e">//172.16.12.238:8085/debug/pprof/profile
+</span></span></span></code></pre></div><p>这里可能会多等一会儿</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2023/png/38524033/1689763838679-b84b6afc-ca61-454c-9bf6-c2f55523c5eb.png" alt="img"></p>
+<h4 id="排除内存使用情况">排除内存使用情况</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">tool</span> <span style="color:#a6e22e">pprof</span> <span style="color:#a6e22e">http</span>:<span style="color:#75715e">//http://172.16.12.238:8085/debug/pprof/heap
+</span></span></span></code></pre></div><p>输入 top 命令，查看 内存占用较高的调用：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2023/png/38524033/1689760880535-d4903e7f-f7d4-4930-8394-2f1574210c87.png" alt="img"></p>
+<p>可以看到内存的使用情况。</p>
+<p>我们可以给<code>top</code>命令加参数，例如：top20，接着我们可以使用<code>list</code>命令来定位具体内存消耗在哪里，入下图：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2023/png/38524033/1689761798618-3628ba70-6941-4df9-ad2d-01a4caf7e658.png" alt="img"></p>
+<p>这里因为我没有权限，所以无法看到具体细节。</p>
+<h4 id="排查频繁内存回收">排查频繁内存回收</h4>
+<p>我们可以使用命令查看程序的GC情况：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">GODEBUG</span>=<span style="color:#a6e22e">gctrace</span>=<span style="color:#ae81ff">1</span> .<span style="color:#f92672">/</span><span style="color:#a6e22e">coupert</span><span style="color:#f92672">-</span><span style="color:#66d9ef">go</span> | <span style="color:#a6e22e">grep</span> <span style="color:#a6e22e">gc</span>
+</span></span></code></pre></div><p>可以看到具体的GC情况。</p>
+<p>使用命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">tool</span> <span style="color:#a6e22e">pprof</span> <span style="color:#a6e22e">http</span>:<span style="color:#75715e">//172.16.12.238:8085/debug/pprof/allocs
+</span></span></span></code></pre></div><p>可以看到：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2023/png/38524033/1689762215904-1605f35b-0557-496a-98a2-6c1ce0f164ec.png" alt="img"></p>
+<p>我们可以看到这里的rawToken占用最大，我们可以可以使用```list rawToken进行定位，这里就不做演示了。</p>
+<h4 id="排查协程泄露">排查协程泄露</h4>
+<p>使用命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">tool</span> <span style="color:#a6e22e">pprof</span> <span style="color:#a6e22e">http</span>:<span style="color:#75715e">//172.16.12.238:8085/debug/pprof/goroutine
+</span></span></span></code></pre></div><p><img src="https://cdn.nlark.com/yuque/0/2023/png/38524033/1689763086180-d0b2dd2e-315d-496e-a2c7-193853636ccb.png" alt="img"></p>
+<p>具体定位我们直接使用<code>list</code>命令即可。</p>
+<h4 id="排查锁的争用">排查锁的争用</h4>
+<p>直接使用命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">tool</span> <span style="color:#a6e22e">pprof</span> <span style="color:#a6e22e">http</span>:<span style="color:#75715e">//172.16.12.238:8085/debug/pprof/mutex
+</span></span></span></code></pre></div><p><img src="https://cdn.nlark.com/yuque/0/2023/png/38524033/1689763232954-dfbe9024-ebe6-4ec1-b94f-7a4fbae3b097.png" alt="img"></p>
+<p>可以看到此时是没有锁的争用。</p>
+<h4 id="排查阻塞操作">排查阻塞操作</h4>
+<p>直接使用命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">tool</span> <span style="color:#a6e22e">pprof</span> <span style="color:#a6e22e">http</span>:<span style="color:#75715e">//172.16.12.238:8085/debug/pprof/block
+</span></span></span></code></pre></div><p><img src="https://cdn.nlark.com/yuque/0/2023/png/38524033/1689763363389-8dd61541-4bbe-4701-b6f2-9fd8a365b2e6.png" alt="img"></p>
+<p>可以看到此时也没有阻塞操作的。</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
