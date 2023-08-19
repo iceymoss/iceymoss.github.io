@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>解决方案 on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/</link>
+    <description>Recent content in 解决方案 on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 19 Aug 2023 15:50:22 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>记录-在SQL中计算</title>
+      <link>https://iceymoss.github.io/post/%E8%AE%B0%E5%BD%95-%E5%9C%A8sql%E4%B8%AD%E8%AE%A1%E7%AE%97/</link>
+      <pubDate>Sat, 19 Aug 2023 15:50:22 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E8%AE%B0%E5%BD%95-%E5%9C%A8sql%E4%B8%AD%E8%AE%A1%E7%AE%97/</guid>
+      <description>场景 当有需求是这样的，我需要在表1中拿到某些数据(拿到每一条记录中两个字段的比值，然后再拿某一个字段的值)到表2中计算出对应的数据，并返回通</description>
+    </item>
+    
+    <item>
+      <title>记录 时间展示展示方案</title>
+      <link>https://iceymoss.github.io/post/%E8%AE%B0%E5%BD%95-%E6%97%B6%E9%97%B4%E5%B1%95%E7%A4%BA%E5%B1%95%E7%A4%BA%E6%96%B9%E6%A1%88/</link>
+      <pubDate>Sat, 19 Aug 2023 15:42:16 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/%E8%AE%B0%E5%BD%95-%E6%97%B6%E9%97%B4%E5%B1%95%E7%A4%BA%E5%B1%95%E7%A4%BA%E6%96%B9%E6%A1%88/</guid>
+      <description>[toc] 场景 时间有三种类型： 1、长期 2、具体时间范围 3、周几展示 解决方案 1、长期：使用bool 2、具体范围：startTime-endTime 3、</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <title>记录 时间展示展示方案 // iceymoss - 刻意练习，卷无止境</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.111.3">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="iceymoss" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="/css/main.min.3c3c186cd62e563ad6e2f00a89dbee656ab912d1d46f856b5605dd0232521e2a.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="记录 时间展示展示方案"/>
+<meta name="twitter:description" content="[toc] 场景 时间有三种类型： 1、长期 2、具体时间范围 3、周几展示 解决方案 1、长期：使用bool 2、具体范围：startTime-endTime 3、"/>
+
+    <meta property="og:title" content="记录 时间展示展示方案" />
+<meta property="og:description" content="[toc] 场景 时间有三种类型： 1、长期 2、具体时间范围 3、周几展示 解决方案 1、长期：使用bool 2、具体范围：startTime-endTime 3、" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://iceymoss.github.io/post/%E8%AE%B0%E5%BD%95-%E6%97%B6%E9%97%B4%E5%B1%95%E7%A4%BA%E5%B1%95%E7%A4%BA%E6%96%B9%E6%A1%88/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-08-19T15:42:16+08:00" />
+<meta property="article:modified_time" content="2023-08-19T15:42:16+08:00" />
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://iceymoss.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="iceymoss" /></a>
+      <span class="app-header-title">iceymoss - 刻意练习，卷无止境</span>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">首页</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/archives/">归档</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">标签</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/categories/">类别</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">关于</a>
+      </nav>
+      <p>iceymoss&#39;s blog, Golang Python Developer Life</p>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">记录 时间展示展示方案</h1>
+      <div class="post-meta">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Aug 19, 2023
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          3 min read
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E5%B7%A5%E4%BD%9C/">工作</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/">解决方案</a>
+              <a class="tag" href="https://iceymoss.github.io/tags/golang/">Golang</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <p>[toc]</p>
+<h3 id="场景">场景</h3>
+<p>时间有三种类型：</p>
+<p>1、长期</p>
+<p>2、具体时间范围</p>
+<p>3、周几展示</p>
+<h3 id="解决方案">解决方案</h3>
+<p>1、长期：使用bool</p>
+<p>2、具体范围：startTime-endTime</p>
+<p>3、周几展示：使用二进制为1表示周几，例如：0001011表示周一、周二、周四转为十进制为：11，然后将11存储到数据库中，即可。</p>
+<h3 id="长期">长期</h3>
+<p>对于长期展示为true, false则需要在具体时间范围和周几展示选择其一，最后返回true -&gt; 长期</p>
+<h3 id="范围">范围</h3>
+<p>范围使用两个字段：startTime和endTime，返回直接拼接字符串：startTime-endTime</p>
+<h3 id="周几">周几</h3>
+<p>周几展示由于是在数据库中使用二进制逻辑，然后存储十进制，非常节省空间最大的数127，即：周一到周日都需要展示，这里最重要的也就是应用层需要判断前端参数数组:[1,2,4]，转为-&gt; 11然后存储，最后需要将11 -&gt; :[1,2,3,4] 然后 1 -&gt; 周一&hellip;.</p>
+<p>解决方案：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// setDayOfWeek 使用二进制位运算将选择的周几表示为一个整数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">setDayOfWeek</span>(<span style="color:#a6e22e">days</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">uint8</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">result</span> <span style="color:#66d9ef">uint8</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">day</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">days</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">result</span> <span style="color:#f92672">|=</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> uint(<span style="color:#a6e22e">day</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">result</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// getSelectedDays 将整数表示的选择转换为对应的周几
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">getSelectedDays</span>(<span style="color:#a6e22e">weekDays</span> <span style="color:#66d9ef">uint8</span>) []<span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">result</span> []<span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">7</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">weekDays</span><span style="color:#f92672">&amp;</span>(<span style="color:#ae81ff">1</span><span style="color:#f92672">&lt;&lt;</span>(uint(<span style="color:#a6e22e">i</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>))) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">result</span> = append(<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">i</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">result</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="精准查询">精准查询</h3>
+<p>如果我们查询某一个的具体的时间，例如：2023-07-30，属于长期展示的肯定需要查询到的，在展示时间范围的也内的也能够查询到:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> coupert_base.store_trending <span style="color:#66d9ef">where</span> (IsPermanent <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span> <span style="color:#66d9ef">or</span> <span style="color:#e6db74">&#39;2023-08-30&#39;</span> <span style="color:#66d9ef">BETWEEN</span> StartDate <span style="color:#66d9ef">AND</span> EndDate) <span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> <span style="color:#f92672">`</span>Rank<span style="color:#f92672">`</span> <span style="color:#66d9ef">desc</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">100</span>;
+</span></span></code></pre></div><p>但是我们要查询周几展示应该怎么做？</p>
+<p>解决方案：</p>
+<p>数据库存储的是标记周几的二进制逻辑的十进制数，我们首先需要将2023-07-30转为我们的周几：这天是周末，也就是：7， 然后我们需要将7转为表示二进制的数：1000000， 然后再将其转为十进制，即：64， 然后就可以使用二进制的&amp;运算， SQL如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> coupert_base.store_trending <span style="color:#66d9ef">where</span> (IsPermanent <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span> <span style="color:#66d9ef">or</span> DayOfWeek <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">64</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">64</span> <span style="color:#66d9ef">or</span> <span style="color:#e6db74">&#39;2023-07-30&#39;</span> <span style="color:#66d9ef">BETWEEN</span> StartDate <span style="color:#66d9ef">AND</span> EndDate) <span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> <span style="color:#f92672">`</span>Rank<span style="color:#f92672">`</span> <span style="color:#66d9ef">desc</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">100</span>;
+</span></span></code></pre></div><p>这样就可以查询到符合周日的记录了</p>
+<p>转换逻辑代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// WeekdayToNumber 将 time.Weekday 类型转换为数字周几
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">WeekdayToNumber</span>(<span style="color:#a6e22e">weekday</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 注意：time.Weekday 类型的值从 0（周日）到 6（周六）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// 我们将其转换为数字周几（1 表示周一，2 表示周二，...，7 表示周日）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">layout</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;2006-01-02 15:04:05&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#a6e22e">layout</span>, <span style="color:#a6e22e">weekday</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> int(<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Weekday</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">7</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> int(<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Weekday</span>())
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 查询是否包含指定的二进制值 对应SQL的代码：DayOfWeek &amp; 64 = 64
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">containsBinary</span>(<span style="color:#a6e22e">target</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">target</span><span style="color:#f92672">&amp;</span><span style="color:#a6e22e">value</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">value</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">weekDay</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">WeekdayToNumber</span>(<span style="color:#e6db74">&#34;2023-07-30 00:00:00&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;周几：&#34;</span>, <span style="color:#a6e22e">weekDay</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">queryValue</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> (<span style="color:#a6e22e">weekDay</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;转为二进制逻辑的数：：&#34;</span>, <span style="color:#a6e22e">queryValue</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">containsBinary</span>(<span style="color:#ae81ff">75</span>, <span style="color:#a6e22e">queryValue</span>) { <span style="color:#75715e">//75 -&gt; 1001011 表示：&#34;周一 周二 周四 周日&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;星期%d在记录中&#34;</span>, <span style="color:#a6e22e">weekDay</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//输出：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//周几： 7
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//转为二进制逻辑的数：： 64
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//星期7在记录中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div>
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>

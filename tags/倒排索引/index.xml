@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>倒排索引 on iceymoss - 刻意练习，卷无止境</title>
+    <link>https://iceymoss.github.io/tags/%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/</link>
+    <description>Recent content in 倒排索引 on iceymoss - 刻意练习，卷无止境</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 19 Aug 2023 16:04:41 +0800</lastBuildDate><atom:link href="https://iceymoss.github.io/tags/%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ES存储引擎 倒排索引</title>
+      <link>https://iceymoss.github.io/post/es%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E-%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/</link>
+      <pubDate>Sat, 19 Aug 2023 16:04:41 +0800</pubDate>
+      
+      <guid>https://iceymoss.github.io/post/es%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E-%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/</guid>
+      <description>什么是倒排索引 当涉及倒排索引时，让我们使用一个简单的例子来说明。考虑以下三个文档的例子，这些文档代表了一些博客文章： 文档1： Title: Introduction to Elasticsearch Content: Elasticsearch is a</description>
+    </item>
+    
+  </channel>
+</rss>
